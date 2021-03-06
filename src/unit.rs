@@ -63,6 +63,20 @@ impl Unit {
             Yotta => "Y",   Yobi => "Yi",
         }
     }
+
+    #[rustfmt::skip]
+    pub fn symbol_long(&self) -> &str {
+        match self {
+            Kilo  => "Kilo" ,   Kibi => "Kibi",
+            Mega  => "Mega" ,   Mebi => "Mebi",
+            Giga  => "Giga" ,   Gibi => "Gibi",
+            Tera  => "Tera" ,   Tebi => "Tebi",
+            Peta  => "Peta" ,   Pebi => "Pebi",
+            Exa   => "Exa"  ,   Exbi => "Exbi",
+            Zetta => "Zetta",   Zebi => "Zebi",
+            Yotta => "Yotta",   Yobi => "Yobi",
+        }
+    }
 }
 
 impl fmt::Display for Unit {
@@ -166,6 +180,30 @@ mod tests {
                 *repr,
                 format!("{}", unit),
                 "expected [{:?}] to be represented as {}",
+                unit,
+                repr
+            );
+        }
+    }
+    #[test]
+    fn format_symbol_long() {
+        #[rustfmt::skip]
+        let map: [(Unit, &str); 16] = [
+            (Kilo ,   "Kilo" ),  (Kibi,   "Kibi"),
+            (Mega ,   "Mega" ),  (Mebi,   "Mebi"),
+            (Giga ,   "Giga" ),  (Gibi,   "Gibi"),
+            (Tera ,   "Tera" ),  (Tebi,   "Tebi"),
+            (Peta ,   "Peta" ),  (Pebi,   "Pebi"),
+            (Exa  ,   "Exa"  ),  (Exbi,   "Exbi"),
+            (Zetta,   "Zetta"),  (Zebi,   "Zebi"),
+            (Yotta,   "Yotta"),  (Yobi,   "Yobi"),
+        ];
+
+        for (unit, repr) in map.iter() {
+            assert_eq!(
+                *repr,
+                unit.symbol_long(),
+                "expected [{:?}] to be represented in long form as {}",
                 unit,
                 repr
             );
