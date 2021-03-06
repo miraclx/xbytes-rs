@@ -109,8 +109,8 @@ mod tests {
 
         for (unit, index) in map.iter() {
             assert_eq!(
-                unit.index(),
                 *index,
+                unit.index(),
                 "expected [{:?}] to have the index {}",
                 unit,
                 index
