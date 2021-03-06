@@ -1,12 +1,12 @@
 #[rustfmt::skip]
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum Unit {
-    Kilo,  Kibi,
-    Mega,  Mebi,
-    Giga,  Gibi,
-    Tera,  Tebi,
-    Peta,  Pebi,
-    Exa,   Exbi,
+    Kilo , Kibi,
+    Mega , Mebi,
+    Giga , Gibi,
+    Tera , Tebi,
+    Peta , Pebi,
+    Exa  , Exbi,
     Zetta, Zebi,
     Yotta, Yobi,
 }
@@ -97,14 +97,14 @@ mod tests {
     fn index() {
         #[rustfmt::skip]
         let map: [(Unit, usize); 16] = [
-            (Kilo,   0), (Kibi,   0),
-            (Mega,   1), (Mebi,   1),
-            (Giga,   2), (Gibi,   2),
-            (Tera,   3), (Tebi,   3),
-            (Peta,   4), (Pebi,   4),
-            (Exa,    5), (Exbi,   5),
-            (Zetta,  6), (Zebi,   6),
-            (Yotta,  7), (Yobi,   7),
+            (Kilo ,   0), (Kibi,   0),
+            (Mega ,   1), (Mebi,   1),
+            (Giga ,   2), (Gibi,   2),
+            (Tera ,   3), (Tebi,   3),
+            (Peta ,   4), (Pebi,   4),
+            (Exa  ,   5), (Exbi,   5),
+            (Zetta,   6), (Zebi,   6),
+            (Yotta,   7), (Yobi,   7),
         ];
 
         for (unit, index) in map.iter() {
