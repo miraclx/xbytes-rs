@@ -19,12 +19,12 @@ impl Unit {
     const DECIMAL: [Unit; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
     const BINARY: [Unit; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
 
-    pub fn is_decimal(&self) -> bool {
-        Self::DECIMAL.contains(self)
+    pub const fn is_decimal(&self) -> bool {
+        ((*self as u8) & 1) == 0
     }
 
-    pub fn is_binary(&self) -> bool {
-        Self::BINARY.contains(self)
+    pub const fn is_binary(&self) -> bool {
+        ((*self as u8) & 1) == 1
     }
 
     pub fn index(&self) -> usize {
