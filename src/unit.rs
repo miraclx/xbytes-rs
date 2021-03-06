@@ -176,6 +176,56 @@ mod tests {
     }
 
     #[test]
+    fn to_decimal() {
+        #[rustfmt::skip]
+        let map = [
+            (Kilo ,   Kilo ), (Kibi,   Kilo ),
+            (Mega ,   Mega ), (Mebi,   Mega ),
+            (Giga ,   Giga ), (Gibi,   Giga ),
+            (Tera ,   Tera ), (Tebi,   Tera ),
+            (Peta ,   Peta ), (Pebi,   Peta ),
+            (Exa  ,   Exa  ), (Exbi,   Exa  ),
+            (Zetta,   Zetta), (Zebi,   Zetta),
+            (Yotta,   Yotta), (Yobi,   Yotta),
+        ];
+
+        for (unit, expected) in map.iter() {
+            assert_eq!(
+                *expected,
+                unit.decimal(),
+                "expected [{:?}] to be represented as [{:?}] in decimal",
+                unit,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn to_binary() {
+        #[rustfmt::skip]
+        let map = [
+            (Kilo ,   Kibi), (Kibi,   Kibi),
+            (Mega ,   Mebi), (Mebi,   Mebi),
+            (Giga ,   Gibi), (Gibi,   Gibi),
+            (Tera ,   Tebi), (Tebi,   Tebi),
+            (Peta ,   Pebi), (Pebi,   Pebi),
+            (Exa  ,   Exbi), (Exbi,   Exbi),
+            (Zetta,   Zebi), (Zebi,   Zebi),
+            (Yotta,   Yobi), (Yobi,   Yobi),
+        ];
+
+        for (unit, expected) in map.iter() {
+            assert_eq!(
+                *expected,
+                unit.binary(),
+                "expected [{:?}] to be represented as [{:?}] in binary",
+                unit,
+                expected
+            );
+        }
+    }
+
+    #[test]
     fn format_and_display_symbol() {
         #[rustfmt::skip]
         let map = [
