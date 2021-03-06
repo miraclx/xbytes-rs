@@ -31,14 +31,14 @@ impl Unit {
         (*self as usize) / 2
     }
 
-    pub fn decimal(&self) -> Self {
+    pub const fn decimal(&self) -> Self {
         if self.is_binary() {
             return Self::DECIMAL[self.index()];
         }
         *self
     }
 
-    pub fn binary(&self) -> Self {
+    pub const fn binary(&self) -> Self {
         if self.is_decimal() {
             return Self::BINARY[self.index()];
         }
@@ -46,7 +46,7 @@ impl Unit {
     }
 
     #[rustfmt::skip]
-    pub fn symbol(&self) -> &str {
+    pub const fn symbol(&self) -> &'static str {
         match self {
             Kilo  => "K",   Kibi => "Ki",
             Mega  => "M",   Mebi => "Mi",
@@ -60,7 +60,7 @@ impl Unit {
     }
 
     #[rustfmt::skip]
-    pub fn symbol_long(&self) -> &str {
+    pub const fn symbol_long(&self) -> &'static str {
         match self {
             Kilo  => "Kilo" ,   Kibi => "Kibi",
             Mega  => "Mega" ,   Mebi => "Mebi",
@@ -74,7 +74,7 @@ impl Unit {
     }
 
     #[rustfmt::skip]
-    pub fn symbol_short(&self) -> &str {
+    pub const fn symbol_short(&self) -> &'static str {
         match self {
             Kilo  | Kibi => "K",
             Mega  | Mebi => "M",
