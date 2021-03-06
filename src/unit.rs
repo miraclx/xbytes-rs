@@ -77,15 +77,32 @@ impl Unit {
             Yotta => "Yotta",   Yobi => "Yobi",
         }
     }
+
+    #[rustfmt::skip]
+    pub fn symbol_short(&self) -> &str {
+        match self {
+            Kilo  | Kibi => "K",
+            Mega  | Mebi => "M",
+            Giga  | Gibi => "G",
+            Tera  | Tebi => "T",
+            Peta  | Pebi => "P",
+            Exa   | Exbi => "E",
+            Zetta | Zebi => "Z",
+            Yotta | Yobi => "Y",
+        }
+    }
 }
 
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(if !f.alternate() {
-            self.symbol()
-        } else {
+        let unit = if f.sign_minus() {
+            self.symbol_short()
+        } else if f.alternate() {
             self.symbol_long()
-        })
+        } else {
+            self.symbol()
+        };
+        f.write_str(unit)
     }
 }
 
@@ -216,6 +233,38 @@ mod tests {
                 *repr,
                 format!("{:#}", unit),
                 "expected [{:?}] to be represented in long form as {}",
+                unit,
+                repr
+            );
+        }
+    }
+
+    #[test]
+    fn format_and_display_symbol_short() {
+        #[rustfmt::skip]
+        let map: [(Unit, &str); 16] = [
+            (Kilo ,   "K"),  (Kibi,   "K"),
+            (Mega ,   "M"),  (Mebi,   "M"),
+            (Giga ,   "G"),  (Gibi,   "G"),
+            (Tera ,   "T"),  (Tebi,   "T"),
+            (Peta ,   "P"),  (Pebi,   "P"),
+            (Exa  ,   "E"),  (Exbi,   "E"),
+            (Zetta,   "Z"),  (Zebi,   "Z"),
+            (Yotta,   "Y"),  (Yobi,   "Y"),
+        ];
+
+        for (unit, repr) in map.iter() {
+            assert_eq!(
+                *repr,
+                unit.symbol_short(),
+                "expected [{:?}] to be represented in short form as {}",
+                unit,
+                repr
+            );
+            assert_eq!(
+                *repr,
+                format!("{:-}", unit),
+                "expected [{:?}] to be represented in short form as {}",
                 unit,
                 repr
             );
