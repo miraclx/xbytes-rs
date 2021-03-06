@@ -81,7 +81,11 @@ impl Unit {
 
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.symbol())
+        f.write_str(if !f.alternate() {
+            self.symbol()
+        } else {
+            self.symbol_long()
+        })
     }
 }
 
@@ -185,8 +189,9 @@ mod tests {
             );
         }
     }
+
     #[test]
-    fn format_symbol_long() {
+    fn format_and_display_symbol_long() {
         #[rustfmt::skip]
         let map: [(Unit, &str); 16] = [
             (Kilo ,   "Kilo" ),  (Kibi,   "Kibi"),
@@ -203,6 +208,13 @@ mod tests {
             assert_eq!(
                 *repr,
                 unit.symbol_long(),
+                "expected [{:?}] to be represented in long form as {}",
+                unit,
+                repr
+            );
+            assert_eq!(
+                *repr,
+                format!("{:#}", unit),
                 "expected [{:?}] to be represented in long form as {}",
                 unit,
                 repr
