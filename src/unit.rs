@@ -136,12 +136,18 @@ mod tests {
         for unit in [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta].iter() {
             assert!(unit.is_decimal())
         }
+        for unit in [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi].iter() {
+            assert!(!unit.is_decimal())
+        }
     }
 
     #[test]
     fn is_binary() {
         for unit in [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi].iter() {
             assert!(unit.is_binary())
+        }
+        for unit in [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta].iter() {
+            assert!(!unit.is_binary())
         }
     }
 
