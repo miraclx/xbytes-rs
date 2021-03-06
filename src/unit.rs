@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[rustfmt::skip]
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum Unit {
@@ -46,6 +48,26 @@ impl Unit {
             return Self::BINARY[self.index()];
         }
         *self
+    }
+
+    #[rustfmt::skip]
+    pub fn symbol(&self) -> &str {
+        match self {
+            Kilo  => "K",   Kibi => "Ki",
+            Mega  => "M",   Mebi => "Mi",
+            Giga  => "G",   Gibi => "Gi",
+            Tera  => "T",   Tebi => "Ti",
+            Peta  => "P",   Pebi => "Pi",
+            Exa   => "E",   Exbi => "Ei",
+            Zetta => "Z",   Zebi => "Zi",
+            Yotta => "Y",   Yobi => "Yi",
+        }
+    }
+}
+
+impl fmt::Display for Unit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.symbol())
     }
 }
 
@@ -114,6 +136,38 @@ mod tests {
                 "expected [{:?}] to have the index {}",
                 unit,
                 index
+            );
+        }
+    }
+
+    #[test]
+    fn format_and_display_symbol() {
+        #[rustfmt::skip]
+        let map: [(Unit, &str); 16] = [
+            (Kilo ,   "K"), (Kibi,   "Ki"),
+            (Mega ,   "M"), (Mebi,   "Mi"),
+            (Giga ,   "G"), (Gibi,   "Gi"),
+            (Tera ,   "T"), (Tebi,   "Ti"),
+            (Peta ,   "P"), (Pebi,   "Pi"),
+            (Exa  ,   "E"), (Exbi,   "Ei"),
+            (Zetta,   "Z"), (Zebi,   "Zi"),
+            (Yotta,   "Y"), (Yobi,   "Yi"),
+        ];
+
+        for (unit, repr) in map.iter() {
+            assert_eq!(
+                *repr,
+                unit.symbol(),
+                "expected [{:?}] to be represented as {}",
+                unit,
+                repr
+            );
+            assert_eq!(
+                *repr,
+                format!("{}", unit),
+                "expected [{:?}] to be represented as {}",
+                unit,
+                repr
             );
         }
     }
