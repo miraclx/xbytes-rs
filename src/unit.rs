@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn index() {
         #[rustfmt::skip]
-        let map: [(Unit, usize); 16] = [
+        let map  = [
             (Kilo ,   0), (Kibi,   0),
             (Mega ,   1), (Mebi,   1),
             (Giga ,   2), (Gibi,   2),
@@ -178,7 +178,7 @@ mod tests {
     #[test]
     fn format_and_display_symbol() {
         #[rustfmt::skip]
-        let map: [(Unit, &str); 16] = [
+        let map = [
             (Kilo ,   "K"), (Kibi,   "Ki"),
             (Mega ,   "M"), (Mebi,   "Mi"),
             (Giga ,   "G"), (Gibi,   "Gi"),
@@ -210,7 +210,7 @@ mod tests {
     #[test]
     fn format_and_display_symbol_long() {
         #[rustfmt::skip]
-        let map: [(Unit, &str); 16] = [
+        let map = [
             (Kilo ,   "Kilo" ),  (Kibi,   "Kibi"),
             (Mega ,   "Mega" ),  (Mebi,   "Mebi"),
             (Giga ,   "Giga" ),  (Gibi,   "Gibi"),
@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn format_and_display_symbol_short() {
         #[rustfmt::skip]
-        let map: [(Unit, &str); 16] = [
+        let map = [
             (Kilo ,   "K"),  (Kibi,   "K"),
             (Mega ,   "M"),  (Mebi,   "M"),
             (Giga ,   "G"),  (Gibi,   "G"),
