@@ -27,13 +27,8 @@ impl Unit {
         ((*self as u8) & 1) == 1
     }
 
-    pub fn index(&self) -> usize {
-        let stack = if self.is_decimal() {
-            Self::DECIMAL
-        } else {
-            Self::BINARY
-        };
-        stack.iter().position(|val| val == self).unwrap()
+    pub const fn index(&self) -> usize {
+        (*self as usize) / 2
     }
 
     pub fn decimal(&self) -> Self {
