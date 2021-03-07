@@ -406,6 +406,42 @@ mod tests {
     }
 
     #[test]
+    fn index() {
+        #[rustfmt::skip]
+        let map  = [
+            (BIT,        0), (BYTE,        0),
+            // --
+            (KILO_BIT,   1), (KILO_BYTE,   1),
+            (MEGA_BIT,   2), (MEGA_BYTE,   2),
+            (GIGA_BIT,   3), (GIGA_BYTE,   3),
+            (TERA_BIT,   4), (TERA_BYTE,   4),
+            (PETA_BIT,   5), (PETA_BYTE,   5),
+            (EXA_BIT,    6), (EXA_BYTE,    6),
+            (ZETTA_BIT,  7), (ZETTA_BYTE,  7),
+            (YOTTA_BIT,  8), (YOTTA_BYTE,  8),
+            // --
+            (KIBI_BIT,   1), (KIBI_BYTE,   1),
+            (MEBI_BIT,   2), (MEBI_BYTE,   2),
+            (GIBI_BIT,   3), (GIBI_BYTE,   3),
+            (TEBI_BIT,   4), (TEBI_BYTE,   4),
+            (PEBI_BIT,   5), (PEBI_BYTE,   5),
+            (EXBI_BIT,   6), (EXBI_BYTE,   6),
+            (ZEBI_BIT,   7), (ZEBI_BYTE,   7),
+            (YOBI_BIT,   8), (YOBI_BYTE,   8),
+        ];
+
+        for (unit, index) in map.iter() {
+            assert_eq!(
+                *index,
+                unit.index(),
+                "expected [{:?}] to have the index {}",
+                unit,
+                index
+            );
+        }
+    }
+
+    #[test]
     #[rustfmt::skip]
     fn unit_to_decimal() {
         assert_eq!(KILO_BIT , KIBI_BIT.decimal());
