@@ -328,7 +328,7 @@ mod tests {
         let map = [(Bit, 1), (Byte, 8)];
 
         for (size_variant, value) in map.iter() {
-            assert_eq!(size_variant.effective_value(), *value)
+            assert_eq!(*value, size_variant.effective_value())
         }
     }
 
@@ -414,7 +414,7 @@ mod tests {
         ];
 
         for (size_variant, value) in map.iter() {
-            assert_eq!(size_variant.effective_value(), *value)
+            assert_eq!(*value, size_variant.effective_value())
         }
     }
 }

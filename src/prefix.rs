@@ -425,7 +425,7 @@ mod tests {
         ];
 
         for (prefix, value) in map.iter() {
-            assert_eq!(prefix.effective_value(), *value)
+            assert_eq!(*value, prefix.effective_value())
         }
     }
 }
