@@ -1,4 +1,4 @@
-use super::int;
+use super::Int;
 use std::fmt;
 
 #[rustfmt::skip]
@@ -57,7 +57,7 @@ impl UnitPrefix {
 
     #[rustfmt::skip]
     #[inline(always)]
-    pub const fn effective_value(&self) -> int {
+    pub const fn effective_value(&self) -> Int {
         match self {
             Kibi => 1 << 10,   Kilo  => 1000,
             Mebi => 1 << 20,   Mega  => 1000000,

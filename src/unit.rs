@@ -1,5 +1,5 @@
 use super::{
-    int,
+    Int,
     UnitPrefix::{self, *},
 };
 use std::fmt;
@@ -220,11 +220,11 @@ impl Unit {
         Self(self.0, Byte)
     }
 
-    pub const fn effective_value(&self) -> int {
+    pub const fn effective_value(&self) -> Int {
         (match self.0 {
             Some(prefix) => prefix.effective_value(),
             None => 1,
-        } * self.1.effective_value() as int)
+        } * self.1.effective_value() as Int)
     }
 
     pub const fn symbols(&self) -> (&'static str, &'static str) {
