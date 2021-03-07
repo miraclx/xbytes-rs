@@ -172,12 +172,9 @@ mod tests {
     fn decimal() {
         let lhs = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
 
-        let right_rhs = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-        let wrong_rhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
-
         for (index, unit) in lhs.iter().enumerate() {
-            assert_eq!(unit, &right_rhs[index]);
-            assert_ne!(unit, &wrong_rhs[index]);
+            assert_eq!(unit, &UnitPrefix::DECIMAL[index]);
+            assert_ne!(unit, &UnitPrefix::BINARY[index]);
         }
     }
 
@@ -185,31 +182,28 @@ mod tests {
     fn binary() {
         let lhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
 
-        let right_rhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
-        let wrong_rhs = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-
         for (index, unit) in lhs.iter().enumerate() {
-            assert_eq!(unit, &right_rhs[index]);
-            assert_ne!(unit, &wrong_rhs[index]);
+            assert_eq!(unit, &UnitPrefix::BINARY[index]);
+            assert_ne!(unit, &UnitPrefix::DECIMAL[index]);
         }
     }
 
     #[test]
     fn is_decimal() {
-        for unit in [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta].iter() {
+        for unit in UnitPrefix::DECIMAL.iter() {
             assert!(unit.is_decimal())
         }
-        for unit in [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi].iter() {
+        for unit in UnitPrefix::BINARY.iter() {
             assert!(!unit.is_decimal())
         }
     }
 
     #[test]
     fn is_binary() {
-        for unit in [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi].iter() {
+        for unit in UnitPrefix::BINARY.iter() {
             assert!(unit.is_binary())
         }
-        for unit in [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta].iter() {
+        for unit in UnitPrefix::DECIMAL.iter() {
             assert!(!unit.is_binary())
         }
     }
