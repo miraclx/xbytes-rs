@@ -91,6 +91,18 @@ pub mod sizes {
     pub const BYTE: Unit = Unit(None, Byte);
 
     #[rustfmt::skip]
+    pub const BITS: [Unit; 17] = [
+        BIT, KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
+        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
+    ];
+
+    #[rustfmt::skip]
+    pub const BYTES: [Unit; 17] = [
+        BYTE, KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
+        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
+    ];
+
+    #[rustfmt::skip]
     pub const ALL: [Unit; 34] = [
         BIT, BYTE,
         KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
