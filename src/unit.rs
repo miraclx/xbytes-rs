@@ -327,12 +327,17 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
     fn size_variant_effective_value() {
         let map = [(Bit, 1), (Byte, 8)];
 
         for (size_variant, value) in map.iter() {
-            assert_eq!(*value, size_variant.effective_value(), "expected [{:?}] to have the value [{}]", size_variant, value);
+            assert_eq!(
+                *value,
+                size_variant.effective_value(),
+                "expected [{:?}] to have the value [{}]",
+                size_variant,
+                value
+            );
         }
     }
 
@@ -359,7 +364,6 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
     fn unit_binary() {
         assert_eq!(KIBI_BIT, Unit::of(Kibi, Bit));
         assert_eq!(MEBI_BIT, Unit::of(Mebi, Bit));
@@ -447,7 +451,6 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
     fn unit_to_bytes() {
         assert_eq!(KIBI_BYTE, KIBI_BIT.byte());
         assert_eq!(MEBI_BYTE, MEBI_BIT.byte());
@@ -485,8 +488,8 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
     fn unit_effective_value() {
+        #[rustfmt::skip]
         let map = [
             (KILO_BIT  , 1000),                      (KIBI_BIT , 1024),
             (MEGA_BIT  , 1000000),                   (MEBI_BIT , 1048576),
@@ -507,7 +510,13 @@ mod tests {
         ];
 
         for (unit, value) in map.iter() {
-            assert_eq!(*value, unit.effective_value(), "expected [{:?}] to have the value [{}]", unit, value);
+            assert_eq!(
+                *value,
+                unit.effective_value(),
+                "expected [{:?}] to have the value [{}]",
+                unit,
+                value
+            );
         }
     }
 
