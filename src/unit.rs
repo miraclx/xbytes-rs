@@ -398,6 +398,15 @@ mod tests {
 
     #[test]
     #[rustfmt::skip]
+    fn unit_from_prefix_and_variant() {
+        assert_eq!(GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
+        assert_eq!(KILO_BYTE, Unit::from((Kilo, Byte))); // KB
+        assert_eq!(PEBI_BIT , (Pebi, Bit).into()      ); // Pib
+        assert_eq!(EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
+    }
+
+    #[test]
+    #[rustfmt::skip]
     fn unit_to_decimal() {
         assert_eq!(KILO_BIT , KIBI_BIT.decimal());
         assert_eq!(MEGA_BIT , MEBI_BIT.decimal());
@@ -521,15 +530,6 @@ mod tests {
         for unit in sizes::BITS.iter() {
             assert!(!unit.is_byte())
         }
-    }
-
-    #[test]
-    #[rustfmt::skip]
-    fn unit_from_prefix_and_variant() {
-        assert_eq!(GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
-        assert_eq!(KILO_BYTE, Unit::from((Kilo, Byte))); // KB
-        assert_eq!(PEBI_BIT , (Pebi, Bit).into()      ); // Pib
-        assert_eq!(EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
     }
 
     #[test]
