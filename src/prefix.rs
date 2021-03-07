@@ -17,8 +17,8 @@ pub enum UnitPrefix {
 use UnitPrefix::*;
 
 impl UnitPrefix {
-    const DECIMAL: [UnitPrefix; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-    const BINARY: [UnitPrefix; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
+    pub const DECIMAL: [UnitPrefix; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
+    pub const BINARY: [UnitPrefix; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
 
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
