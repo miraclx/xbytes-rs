@@ -504,6 +504,26 @@ mod tests {
     }
 
     #[test]
+    fn unit_is_bit() {
+        for unit in sizes::BITS.iter() {
+            assert!(unit.is_bit())
+        }
+        for unit in sizes::BYTES.iter() {
+            assert!(!unit.is_bit())
+        }
+    }
+
+    #[test]
+    fn unit_is_byte() {
+        for unit in sizes::BYTES.iter() {
+            assert!(unit.is_byte())
+        }
+        for unit in sizes::BITS.iter() {
+            assert!(!unit.is_byte())
+        }
+    }
+
+    #[test]
     #[rustfmt::skip]
     fn unit_from_prefix_and_variant() {
         assert_eq!(GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
