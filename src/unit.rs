@@ -128,6 +128,18 @@ impl fmt::Display for SizeVariant {
     }
 }
 
+impl From<(UnitPrefix, SizeVariant)> for Unit {
+    fn from((prefix, variant): (UnitPrefix, SizeVariant)) -> Self {
+        Self::of(prefix, variant)
+    }
+}
+
+impl From<SizeVariant> for Unit {
+    fn from(variant: SizeVariant) -> Self {
+        Self(None, variant)
+    }
+}
+
 impl Unit {
     #[inline(always)]
     pub const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
