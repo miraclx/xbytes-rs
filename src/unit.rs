@@ -281,6 +281,23 @@ impl Unit {
     }
 }
 
+impl fmt::Display for Unit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let unit = if f.sign_plus() {
+            self.symbol_long(f.alternate())
+        } else if f.sign_minus() {
+            if f.alternate() {
+                self.symbol_condensed().to_string()
+            } else {
+                self.symbol_initials()
+            }
+        } else {
+            self.symbol()
+        };
+        write!(f, "{}", unit)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{sizes::*, *};
