@@ -1,4 +1,7 @@
-use super::UnitPrefix::{self, *};
+use super::{
+    int,
+    UnitPrefix::{self, *},
+};
 use std::fmt;
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
@@ -120,6 +123,13 @@ impl SizeVariant {
             (Byte, false) => "Byte",
         }
     }
+
+    pub const fn effective_value(&self) -> u8 {
+        match self {
+            Bit => 1,
+            Byte => 8,
+        }
+    }
 }
 
 impl fmt::Display for SizeVariant {
@@ -206,6 +216,13 @@ impl Unit {
 
     pub const fn byte(&self) -> Self {
         Self(self.0, Byte)
+    }
+
+    pub const fn effective_value(&self) -> int {
+        (match self.0 {
+            Some(prefix) => prefix.effective_value(),
+            None => 1,
+        } * self.1.effective_value() as int)
     }
 
     pub const fn symbols(&self) -> (&'static str, &'static str) {

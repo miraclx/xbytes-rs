@@ -1,3 +1,4 @@
+use super::int;
 use std::fmt;
 
 #[rustfmt::skip]
@@ -43,6 +44,21 @@ impl UnitPrefix {
             return Self::BINARY[self.index()];
         }
         *self
+    }
+
+    #[rustfmt::skip]
+    #[inline(always)]
+    pub const fn effective_value(&self) -> int {
+        match self {
+            Kibi => 1 << 10,   Kilo  => 1000,
+            Mebi => 1 << 20,   Mega  => 1000000,
+            Gibi => 1 << 30,   Giga  => 1000000000,
+            Tebi => 1 << 40,   Tera  => 1000000000000,
+            Pebi => 1 << 50,   Peta  => 1000000000000000,
+            Exbi => 1 << 60,   Exa   => 1000000000000000000,
+            Zebi => 1 << 70,   Zetta => 1000000000000000000000,
+            Yobi => 1 << 80,   Yotta => 1000000000000000000000000,
+        }
     }
 
     #[rustfmt::skip]
