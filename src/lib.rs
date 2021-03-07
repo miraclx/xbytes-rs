@@ -1,7 +1,7 @@
-mod unit;
-pub use unit::Unit;
+mod prefix;
+pub use prefix::UnitPrefix;
 
-use Unit::*;
+use UnitPrefix::*;
 
 pub struct ByteSize<T>(T);
 

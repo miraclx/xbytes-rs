@@ -2,7 +2,7 @@ use std::fmt;
 
 #[rustfmt::skip]
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
-pub enum Unit {
+pub enum UnitPrefix {
     Kilo , Kibi,
     Mega , Mebi,
     Giga , Gibi,
@@ -13,11 +13,11 @@ pub enum Unit {
     Yotta, Yobi,
 }
 
-use Unit::*;
+use UnitPrefix::*;
 
-impl Unit {
-    const DECIMAL: [Unit; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-    const BINARY: [Unit; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
+impl UnitPrefix {
+    const DECIMAL: [UnitPrefix; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
+    const BINARY: [UnitPrefix; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
 
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
@@ -88,7 +88,7 @@ impl Unit {
     }
 }
 
-impl fmt::Display for Unit {
+impl fmt::Display for UnitPrefix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_minus() {
             self.symbol_initials()
@@ -104,7 +104,7 @@ impl fmt::Display for Unit {
 #[derive(Debug, PartialEq)]
 pub struct UnitParseError;
 
-impl std::str::FromStr for Unit {
+impl std::str::FromStr for UnitPrefix {
     type Err = UnitParseError;
 
     #[rustfmt::skip]
@@ -390,7 +390,7 @@ mod tests {
         ];
 
         for (value, unit) in map.iter() {
-            assert_eq!(Ok(*unit), value.parse::<Unit>());
+            assert_eq!(Ok(*unit), value.parse::<UnitPrefix>());
         }
     }
 }
