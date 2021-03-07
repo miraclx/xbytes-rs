@@ -15,7 +15,7 @@ use SizeVariant::*;
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
-pub mod decimal {
+mod decimal {
     use super::Unit;
 
     #[rustfmt::skip]
@@ -48,7 +48,7 @@ pub mod decimal {
     ];
 }
 
-pub mod binary {
+mod binary {
     use super::Unit;
     #[rustfmt::skip]
     pub(super) mod _exported {
