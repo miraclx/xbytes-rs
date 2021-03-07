@@ -189,7 +189,64 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let a = Sizes::KIBI_BIT;
+    fn size_variant() {
+        let bit = Bit;
+        assert!(bit.is_bit());
+        assert!(!bit.is_byte());
+
+        let byte = Byte;
+        assert!(byte.is_byte());
+        assert!(!byte.is_bit());
+    }
+
+    #[test]
+    fn format_display_size_variant_symbol() {
+        let map = [(Bit, "b"), (Byte, "B")];
+
+        for (unit, repr) in map.iter() {
+            assert_eq!(
+                *repr,
+                unit.symbol(),
+                "expected [{:?}] to be represented as {}",
+                unit,
+                repr
+            );
+            assert_eq!(
+                *repr,
+                format!("{}", unit),
+                "expected [{:?}] to be represented as {}",
+                unit,
+                repr
+            );
+        }
+    }
+
+    #[test]
+    fn format_display_size_variant_symbol_long() {
+        #[rustfmt::skip]
+        let map = [
+            (Bit, "Bit"), (Bit, "Bits"),
+            (Byte, "Byte"), (Byte, "Bytes")
+        ];
+
+        for (index, (unit, repr)) in map.iter().enumerate() {
+            assert_eq!(
+                *repr,
+                unit.symbol_long(index % 2 != 0),
+                "expected [{:?}] to be represented in long form as [{}]",
+                unit,
+                repr
+            );
+            let value = if index % 2 == 0 {
+                format!("{:#}", unit)
+            } else {
+                format!("{:+#}", unit)
+            };
+            assert_eq!(
+                *repr, value,
+                "expected [{:?}] to be represented in long form as [{}]",
+                unit, repr
+            );
+        }
     }
 }
