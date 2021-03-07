@@ -15,7 +15,7 @@ use SizeVariant::*;
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
-pub mod Decimal {
+pub mod decimal {
     use super::Unit;
 
     #[rustfmt::skip]
@@ -48,7 +48,7 @@ pub mod Decimal {
     ];
 }
 
-pub mod Binary {
+pub mod binary {
     use super::Unit;
     #[rustfmt::skip]
     pub(super) mod _exported {
@@ -80,11 +80,11 @@ pub mod Binary {
     ];
 }
 
-pub mod Sizes {
+pub mod sizes {
     use super::*;
     pub use super::{
-        Binary::{_exported::*, SIZES as BINARY},
-        Decimal::{_exported::*, SIZES as DECIMAL},
+        binary::{_exported::*, SIZES as BINARY},
+        decimal::{_exported::*, SIZES as DECIMAL},
     };
 
     pub const BIT: Unit = Unit(None, Bit);
@@ -339,82 +339,82 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn unit_decimal() {
-        assert_eq!(Sizes::KILO_BIT , Unit::of(Kilo , Bit));
-        assert_eq!(Sizes::MEGA_BIT , Unit::of(Mega , Bit));
-        assert_eq!(Sizes::GIGA_BIT , Unit::of(Giga , Bit));
-        assert_eq!(Sizes::TERA_BIT , Unit::of(Tera , Bit));
-        assert_eq!(Sizes::PETA_BIT , Unit::of(Peta , Bit));
-        assert_eq!(Sizes::EXA_BIT  , Unit::of(Exa  , Bit));
-        assert_eq!(Sizes::ZETTA_BIT, Unit::of(Zetta, Bit));
-        assert_eq!(Sizes::YOTTA_BIT, Unit::of(Yotta, Bit));
+        assert_eq!(sizes::KILO_BIT , Unit::of(Kilo , Bit));
+        assert_eq!(sizes::MEGA_BIT , Unit::of(Mega , Bit));
+        assert_eq!(sizes::GIGA_BIT , Unit::of(Giga , Bit));
+        assert_eq!(sizes::TERA_BIT , Unit::of(Tera , Bit));
+        assert_eq!(sizes::PETA_BIT , Unit::of(Peta , Bit));
+        assert_eq!(sizes::EXA_BIT  , Unit::of(Exa  , Bit));
+        assert_eq!(sizes::ZETTA_BIT, Unit::of(Zetta, Bit));
+        assert_eq!(sizes::YOTTA_BIT, Unit::of(Yotta, Bit));
         // --
-        assert_eq!(Sizes::KILO_BYTE , Unit::of(Kilo , Byte));
-        assert_eq!(Sizes::MEGA_BYTE , Unit::of(Mega , Byte));
-        assert_eq!(Sizes::GIGA_BYTE , Unit::of(Giga , Byte));
-        assert_eq!(Sizes::TERA_BYTE , Unit::of(Tera , Byte));
-        assert_eq!(Sizes::PETA_BYTE , Unit::of(Peta , Byte));
-        assert_eq!(Sizes::EXA_BYTE  , Unit::of(Exa  , Byte));
-        assert_eq!(Sizes::ZETTA_BYTE, Unit::of(Zetta, Byte));
-        assert_eq!(Sizes::YOTTA_BYTE, Unit::of(Yotta, Byte));
+        assert_eq!(sizes::KILO_BYTE , Unit::of(Kilo , Byte));
+        assert_eq!(sizes::MEGA_BYTE , Unit::of(Mega , Byte));
+        assert_eq!(sizes::GIGA_BYTE , Unit::of(Giga , Byte));
+        assert_eq!(sizes::TERA_BYTE , Unit::of(Tera , Byte));
+        assert_eq!(sizes::PETA_BYTE , Unit::of(Peta , Byte));
+        assert_eq!(sizes::EXA_BYTE  , Unit::of(Exa  , Byte));
+        assert_eq!(sizes::ZETTA_BYTE, Unit::of(Zetta, Byte));
+        assert_eq!(sizes::YOTTA_BYTE, Unit::of(Yotta, Byte));
     }
     #[test]
     #[rustfmt::skip]
     fn unit_binary() {
-        assert_eq!(Sizes::KIBI_BIT, Unit::of(Kibi, Bit));
-        assert_eq!(Sizes::MEBI_BIT, Unit::of(Mebi, Bit));
-        assert_eq!(Sizes::GIBI_BIT, Unit::of(Gibi, Bit));
-        assert_eq!(Sizes::TEBI_BIT, Unit::of(Tebi, Bit));
-        assert_eq!(Sizes::PEBI_BIT, Unit::of(Pebi, Bit));
-        assert_eq!(Sizes::EXBI_BIT, Unit::of(Exbi, Bit));
-        assert_eq!(Sizes::ZEBI_BIT, Unit::of(Zebi, Bit));
-        assert_eq!(Sizes::YOBI_BIT, Unit::of(Yobi, Bit));
+        assert_eq!(sizes::KIBI_BIT, Unit::of(Kibi, Bit));
+        assert_eq!(sizes::MEBI_BIT, Unit::of(Mebi, Bit));
+        assert_eq!(sizes::GIBI_BIT, Unit::of(Gibi, Bit));
+        assert_eq!(sizes::TEBI_BIT, Unit::of(Tebi, Bit));
+        assert_eq!(sizes::PEBI_BIT, Unit::of(Pebi, Bit));
+        assert_eq!(sizes::EXBI_BIT, Unit::of(Exbi, Bit));
+        assert_eq!(sizes::ZEBI_BIT, Unit::of(Zebi, Bit));
+        assert_eq!(sizes::YOBI_BIT, Unit::of(Yobi, Bit));
         // --
-        assert_eq!(Sizes::KIBI_BYTE, Unit::of(Kibi, Byte));
-        assert_eq!(Sizes::MEBI_BYTE, Unit::of(Mebi, Byte));
-        assert_eq!(Sizes::GIBI_BYTE, Unit::of(Gibi, Byte));
-        assert_eq!(Sizes::TEBI_BYTE, Unit::of(Tebi, Byte));
-        assert_eq!(Sizes::PEBI_BYTE, Unit::of(Pebi, Byte));
-        assert_eq!(Sizes::EXBI_BYTE, Unit::of(Exbi, Byte));
-        assert_eq!(Sizes::ZEBI_BYTE, Unit::of(Zebi, Byte));
-        assert_eq!(Sizes::YOBI_BYTE, Unit::of(Yobi, Byte));
+        assert_eq!(sizes::KIBI_BYTE, Unit::of(Kibi, Byte));
+        assert_eq!(sizes::MEBI_BYTE, Unit::of(Mebi, Byte));
+        assert_eq!(sizes::GIBI_BYTE, Unit::of(Gibi, Byte));
+        assert_eq!(sizes::TEBI_BYTE, Unit::of(Tebi, Byte));
+        assert_eq!(sizes::PEBI_BYTE, Unit::of(Pebi, Byte));
+        assert_eq!(sizes::EXBI_BYTE, Unit::of(Exbi, Byte));
+        assert_eq!(sizes::ZEBI_BYTE, Unit::of(Zebi, Byte));
+        assert_eq!(sizes::YOBI_BYTE, Unit::of(Yobi, Byte));
     }
 
     #[test]
     #[rustfmt::skip]
     fn unit_from_prefix_and_variant() {
-        assert_eq!(Sizes::GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
-        assert_eq!(Sizes::KILO_BYTE, Unit::from((Kilo, Byte))); // KB
-        assert_eq!(Sizes::PEBI_BIT , (Pebi, Bit).into()      ); // Pib
-        assert_eq!(Sizes::EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
+        assert_eq!(sizes::GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
+        assert_eq!(sizes::KILO_BYTE, Unit::from((Kilo, Byte))); // KB
+        assert_eq!(sizes::PEBI_BIT , (Pebi, Bit).into()      ); // Pib
+        assert_eq!(sizes::EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
     }
 
     #[test]
     #[rustfmt::skip]
     fn unit_from_variant() {
-        assert_eq!(Sizes::BIT , Unit::from(Bit)); // b
-        assert_eq!(Sizes::BYTE, Byte.into()    ); // B
+        assert_eq!(sizes::BIT , Unit::from(Bit)); // b
+        assert_eq!(sizes::BYTE, Byte.into()    ); // B
     }
 
     #[test]
     #[rustfmt::skip]
     fn unit_effective_value() {
         let map = [
-            (Sizes::KILO_BIT  , 1000),                      (Sizes::KIBI_BIT , 1024),
-            (Sizes::MEGA_BIT  , 1000000),                   (Sizes::MEBI_BIT , 1048576),
-            (Sizes::GIGA_BIT  , 1000000000),                (Sizes::GIBI_BIT , 1073741824),
-            (Sizes::TERA_BIT  , 1000000000000),             (Sizes::TEBI_BIT , 1099511627776),
-            (Sizes::PETA_BIT  , 1000000000000000),          (Sizes::PEBI_BIT , 1125899906842624),
-            (Sizes::EXA_BIT   , 1000000000000000000),       (Sizes::EXBI_BIT , 1152921504606846976),
-            (Sizes::ZETTA_BIT , 1000000000000000000000),    (Sizes::ZEBI_BIT , 1180591620717411303424),
-            (Sizes::YOTTA_BIT , 1000000000000000000000000), (Sizes::YOBI_BIT , 1208925819614629174706176),
-            (Sizes::KILO_BYTE , 8000),                      (Sizes::KIBI_BYTE, 8192),
-            (Sizes::MEGA_BYTE , 8000000),                   (Sizes::MEBI_BYTE, 8388608),
-            (Sizes::GIGA_BYTE , 8000000000),                (Sizes::GIBI_BYTE, 8589934592),
-            (Sizes::TERA_BYTE , 8000000000000),             (Sizes::TEBI_BYTE, 8796093022208),
-            (Sizes::PETA_BYTE , 8000000000000000),          (Sizes::PEBI_BYTE, 9007199254740992),
-            (Sizes::EXA_BYTE  , 8000000000000000000),       (Sizes::EXBI_BYTE, 9223372036854775808),
-            (Sizes::ZETTA_BYTE, 8000000000000000000000),    (Sizes::ZEBI_BYTE, 9444732965739290427392),
-            (Sizes::YOTTA_BYTE, 8000000000000000000000000), (Sizes::YOBI_BYTE, 9671406556917033397649408),
+            (sizes::KILO_BIT  , 1000),                      (sizes::KIBI_BIT , 1024),
+            (sizes::MEGA_BIT  , 1000000),                   (sizes::MEBI_BIT , 1048576),
+            (sizes::GIGA_BIT  , 1000000000),                (sizes::GIBI_BIT , 1073741824),
+            (sizes::TERA_BIT  , 1000000000000),             (sizes::TEBI_BIT , 1099511627776),
+            (sizes::PETA_BIT  , 1000000000000000),          (sizes::PEBI_BIT , 1125899906842624),
+            (sizes::EXA_BIT   , 1000000000000000000),       (sizes::EXBI_BIT , 1152921504606846976),
+            (sizes::ZETTA_BIT , 1000000000000000000000),    (sizes::ZEBI_BIT , 1180591620717411303424),
+            (sizes::YOTTA_BIT , 1000000000000000000000000), (sizes::YOBI_BIT , 1208925819614629174706176),
+            (sizes::KILO_BYTE , 8000),                      (sizes::KIBI_BYTE, 8192),
+            (sizes::MEGA_BYTE , 8000000),                   (sizes::MEBI_BYTE, 8388608),
+            (sizes::GIGA_BYTE , 8000000000),                (sizes::GIBI_BYTE, 8589934592),
+            (sizes::TERA_BYTE , 8000000000000),             (sizes::TEBI_BYTE, 8796093022208),
+            (sizes::PETA_BYTE , 8000000000000000),          (sizes::PEBI_BYTE, 9007199254740992),
+            (sizes::EXA_BYTE  , 8000000000000000000),       (sizes::EXBI_BYTE, 9223372036854775808),
+            (sizes::ZETTA_BYTE, 8000000000000000000000),    (sizes::ZEBI_BYTE, 9444732965739290427392),
+            (sizes::YOTTA_BYTE, 8000000000000000000000000), (sizes::YOBI_BYTE, 9671406556917033397649408),
         ];
 
         for (size_variant, value) in map.iter() {
