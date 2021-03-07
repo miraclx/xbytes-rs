@@ -256,6 +256,29 @@ impl Unit {
         let (prefix, size_variant) = self.symbols_long(plural);
         format!("{}{}", prefix, size_variant)
     }
+
+    // 'b', 'B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
+    pub const fn symbol_condensed(&self) -> &'static str {
+        match self.0 {
+            Some(prefix) => prefix.symbol_initials(),
+            None => self.1.symbol(),
+        }
+    }
+
+    pub const fn symbols_initials(&self) -> (&'static str, &'static str) {
+        (
+            match self.0 {
+                Some(prefix) => prefix.symbol_initials(),
+                None => "",
+            },
+            self.1.symbol(),
+        )
+    }
+
+    pub fn symbol_initials(&self) -> String {
+        let (prefix, size_variant) = self.symbols_initials();
+        format!("{}{}", prefix, size_variant)
+    }
 }
 
 #[cfg(test)]
