@@ -10,7 +10,7 @@ pub enum SizeVariant {
 use SizeVariant::*;
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
-pub struct Unit(UnitPrefix, SizeVariant);
+pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
 pub mod Decimal {
     use super::Unit;
@@ -18,22 +18,22 @@ pub mod Decimal {
     #[rustfmt::skip]
     pub(super) mod _exported {
         use super::super::*;
-        pub const KILO_BIT  : Unit = Unit(Kilo , Bit);
-        pub const MEGA_BIT  : Unit = Unit(Mega , Bit);
-        pub const GIGA_BIT  : Unit = Unit(Giga , Bit);
-        pub const TERA_BIT  : Unit = Unit(Tera , Bit);
-        pub const PETA_BIT  : Unit = Unit(Peta , Bit);
-        pub const EXA_BIT   : Unit = Unit(Exa  , Bit);
-        pub const ZETTA_BIT : Unit = Unit(Zetta, Bit);
-        pub const YOTTA_BIT : Unit = Unit(Yotta, Bit);
-        pub const KILO_BYTE : Unit = Unit(Kilo , Byte);
-        pub const MEGA_BYTE : Unit = Unit(Mega , Byte);
-        pub const GIGA_BYTE : Unit = Unit(Giga , Byte);
-        pub const TERA_BYTE : Unit = Unit(Tera , Byte);
-        pub const PETA_BYTE : Unit = Unit(Peta , Byte);
-        pub const EXA_BYTE  : Unit = Unit(Exa  , Byte);
-        pub const ZETTA_BYTE: Unit = Unit(Zetta, Byte);
-        pub const YOTTA_BYTE: Unit = Unit(Yotta, Byte);
+        pub const KILO_BIT  : Unit = Unit::of(Kilo , Bit );
+        pub const MEGA_BIT  : Unit = Unit::of(Mega , Bit );
+        pub const GIGA_BIT  : Unit = Unit::of(Giga , Bit );
+        pub const TERA_BIT  : Unit = Unit::of(Tera , Bit );
+        pub const PETA_BIT  : Unit = Unit::of(Peta , Bit );
+        pub const EXA_BIT   : Unit = Unit::of(Exa  , Bit );
+        pub const ZETTA_BIT : Unit = Unit::of(Zetta, Bit );
+        pub const YOTTA_BIT : Unit = Unit::of(Yotta, Bit );
+        pub const KILO_BYTE : Unit = Unit::of(Kilo , Byte);
+        pub const MEGA_BYTE : Unit = Unit::of(Mega , Byte);
+        pub const GIGA_BYTE : Unit = Unit::of(Giga , Byte);
+        pub const TERA_BYTE : Unit = Unit::of(Tera , Byte);
+        pub const PETA_BYTE : Unit = Unit::of(Peta , Byte);
+        pub const EXA_BYTE  : Unit = Unit::of(Exa  , Byte);
+        pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
+        pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
     }
 
     pub use _exported::*;
@@ -50,22 +50,22 @@ pub mod Binary {
     #[rustfmt::skip]
     pub(super) mod _exported {
         use super::super::*;
-        pub const KIBI_BIT : Unit = Unit(Kibi, Bit);
-        pub const MEBI_BIT : Unit = Unit(Mebi, Bit);
-        pub const GIBI_BIT : Unit = Unit(Gibi, Bit);
-        pub const TEBI_BIT : Unit = Unit(Tebi, Bit);
-        pub const PEBI_BIT : Unit = Unit(Pebi, Bit);
-        pub const EXBI_BIT : Unit = Unit(Exbi, Bit);
-        pub const ZEBI_BIT : Unit = Unit(Zebi, Bit);
-        pub const YOBI_BIT : Unit = Unit(Yobi, Bit);
-        pub const KIBI_BYTE: Unit = Unit(Kibi, Byte);
-        pub const MEBI_BYTE: Unit = Unit(Mebi, Byte);
-        pub const GIBI_BYTE: Unit = Unit(Gibi, Byte);
-        pub const TEBI_BYTE: Unit = Unit(Tebi, Byte);
-        pub const PEBI_BYTE: Unit = Unit(Pebi, Byte);
-        pub const EXBI_BYTE: Unit = Unit(Exbi, Byte);
-        pub const ZEBI_BYTE: Unit = Unit(Zebi, Byte);
-        pub const YOBI_BYTE: Unit = Unit(Yobi, Byte);
+        pub const KIBI_BIT : Unit = Unit::of(Kibi, Bit );
+        pub const MEBI_BIT : Unit = Unit::of(Mebi, Bit );
+        pub const GIBI_BIT : Unit = Unit::of(Gibi, Bit );
+        pub const TEBI_BIT : Unit = Unit::of(Tebi, Bit );
+        pub const PEBI_BIT : Unit = Unit::of(Pebi, Bit );
+        pub const EXBI_BIT : Unit = Unit::of(Exbi, Bit );
+        pub const ZEBI_BIT : Unit = Unit::of(Zebi, Bit );
+        pub const YOBI_BIT : Unit = Unit::of(Yobi, Bit );
+        pub const KIBI_BYTE: Unit = Unit::of(Kibi, Byte);
+        pub const MEBI_BYTE: Unit = Unit::of(Mebi, Byte);
+        pub const GIBI_BYTE: Unit = Unit::of(Gibi, Byte);
+        pub const TEBI_BYTE: Unit = Unit::of(Tebi, Byte);
+        pub const PEBI_BYTE: Unit = Unit::of(Pebi, Byte);
+        pub const EXBI_BYTE: Unit = Unit::of(Exbi, Byte);
+        pub const ZEBI_BYTE: Unit = Unit::of(Zebi, Byte);
+        pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
     pub use _exported::*;
@@ -129,12 +129,23 @@ impl fmt::Display for SizeVariant {
 }
 
 impl Unit {
+    #[inline(always)]
+    pub const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
+        Self(Some(prefix), size_variant)
+    }
+
     pub const fn is_decimal(&self) -> bool {
-        self.0.is_decimal()
+        if let Some(prefix) = self.0 {
+            return prefix.is_decimal();
+        }
+        true
     }
 
     pub const fn is_binary(&self) -> bool {
-        self.0.is_binary()
+        if let Some(prefix) = self.0 {
+            return prefix.is_binary();
+        }
+        true
     }
 
     pub const fn is_bit(&self) -> bool {
@@ -146,15 +157,30 @@ impl Unit {
     }
 
     pub const fn index(&self) -> usize {
-        self.0.index()
+        if let Some(prefix) = self.0 {
+            return prefix.index() + 1;
+        }
+        0
     }
 
     pub const fn decimal(&self) -> Self {
-        Self(self.0.decimal(), self.1)
+        Self(
+            match self.0 {
+                Some(prefix) => Some(prefix.decimal()),
+                None => None,
+            },
+            self.1,
+        )
     }
 
     pub const fn binary(&self) -> Self {
-        Self(self.0.binary(), self.1)
+        Self(
+            match self.0 {
+                Some(prefix) => Some(prefix.binary()),
+                None => None,
+            },
+            self.1,
+        )
     }
 
     pub const fn bit(&self) -> Self {
@@ -166,21 +192,33 @@ impl Unit {
     }
 
     pub const fn symbols(&self) -> (&'static str, &'static str) {
-        (self.0.symbol(), self.1.symbol())
+        (
+            match self.0 {
+                Some(prefix) => prefix.symbol(),
+                None => "",
+            },
+            self.1.symbol(),
+        )
     }
 
     pub fn symbol(&self) -> String {
-        let (unit, size_variant) = self.symbols();
-        format!("{}{}", unit, size_variant)
+        let (prefix, size_variant) = self.symbols();
+        format!("{}{}", prefix, size_variant)
     }
 
     pub fn symbols_long(&self, plural: bool) -> (&'static str, &'static str) {
-        (self.0.symbol_long(), self.1.symbol_long(plural))
+        (
+            match self.0 {
+                Some(prefix) => prefix.symbol_long(),
+                None => "",
+            },
+            self.1.symbol_long(plural),
+        )
     }
 
     pub fn symbol_long(&self, plural: bool) -> String {
-        let (unit, size_variant) = self.symbols_long(plural);
-        format!("{}{}", unit, size_variant)
+        let (prefix, size_variant) = self.symbols_long(plural);
+        format!("{}{}", prefix, size_variant)
     }
 }
 
