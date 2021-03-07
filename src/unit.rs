@@ -640,4 +640,85 @@ mod tests {
         assert_eq!(Unit(None, Bit), Unit::MIN);
         assert_eq!(Unit(Some(Yobi), Byte), Unit::MAX);
     }
+
+    #[test]
+    fn unit_format_and_display_symbol() {
+        #[rustfmt::skip]
+        let map = [
+            (BIT       , "b", "b" , "b"  , "Bit"      , "Bits"      ),
+            (BYTE      , "B", "B" , "B"  , "Byte"     , "Bytes"     ),
+            // --
+            (KILO_BIT  , "K", "Kb", "Kb" , "KiloBit"  , "KiloBits"  ),
+            (KILO_BYTE , "K", "KB", "KB" , "KiloByte" , "KiloBytes" ),
+            (MEGA_BIT  , "M", "Mb", "Mb" , "MegaBit"  , "MegaBits"  ),
+            (MEGA_BYTE , "M", "MB", "MB" , "MegaByte" , "MegaBytes" ),
+            (GIGA_BIT  , "G", "Gb", "Gb" , "GigaBit"  , "GigaBits"  ),
+            (GIGA_BYTE , "G", "GB", "GB" , "GigaByte" , "GigaBytes" ),
+            (TERA_BIT  , "T", "Tb", "Tb" , "TeraBit"  , "TeraBits"  ),
+            (TERA_BYTE , "T", "TB", "TB" , "TeraByte" , "TeraBytes" ),
+            (PETA_BIT  , "P", "Pb", "Pb" , "PetaBit"  , "PetaBits"  ),
+            (PETA_BYTE , "P", "PB", "PB" , "PetaByte" , "PetaBytes" ),
+            (EXA_BIT   , "E", "Eb", "Eb" , "ExaBit"   , "ExaBits"   ),
+            (EXA_BYTE  , "E", "EB", "EB" , "ExaByte"  , "ExaBytes"  ),
+            (ZETTA_BIT , "Z", "Zb", "Zb" , "ZettaBit" , "ZettaBits" ),
+            (ZETTA_BYTE, "Z", "ZB", "ZB" , "ZettaByte", "ZettaBytes"),
+            (YOTTA_BIT , "Y", "Yb", "Yb" , "YottaBit" , "YottaBits" ),
+            (YOTTA_BYTE, "Y", "YB", "YB" , "YottaByte", "YottaBytes"),
+            // --
+            (KIBI_BIT  , "K", "Kb", "Kib", "KibiBit"  , "KibiBits"  ),
+            (KIBI_BYTE , "K", "KB", "KiB", "KibiByte" , "KibiBytes" ),
+            (MEBI_BIT  , "M", "Mb", "Mib", "MebiBit"  , "MebiBits"  ),
+            (MEBI_BYTE , "M", "MB", "MiB", "MebiByte" , "MebiBytes" ),
+            (GIBI_BIT  , "G", "Gb", "Gib", "GibiBit"  , "GibiBits"  ),
+            (GIBI_BYTE , "G", "GB", "GiB", "GibiByte" , "GibiBytes" ),
+            (TEBI_BIT  , "T", "Tb", "Tib", "TebiBit"  , "TebiBits"  ),
+            (TEBI_BYTE , "T", "TB", "TiB", "TebiByte" , "TebiBytes" ),
+            (PEBI_BIT  , "P", "Pb", "Pib", "PebiBit"  , "PebiBits"  ),
+            (PEBI_BYTE , "P", "PB", "PiB", "PebiByte" , "PebiBytes" ),
+            (EXBI_BIT  , "E", "Eb", "Eib", "ExbiBit"  , "ExbiBits"  ),
+            (EXBI_BYTE , "E", "EB", "EiB", "ExbiByte" , "ExbiBytes" ),
+            (ZEBI_BIT  , "Z", "Zb", "Zib", "ZebiBit"  , "ZebiBits"  ),
+            (ZEBI_BYTE , "Z", "ZB", "ZiB", "ZebiByte" , "ZebiBytes" ),
+            (YOBI_BIT  , "Y", "Yb", "Yib", "YobiBit"  , "YobiBits"  ),
+            (YOBI_BYTE , "Y", "YB", "YiB", "YobiByte" , "YobiBytes" ),
+        ];
+
+        for (unit, condensed, initials, normal, long, long_extra) in map.iter() {
+            assert_eq!(
+                (*condensed, *condensed),
+                (unit.symbol_condensed(), format!("{:-#}", unit).as_str()),
+                "expected [{:?}] to be condensed as [{}]",
+                unit,
+                condensed
+            );
+            assert_eq!(
+                (initials.to_string(), initials.to_string()),
+                (unit.symbol_initials(), format!("{:-}", unit)),
+                "expected [{:?}] to have initials [{}]",
+                unit,
+                initials
+            );
+            assert_eq!(
+                (normal.to_string(), normal.to_string()),
+                (unit.symbol(), format!("{}", unit)),
+                "expected [{:?}] to be represented as [{}]",
+                unit,
+                normal
+            );
+            assert_eq!(
+                (long.to_string(), long.to_string()),
+                (unit.symbol_long(false), format!("{:+}", unit)),
+                "expected [{:?}] to be represented in long form as [{}]",
+                unit,
+                long
+            );
+            assert_eq!(
+                (long_extra.to_string(), long_extra.to_string()),
+                (unit.symbol_long(true), format!("{:+#}", unit)),
+                "expected [{:?}] to be represented in plural long form as [{}]",
+                unit,
+                long_extra
+            );
+        }
+    }
 }
