@@ -101,6 +101,44 @@ impl fmt::Display for Unit {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct UnitParseError;
+
+impl std::str::FromStr for Unit {
+    type Err = UnitParseError;
+
+    #[rustfmt::skip]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let unit = match s.to_lowercase().as_str() {
+            "k"     => Kilo ,   "ki"   => Kibi,
+            "kilo"  => Kilo ,   "kibi" => Kibi,
+            // --
+            "m"     => Mega ,   "mi"   => Mebi,
+            "mega"  => Mega ,   "mebi" => Mebi,
+            // --
+            "g"     => Giga ,   "gi"   => Gibi,
+            "giga"  => Giga ,   "gibi" => Gibi,
+            // --
+            "t"     => Tera ,   "ti"   => Tebi,
+            "tera"  => Tera ,   "tebi" => Tebi,
+            // --
+            "p"     => Peta ,   "pi"   => Pebi,
+            "peta"  => Peta ,   "pebi" => Pebi,
+            // --
+            "e"     => Exa  ,   "ei"   => Exbi,
+            "exa"   => Exa  ,   "exbi" => Exbi,
+            // --
+            "z"     => Zetta,   "zi"   => Zebi,
+            "zetta" => Zetta,   "zebi" => Zebi,
+            // --
+            "y"     => Yotta,   "yi"   => Yobi,
+            "yotta" => Yotta,   "yobi" => Yobi,
+            _ => return Err(UnitParseError),
+        };
+        Ok(unit)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -319,6 +357,40 @@ mod tests {
                 unit,
                 repr
             );
+        }
+    }
+
+    #[test]
+    fn str_parse() {
+        #[rustfmt::skip]
+        let map = [
+            ("K"    , Kilo ),  ("Ki"  , Kibi),
+            ("Kilo" , Kilo ),  ("Kibi", Kibi),
+            // --
+            ("M"    , Mega ),  ("Mi"  , Mebi),
+            ("Mega" , Mega ),  ("Mebi", Mebi),
+            // --
+            ("G"    , Giga ),  ("Gi"  , Gibi),
+            ("Giga" , Giga ),  ("Gibi", Gibi),
+            // --
+            ("T"    , Tera ),  ("Ti"  , Tebi),
+            ("Tera" , Tera ),  ("Tebi", Tebi),
+            // --
+            ("P"    , Peta ),  ("Pi"  , Pebi),
+            ("Peta" , Peta ),  ("Pebi", Pebi),
+            // --
+            ("E"    , Exa  ),  ("Ei"  , Exbi),
+            ("Exa"  , Exa  ),  ("Exbi", Exbi),
+            // --
+            ("Z"    , Zetta),  ("Zi"  , Zebi),
+            ("Zetta", Zetta),  ("Zebi", Zebi),
+            // --
+            ("Y"    , Yotta),  ("Yi"  , Yobi),
+            ("Yotta", Yotta),  ("Yobi", Yobi),
+        ];
+
+        for (value, unit) in map.iter() {
+            assert_eq!(Ok(*unit), value.parse::<Unit>());
         }
     }
 }
