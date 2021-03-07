@@ -244,7 +244,7 @@ impl Unit {
         format!("{}{}", prefix, size_variant)
     }
 
-    pub fn symbols_long(&self, plural: bool) -> (&'static str, &'static str) {
+    pub const fn symbols_long(&self, plural: bool) -> (&'static str, &'static str) {
         (
             match self.0 {
                 Some(prefix) => prefix.symbol_long(),
