@@ -117,7 +117,7 @@ impl fmt::Display for UnitPrefix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_minus() {
             self.symbol_initials()
-        } else if f.alternate() {
+        } else if f.sign_plus() {
             self.symbol_long()
         } else {
             self.symbol()
@@ -339,7 +339,7 @@ mod tests {
             );
             assert_eq!(
                 *repr,
-                format!("{:#}", unit),
+                format!("{:+}", unit),
                 "expected [{:?}] to be represented in long form as {}",
                 unit,
                 repr
