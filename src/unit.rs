@@ -357,6 +357,7 @@ mod tests {
         assert_eq!(sizes::ZETTA_BYTE, Unit::of(Zetta, Byte));
         assert_eq!(sizes::YOTTA_BYTE, Unit::of(Yotta, Byte));
     }
+
     #[test]
     #[rustfmt::skip]
     fn unit_binary() {
@@ -377,6 +378,94 @@ mod tests {
         assert_eq!(sizes::EXBI_BYTE, Unit::of(Exbi, Byte));
         assert_eq!(sizes::ZEBI_BYTE, Unit::of(Zebi, Byte));
         assert_eq!(sizes::YOBI_BYTE, Unit::of(Yobi, Byte));
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_to_decimal() {
+        assert_eq!(sizes::KILO_BIT , sizes::KIBI_BIT.decimal());
+        assert_eq!(sizes::MEGA_BIT , sizes::MEBI_BIT.decimal());
+        assert_eq!(sizes::GIGA_BIT , sizes::GIBI_BIT.decimal());
+        assert_eq!(sizes::TERA_BIT , sizes::TEBI_BIT.decimal());
+        assert_eq!(sizes::PETA_BIT , sizes::PEBI_BIT.decimal());
+        assert_eq!(sizes::EXA_BIT  , sizes::EXBI_BIT.decimal());
+        assert_eq!(sizes::ZETTA_BIT, sizes::ZEBI_BIT.decimal());
+        assert_eq!(sizes::YOTTA_BIT, sizes::YOBI_BIT.decimal());
+        // --
+        assert_eq!(sizes::KILO_BYTE , sizes::KIBI_BYTE.decimal());
+        assert_eq!(sizes::MEGA_BYTE , sizes::MEBI_BYTE.decimal());
+        assert_eq!(sizes::GIGA_BYTE , sizes::GIBI_BYTE.decimal());
+        assert_eq!(sizes::TERA_BYTE , sizes::TEBI_BYTE.decimal());
+        assert_eq!(sizes::PETA_BYTE , sizes::PEBI_BYTE.decimal());
+        assert_eq!(sizes::EXA_BYTE  , sizes::EXBI_BYTE.decimal());
+        assert_eq!(sizes::ZETTA_BYTE, sizes::ZEBI_BYTE.decimal());
+        assert_eq!(sizes::YOTTA_BYTE, sizes::YOBI_BYTE.decimal());
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_to_binary() {
+        assert_eq!(sizes::KIBI_BIT, sizes::KILO_BIT .binary());
+        assert_eq!(sizes::MEBI_BIT, sizes::MEGA_BIT .binary());
+        assert_eq!(sizes::GIBI_BIT, sizes::GIGA_BIT .binary());
+        assert_eq!(sizes::TEBI_BIT, sizes::TERA_BIT .binary());
+        assert_eq!(sizes::PEBI_BIT, sizes::PETA_BIT .binary());
+        assert_eq!(sizes::EXBI_BIT, sizes::EXA_BIT  .binary());
+        assert_eq!(sizes::ZEBI_BIT, sizes::ZETTA_BIT.binary());
+        assert_eq!(sizes::YOBI_BIT, sizes::YOTTA_BIT.binary());
+        // --
+        assert_eq!(sizes::KIBI_BYTE, sizes::KILO_BYTE .binary());
+        assert_eq!(sizes::MEBI_BYTE, sizes::MEGA_BYTE .binary());
+        assert_eq!(sizes::GIBI_BYTE, sizes::GIGA_BYTE .binary());
+        assert_eq!(sizes::TEBI_BYTE, sizes::TERA_BYTE .binary());
+        assert_eq!(sizes::PEBI_BYTE, sizes::PETA_BYTE .binary());
+        assert_eq!(sizes::EXBI_BYTE, sizes::EXA_BYTE  .binary());
+        assert_eq!(sizes::ZEBI_BYTE, sizes::ZETTA_BYTE.binary());
+        assert_eq!(sizes::YOBI_BYTE, sizes::YOTTA_BYTE.binary());
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_to_bits() {
+        assert_eq!(sizes::KILO_BIT , sizes::KILO_BIT .bit());
+        assert_eq!(sizes::MEGA_BIT , sizes::MEGA_BIT .bit());
+        assert_eq!(sizes::GIGA_BIT , sizes::GIGA_BIT .bit());
+        assert_eq!(sizes::TERA_BIT , sizes::TERA_BIT .bit());
+        assert_eq!(sizes::PETA_BIT , sizes::PETA_BIT .bit());
+        assert_eq!(sizes::EXA_BIT  , sizes::EXA_BIT  .bit());
+        assert_eq!(sizes::ZETTA_BIT, sizes::ZETTA_BIT.bit());
+        assert_eq!(sizes::YOTTA_BIT, sizes::YOTTA_BIT.bit());
+        // --
+        assert_eq!(sizes::KILO_BIT , sizes::KILO_BYTE .bit());
+        assert_eq!(sizes::MEGA_BIT , sizes::MEGA_BYTE .bit());
+        assert_eq!(sizes::GIGA_BIT , sizes::GIGA_BYTE .bit());
+        assert_eq!(sizes::TERA_BIT , sizes::TERA_BYTE .bit());
+        assert_eq!(sizes::PETA_BIT , sizes::PETA_BYTE .bit());
+        assert_eq!(sizes::EXA_BIT  , sizes::EXA_BYTE  .bit());
+        assert_eq!(sizes::ZETTA_BIT, sizes::ZETTA_BYTE.bit());
+        assert_eq!(sizes::YOTTA_BIT, sizes::YOTTA_BYTE.bit());
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_to_bytes() {
+        assert_eq!(sizes::KIBI_BYTE, sizes::KIBI_BIT.byte());
+        assert_eq!(sizes::MEBI_BYTE, sizes::MEBI_BIT.byte());
+        assert_eq!(sizes::GIBI_BYTE, sizes::GIBI_BIT.byte());
+        assert_eq!(sizes::TEBI_BYTE, sizes::TEBI_BIT.byte());
+        assert_eq!(sizes::PEBI_BYTE, sizes::PEBI_BIT.byte());
+        assert_eq!(sizes::EXBI_BYTE, sizes::EXBI_BIT.byte());
+        assert_eq!(sizes::ZEBI_BYTE, sizes::ZEBI_BIT.byte());
+        assert_eq!(sizes::YOBI_BYTE, sizes::YOBI_BIT.byte());
+        // --
+        assert_eq!(sizes::KIBI_BYTE, sizes::KIBI_BYTE.byte());
+        assert_eq!(sizes::MEBI_BYTE, sizes::MEBI_BYTE.byte());
+        assert_eq!(sizes::GIBI_BYTE, sizes::GIBI_BYTE.byte());
+        assert_eq!(sizes::TEBI_BYTE, sizes::TEBI_BYTE.byte());
+        assert_eq!(sizes::PEBI_BYTE, sizes::PEBI_BYTE.byte());
+        assert_eq!(sizes::EXBI_BYTE, sizes::EXBI_BYTE.byte());
+        assert_eq!(sizes::ZEBI_BYTE, sizes::ZEBI_BYTE.byte());
+        assert_eq!(sizes::YOBI_BYTE, sizes::YOBI_BYTE.byte());
     }
 
     #[test]
