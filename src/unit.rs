@@ -304,4 +304,63 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_decimal() {
+        assert_eq!(Sizes::KILO_BIT , Unit::of(Kilo , Bit));
+        assert_eq!(Sizes::MEGA_BIT , Unit::of(Mega , Bit));
+        assert_eq!(Sizes::GIGA_BIT , Unit::of(Giga , Bit));
+        assert_eq!(Sizes::TERA_BIT , Unit::of(Tera , Bit));
+        assert_eq!(Sizes::PETA_BIT , Unit::of(Peta , Bit));
+        assert_eq!(Sizes::EXA_BIT  , Unit::of(Exa  , Bit));
+        assert_eq!(Sizes::ZETTA_BIT, Unit::of(Zetta, Bit));
+        assert_eq!(Sizes::YOTTA_BIT, Unit::of(Yotta, Bit));
+        // --
+        assert_eq!(Sizes::KILO_BYTE , Unit::of(Kilo , Byte));
+        assert_eq!(Sizes::MEGA_BYTE , Unit::of(Mega , Byte));
+        assert_eq!(Sizes::GIGA_BYTE , Unit::of(Giga , Byte));
+        assert_eq!(Sizes::TERA_BYTE , Unit::of(Tera , Byte));
+        assert_eq!(Sizes::PETA_BYTE , Unit::of(Peta , Byte));
+        assert_eq!(Sizes::EXA_BYTE  , Unit::of(Exa  , Byte));
+        assert_eq!(Sizes::ZETTA_BYTE, Unit::of(Zetta, Byte));
+        assert_eq!(Sizes::YOTTA_BYTE, Unit::of(Yotta, Byte));
+    }
+    #[test]
+    #[rustfmt::skip]
+    fn unit_binary() {
+        assert_eq!(Sizes::KIBI_BIT, Unit::of(Kibi, Bit));
+        assert_eq!(Sizes::MEBI_BIT, Unit::of(Mebi, Bit));
+        assert_eq!(Sizes::GIBI_BIT, Unit::of(Gibi, Bit));
+        assert_eq!(Sizes::TEBI_BIT, Unit::of(Tebi, Bit));
+        assert_eq!(Sizes::PEBI_BIT, Unit::of(Pebi, Bit));
+        assert_eq!(Sizes::EXBI_BIT, Unit::of(Exbi, Bit));
+        assert_eq!(Sizes::ZEBI_BIT, Unit::of(Zebi, Bit));
+        assert_eq!(Sizes::YOBI_BIT, Unit::of(Yobi, Bit));
+        // --
+        assert_eq!(Sizes::KIBI_BYTE, Unit::of(Kibi, Byte));
+        assert_eq!(Sizes::MEBI_BYTE, Unit::of(Mebi, Byte));
+        assert_eq!(Sizes::GIBI_BYTE, Unit::of(Gibi, Byte));
+        assert_eq!(Sizes::TEBI_BYTE, Unit::of(Tebi, Byte));
+        assert_eq!(Sizes::PEBI_BYTE, Unit::of(Pebi, Byte));
+        assert_eq!(Sizes::EXBI_BYTE, Unit::of(Exbi, Byte));
+        assert_eq!(Sizes::ZEBI_BYTE, Unit::of(Zebi, Byte));
+        assert_eq!(Sizes::YOBI_BYTE, Unit::of(Yobi, Byte));
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_from_prefix_and_variant() {
+        assert_eq!(Sizes::GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
+        assert_eq!(Sizes::KILO_BYTE, Unit::from((Kilo, Byte))); // KB
+        assert_eq!(Sizes::PEBI_BIT , (Pebi, Bit).into()      ); // Pib
+        assert_eq!(Sizes::EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_from_variant() {
+        assert_eq!(Sizes::BIT , Unit::from(Bit)); // b
+        assert_eq!(Sizes::BYTE, Byte.into()    ); // B
+    }
 }
