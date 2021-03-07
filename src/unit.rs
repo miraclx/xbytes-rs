@@ -74,7 +74,7 @@ impl Unit {
     }
 
     #[rustfmt::skip]
-    pub const fn symbol_short(&self) -> &'static str {
+    pub const fn symbol_initials(&self) -> &'static str {
         match self {
             Kilo  | Kibi => "K",
             Mega  | Mebi => "M",
@@ -91,7 +91,7 @@ impl Unit {
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_minus() {
-            self.symbol_short()
+            self.symbol_initials()
         } else if f.alternate() {
             self.symbol_long()
         } else {
@@ -329,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn format_and_display_symbol_short() {
+    fn format_and_display_symbol_initials() {
         #[rustfmt::skip]
         let map = [
             (Kilo ,   "K"),  (Kibi,   "K"),
@@ -345,7 +345,7 @@ mod tests {
         for (unit, repr) in map.iter() {
             assert_eq!(
                 *repr,
-                unit.symbol_short(),
+                unit.symbol_initials(),
                 "expected [{:?}] to be represented in short form as {}",
                 unit,
                 repr
