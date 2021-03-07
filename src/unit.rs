@@ -472,6 +472,26 @@ mod tests {
     }
 
     #[test]
+    fn unit_is_decimal() {
+        for unit in sizes::DECIMAL.iter() {
+            assert!(unit.is_decimal())
+        }
+        for unit in sizes::BINARY.iter() {
+            assert!(!unit.is_decimal())
+        }
+    }
+
+    #[test]
+    fn unit_is_binary() {
+        for unit in sizes::BINARY.iter() {
+            assert!(unit.is_binary())
+        }
+        for unit in sizes::DECIMAL.iter() {
+            assert!(!unit.is_binary())
+        }
+    }
+
+    #[test]
     #[rustfmt::skip]
     fn unit_from_prefix_and_variant() {
         assert_eq!(GIGA_BIT , Unit::from((Giga, Bit)) ); // Gb
