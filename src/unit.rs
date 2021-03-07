@@ -157,6 +157,9 @@ impl From<SizeVariant> for Unit {
 }
 
 impl Unit {
+    pub const MIN: Unit = Unit(None, Bit);
+    pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
+
     #[inline(always)]
     pub const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
         Self(Some(prefix), size_variant)
@@ -417,5 +420,11 @@ mod tests {
         for (size_variant, value) in map.iter() {
             assert_eq!(*value, size_variant.effective_value())
         }
+    }
+
+    #[test]
+    fn unit_min_max() {
+        assert_eq!(Unit(None, Bit), Unit::MIN);
+        assert_eq!(Unit(Some(Yobi), Byte), Unit::MAX);
     }
 }

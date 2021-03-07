@@ -26,6 +26,9 @@ impl UnitPrefix {
         Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi,
     ];
 
+    pub const MIN: UnitPrefix = Kilo;
+    pub const MAX: UnitPrefix = Yobi;
+
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
     }
@@ -433,5 +436,11 @@ mod tests {
         for (prefix, value) in map.iter() {
             assert_eq!(*value, prefix.effective_value())
         }
+    }
+
+    #[test]
+    fn min_max() {
+        assert_eq!(Kilo, UnitPrefix::MIN);
+        assert_eq!(Yobi, UnitPrefix::MAX);
     }
 }
