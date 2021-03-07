@@ -1,4 +1,5 @@
 use super::UnitPrefix::{self, *};
+use std::fmt;
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum SizeVariant {
@@ -113,6 +114,17 @@ impl SizeVariant {
             (Byte, true) => "Bytes",
             (Byte, false) => "Byte",
         }
+    }
+}
+
+impl fmt::Display for SizeVariant {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let variant = if f.alternate() {
+            self.symbol_long(f.sign_plus())
+        } else {
+            self.symbol()
+        };
+        f.write_str(variant)
     }
 }
 
