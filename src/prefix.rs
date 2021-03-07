@@ -409,4 +409,23 @@ mod tests {
             assert_eq!(Ok(*unit), value.parse::<UnitPrefix>());
         }
     }
+
+    #[test]
+    fn effective_value() {
+        #[rustfmt::skip]
+        let map = [
+            (Kilo , 1000),                       (Kibi, 1024),
+            (Mega , 1000000),                    (Mebi, 1048576),
+            (Giga , 1000000000),                 (Gibi, 1073741824),
+            (Tera , 1000000000000),              (Tebi, 1099511627776),
+            (Peta , 1000000000000000),           (Pebi, 1125899906842624),
+            (Exa  , 1000000000000000000),        (Exbi, 1152921504606846976),
+            (Zetta, 1000000000000000000000),     (Zebi, 1180591620717411303424),
+            (Yotta, 1000000000000000000000000),  (Yobi, 1208925819614629174706176)
+        ];
+
+        for (prefix, value) in map.iter() {
+            assert_eq!(prefix.effective_value(), *value)
+        }
+    }
 }

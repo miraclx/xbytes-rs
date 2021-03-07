@@ -324,6 +324,16 @@ mod tests {
 
     #[test]
     #[rustfmt::skip]
+    fn size_variant_effective_value() {
+        let map = [(Bit, 1), (Byte, 8)];
+
+        for (size_variant, value) in map.iter() {
+            assert_eq!(size_variant.effective_value(), *value)
+        }
+    }
+
+    #[test]
+    #[rustfmt::skip]
     fn unit_decimal() {
         assert_eq!(Sizes::KILO_BIT , Unit::of(Kilo , Bit));
         assert_eq!(Sizes::MEGA_BIT , Unit::of(Mega , Bit));
@@ -379,5 +389,32 @@ mod tests {
     fn unit_from_variant() {
         assert_eq!(Sizes::BIT , Unit::from(Bit)); // b
         assert_eq!(Sizes::BYTE, Byte.into()    ); // B
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_effective_value() {
+        let map = [
+            (Sizes::KILO_BIT  , 1000),                      (Sizes::KIBI_BIT , 1024),
+            (Sizes::MEGA_BIT  , 1000000),                   (Sizes::MEBI_BIT , 1048576),
+            (Sizes::GIGA_BIT  , 1000000000),                (Sizes::GIBI_BIT , 1073741824),
+            (Sizes::TERA_BIT  , 1000000000000),             (Sizes::TEBI_BIT , 1099511627776),
+            (Sizes::PETA_BIT  , 1000000000000000),          (Sizes::PEBI_BIT , 1125899906842624),
+            (Sizes::EXA_BIT   , 1000000000000000000),       (Sizes::EXBI_BIT , 1152921504606846976),
+            (Sizes::ZETTA_BIT , 1000000000000000000000),    (Sizes::ZEBI_BIT , 1180591620717411303424),
+            (Sizes::YOTTA_BIT , 1000000000000000000000000), (Sizes::YOBI_BIT , 1208925819614629174706176),
+            (Sizes::KILO_BYTE , 8000),                      (Sizes::KIBI_BYTE, 8192),
+            (Sizes::MEGA_BYTE , 8000000),                   (Sizes::MEBI_BYTE, 8388608),
+            (Sizes::GIGA_BYTE , 8000000000),                (Sizes::GIBI_BYTE, 8589934592),
+            (Sizes::TERA_BYTE , 8000000000000),             (Sizes::TEBI_BYTE, 8796093022208),
+            (Sizes::PETA_BYTE , 8000000000000000),          (Sizes::PEBI_BYTE, 9007199254740992),
+            (Sizes::EXA_BYTE  , 8000000000000000000),       (Sizes::EXBI_BYTE, 9223372036854775808),
+            (Sizes::ZETTA_BYTE, 8000000000000000000000),    (Sizes::ZEBI_BYTE, 9444732965739290427392),
+            (Sizes::YOTTA_BYTE, 8000000000000000000000000), (Sizes::YOBI_BYTE, 9671406556917033397649408),
+        ];
+
+        for (size_variant, value) in map.iter() {
+            assert_eq!(size_variant.effective_value(), *value)
+        }
     }
 }
