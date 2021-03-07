@@ -332,7 +332,7 @@ mod tests {
         let map = [(Bit, 1), (Byte, 8)];
 
         for (size_variant, value) in map.iter() {
-            assert_eq!(*value, size_variant.effective_value())
+            assert_eq!(*value, size_variant.effective_value(), "expected [{:?}] to have the value [{}]", size_variant, value);
         }
     }
 
@@ -506,8 +506,8 @@ mod tests {
             (YOTTA_BYTE, 8000000000000000000000000), (YOBI_BYTE, 9671406556917033397649408),
         ];
 
-        for (size_variant, value) in map.iter() {
-            assert_eq!(*value, size_variant.effective_value())
+        for (unit, value) in map.iter() {
+            assert_eq!(*value, unit.effective_value(), "expected [{:?}] to have the value [{}]", unit, value);
         }
     }
 

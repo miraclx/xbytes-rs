@@ -434,7 +434,13 @@ mod tests {
         ];
 
         for (prefix, value) in map.iter() {
-            assert_eq!(*value, prefix.effective_value())
+            assert_eq!(
+                *value,
+                prefix.effective_value(),
+                "expected [{:?}] to have the value [{}]",
+                prefix,
+                value
+            );
         }
     }
 
