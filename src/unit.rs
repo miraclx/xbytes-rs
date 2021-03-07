@@ -37,9 +37,10 @@ pub mod Decimal {
 
     pub use _exported::*;
 
+    #[rustfmt::skip]
     pub const SIZES: [Unit; 16] = [
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT, KILO_BYTE,
-        MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
+        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
+        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
     ];
 }
 
@@ -68,18 +69,19 @@ pub mod Binary {
 
     pub use _exported::*;
 
+    #[rustfmt::skip]
     pub const SIZES: [Unit; 16] = [
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT, KIBI_BYTE,
-        MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
+        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
+        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
     ];
 }
 
-#[rustfmt::skip]
 pub mod Sizes {
     pub use super::{
         Binary::{_exported::*, SIZES as BINARY},
         Decimal::{_exported::*, SIZES as DECIMAL},
     };
+    #[rustfmt::skip]
     pub const ALL: [super::Unit; 32] = [
         KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
         KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,

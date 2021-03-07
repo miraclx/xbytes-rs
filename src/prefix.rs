@@ -107,8 +107,8 @@ pub struct UnitPrefixParseError;
 impl std::str::FromStr for UnitPrefix {
     type Err = UnitPrefixParseError;
 
-    #[rustfmt::skip]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        #[rustfmt::skip]
         let unit = match s.to_lowercase().as_str() {
             "k"     => Kilo ,   "ki"   => Kibi,
             "kilo"  => Kilo ,   "kibi" => Kibi,
