@@ -106,10 +106,12 @@ impl SizeVariant {
         }
     }
 
-    pub const fn symbol_long(&self) -> &'static str {
-        match self {
-            Bit => "Bit",
-            Byte => "Byte",
+    pub const fn symbol_long(&self, plural: bool) -> &'static str {
+        match (self, plural) {
+            (Bit, true) => "Bits",
+            (Bit, false) => "Bit",
+            (Byte, true) => "Bytes",
+            (Byte, false) => "Byte",
         }
     }
 }
@@ -160,12 +162,12 @@ impl Unit {
         format!("{}{}", unit, size_variant)
     }
 
-    pub fn symbols_long(&self) -> (&'static str, &'static str) {
-        (self.0.symbol_long(), self.1.symbol_long())
+    pub fn symbols_long(&self, plural: bool) -> (&'static str, &'static str) {
+        (self.0.symbol_long(), self.1.symbol_long(plural))
     }
 
-    pub fn symbol_long(&self) -> String {
-        let (unit, size_variant) = self.symbols_long();
+    pub fn symbol_long(&self, plural: bool) -> String {
+        let (unit, size_variant) = self.symbols_long(plural);
         format!("{}{}", unit, size_variant)
     }
 }
