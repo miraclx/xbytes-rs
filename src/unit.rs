@@ -15,12 +15,15 @@ use SizeVariant::*;
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
-mod decimal {
-    use super::Unit;
+pub mod sizes {
+    use super::*;
+
+    pub const BIT: Unit = Unit(None, Bit);
+    pub const BYTE: Unit = Unit(None, Byte);
 
     #[rustfmt::skip]
-    pub(super) mod _exported {
-        use super::super::*;
+    pub mod decimal {
+        use super::*;
         pub const KILO_BIT  : Unit = Unit::of(Kilo , Bit );
         pub const MEGA_BIT  : Unit = Unit::of(Mega , Bit );
         pub const GIGA_BIT  : Unit = Unit::of(Giga , Bit );
@@ -38,21 +41,9 @@ mod decimal {
         pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
         pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
     }
-
-    pub use _exported::*;
-
     #[rustfmt::skip]
-    pub const SIZES: [Unit; 16] = [
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
-    ];
-}
-
-mod binary {
-    use super::Unit;
-    #[rustfmt::skip]
-    pub(super) mod _exported {
-        use super::super::*;
+    pub mod binary {
+        use super::*;
         pub const KIBI_BIT : Unit = Unit::of(Kibi, Bit );
         pub const MEBI_BIT : Unit = Unit::of(Mebi, Bit );
         pub const GIBI_BIT : Unit = Unit::of(Gibi, Bit );
@@ -71,24 +62,19 @@ mod binary {
         pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
-    pub use _exported::*;
+    pub use {binary::*, decimal::*};
 
     #[rustfmt::skip]
-    pub const SIZES: [Unit; 16] = [
+    pub const DECIMAL: [Unit; 16] = [
+        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
+        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
+    ];
+
+    #[rustfmt::skip]
+    pub const BINARY: [Unit; 16] = [
         KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
         KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
     ];
-}
-
-pub mod sizes {
-    use super::*;
-    pub use super::{
-        binary::{_exported::*, SIZES as BINARY},
-        decimal::{_exported::*, SIZES as DECIMAL},
-    };
-
-    pub const BIT: Unit = Unit(None, Bit);
-    pub const BYTE: Unit = Unit(None, Byte);
 
     #[rustfmt::skip]
     pub const BITS: [Unit; 17] = [
