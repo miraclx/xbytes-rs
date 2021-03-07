@@ -102,10 +102,10 @@ impl fmt::Display for UnitPrefix {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct UnitParseError;
+pub struct UnitPrefixParseError;
 
 impl std::str::FromStr for UnitPrefix {
-    type Err = UnitParseError;
+    type Err = UnitPrefixParseError;
 
     #[rustfmt::skip]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -133,7 +133,7 @@ impl std::str::FromStr for UnitPrefix {
             // --
             "y"     => Yotta,   "yi"   => Yobi,
             "yotta" => Yotta,   "yobi" => Yobi,
-            _ => return Err(UnitParseError),
+            _ => return Err(UnitPrefixParseError),
         };
         Ok(unit)
     }

@@ -1,2 +1,2 @@
-pub use super::prefix::UnitPrefix;
-pub use super::unit::{SizeVariant, Sizes, Unit};
+pub use super::prefix::{UnitPrefix, UnitPrefixParseError};
+pub use super::unit::{Binary, Decimal, SizeVariant, Sizes, Unit};
