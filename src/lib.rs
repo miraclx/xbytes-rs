@@ -1,7 +1,7 @@
 mod prefix;
-pub use prefix::UnitPrefix;
-
-use UnitPrefix::*;
+pub mod prelude;
+mod unit;
+pub use prelude::*;
 
 pub struct ByteSize<T>(T);
 
