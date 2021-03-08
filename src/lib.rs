@@ -10,6 +10,7 @@ pub enum ParseError {
     EmptyInput,
     InvalidPrefix,
     InvalidSizeVariant,
+    InvalidUnitCaseFormat,
     InvalidPrefixCaseFormat,
 }
 

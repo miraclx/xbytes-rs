@@ -328,7 +328,12 @@ impl FromStr for Unit {
             let (prefix, size_variant) = s.split_at(index);
             let size_variant = size_variant.parse::<SizeVariant>()?;
             let prefix = (!prefix.is_empty())
-                .then(|| prefix.parse::<UnitPrefix>())
+                .then(|| {
+                    prefix.parse::<UnitPrefix>().map_err(|err| match err {
+                        ParseError::InvalidPrefixCaseFormat => ParseError::InvalidUnitCaseFormat,
+                        err => err,
+                    })
+                })
                 .transpose()?;
             Ok(Unit(prefix, size_variant))
         }
@@ -800,11 +805,11 @@ mod tests {
         assert_eq!(Ok(KIBI_BIT), "Kib".parse::<Unit>());
         assert_eq!(Ok(KIBI_BYTE), "KiB".parse::<Unit>());
         assert_eq!(
-            Err(ParseError::InvalidPrefixCaseFormat),
+            Err(ParseError::InvalidUnitCaseFormat),
             "kib".parse::<Unit>()
         );
         assert_eq!(
-            Err(ParseError::InvalidPrefixCaseFormat),
+            Err(ParseError::InvalidUnitCaseFormat),
             "mb".parse::<Unit>() // small caps is only valid for 'k' in the decimal format
         );
         assert_eq!(Ok(MEGA_BIT), "Mb".parse::<Unit>());
@@ -812,7 +817,7 @@ mod tests {
         assert_eq!(Ok(MEBI_BIT), "Mib".parse::<Unit>());
         assert_eq!(Ok(MEBI_BYTE), "MiB".parse::<Unit>());
         assert_eq!(
-            Err(ParseError::InvalidPrefixCaseFormat),
+            Err(ParseError::InvalidUnitCaseFormat),
             "mib".parse::<Unit>()
         );
         assert_eq!(Ok(MEGA_BIT), "MegaBit".parse::<Unit>());
