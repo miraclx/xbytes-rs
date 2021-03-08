@@ -320,10 +320,10 @@ impl std::str::FromStr for Unit {
         } else {
             let (prefix, size_variant) = s.split_at(s.len() - 1);
             let size_variant = size_variant.parse::<SizeVariant>()?;
-            let prefix = match prefix {
-                "" => None,
-                prefix => Some(prefix.parse::<UnitPrefix>()?),
-            };
+            let prefix = prefix
+                .is_empty()
+                .then(|| prefix.parse::<UnitPrefix>())
+                .transpose()?;
             Ok(Unit(prefix, size_variant))
         }
     }
