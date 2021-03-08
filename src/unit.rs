@@ -2,7 +2,7 @@ use super::{
     Int, ParseError,
     UnitPrefix::{self, *},
 };
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum SizeVariant {
@@ -144,7 +144,7 @@ impl fmt::Display for SizeVariant {
     }
 }
 
-impl std::str::FromStr for SizeVariant {
+impl FromStr for SizeVariant {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -317,7 +317,7 @@ impl fmt::Display for Unit {
     }
 }
 
-impl std::str::FromStr for Unit {
+impl FromStr for Unit {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

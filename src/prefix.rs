@@ -1,5 +1,5 @@
 use super::{Int, ParseError};
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 #[rustfmt::skip]
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
@@ -126,7 +126,7 @@ impl fmt::Display for UnitPrefix {
     }
 }
 
-impl std::str::FromStr for UnitPrefix {
+impl FromStr for UnitPrefix {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
