@@ -311,6 +311,24 @@ impl fmt::Display for Unit {
     }
 }
 
+impl std::str::FromStr for Unit {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            Err(ParseError::EmptyString)
+        } else {
+            let (prefix, size_variant) = s.split_at(s.len() - 1);
+            let size_variant = size_variant.parse::<SizeVariant>()?;
+            let prefix = match prefix {
+                "" => None,
+                prefix => Some(prefix.parse::<UnitPrefix>()?),
+            };
+            Ok(Unit(prefix, size_variant))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{sizes::*, *};
