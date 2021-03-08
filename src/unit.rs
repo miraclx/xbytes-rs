@@ -327,8 +327,7 @@ impl std::str::FromStr for Unit {
                     ParseError::EmptyString => ParseError::SizeVariantParseError,
                     err => err,
                 })?;
-            let prefix = prefix
-                .is_empty()
+            let prefix = (!prefix.is_empty())
                 .then(|| prefix.parse::<UnitPrefix>())
                 .transpose()?;
             Ok(Unit(prefix, size_variant))
