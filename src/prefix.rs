@@ -377,6 +377,7 @@ mod tests {
     fn str_parse() {
         #[rustfmt::skip]
         let map = [
+            ("k"    , Kilo ),
             ("K"    , Kilo ),  ("Ki"  , Kibi),
             ("M"    , Mega ),  ("Mi"  , Mebi),
             ("G"    , Giga ),  ("Gi"  , Gibi),
