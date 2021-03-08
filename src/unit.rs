@@ -813,4 +813,25 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn unit_str_parse() {
+        assert_eq!(Ok(BIT), "b".parse::<Unit>());
+        assert_eq!(Ok(BYTE), "B".parse::<Unit>());
+        assert_eq!(Ok(MEGA_BIT), "Mb".parse::<Unit>());
+        assert_eq!(Ok(MEGA_BYTE), "MB".parse::<Unit>());
+        assert_eq!(Ok(MEBI_BIT), "Mib".parse::<Unit>());
+        assert_eq!(Ok(MEBI_BYTE), "MiB".parse::<Unit>());
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "MegaBit".parse::<Unit>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "MegaByte".parse::<Unit>()
+        );
+        assert_eq!(Err(ParseError::EmptyString), "".parse::<Unit>());
+        assert_eq!(Err(ParseError::SizeVariantParseError), "m".parse::<Unit>());
+        assert_eq!(Err(ParseError::PrefixParseError), "m b".parse::<Unit>());
+    }
 }
