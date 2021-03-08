@@ -131,16 +131,17 @@ impl std::str::FromStr for UnitPrefix {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
-        let unit = match s.to_lowercase().as_str() {
+        let unit = match s {
             "" => return Err(ParseError::EmptyString),
-            "k"     => Kilo ,   "ki"   => Kibi,
-            "m"     => Mega ,   "mi"   => Mebi,
-            "g"     => Giga ,   "gi"   => Gibi,
-            "t"     => Tera ,   "ti"   => Tebi,
-            "p"     => Peta ,   "pi"   => Pebi,
-            "e"     => Exa  ,   "ei"   => Exbi,
-            "z"     => Zetta,   "zi"   => Zebi,
-            "y"     => Yotta,   "yi"   => Yobi,
+            // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
+            "k" | "K"  => Kilo ,   "Ki"  => Kibi,
+            "M"        => Mega ,   "Mi"  => Mebi,
+            "G"        => Giga ,   "Gi"  => Gibi,
+            "T"        => Tera ,   "Ti"  => Tebi,
+            "P"        => Peta ,   "Pi"  => Pebi,
+            "E"        => Exa  ,   "Ei"  => Exbi,
+            "Z"        => Zetta,   "Zi"  => Zebi,
+            "Y"        => Yotta,   "Yi"  => Yobi,
             _ => return Err(ParseError::PrefixParseError),
         };
         Ok(unit)
