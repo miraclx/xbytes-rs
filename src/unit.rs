@@ -1,5 +1,5 @@
 use super::{
-    Int,
+    Int, ParseError,
     UnitPrefix::{self, *},
 };
 use std::fmt;
@@ -139,6 +139,19 @@ impl fmt::Display for SizeVariant {
             self.symbol()
         };
         f.write_str(variant)
+    }
+}
+
+impl std::str::FromStr for SizeVariant {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "" => Err(ParseError::EmptyString),
+            "b" => Ok(Bit),
+            "B" => Ok(Byte),
+            _ => Err(ParseError::SizeVariantParseError),
+        }
     }
 }
 
