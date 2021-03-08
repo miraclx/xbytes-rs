@@ -64,16 +64,16 @@ pub mod sizes {
 
     pub use {binary::*, decimal::*};
 
+    pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
+
     #[rustfmt::skip]
-    pub const DECIMAL: [Unit; 18] = [
-        BIT, BYTE,
+    pub const DECIMAL: [Unit; 16] = [
         KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
         KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
     ];
 
     #[rustfmt::skip]
-    pub const BINARY: [Unit; 18] = [
-        BIT, BYTE,
+    pub const BINARY: [Unit; 16] = [
         KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
         KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
     ];
@@ -182,14 +182,14 @@ impl Unit {
         if let Some(prefix) = self.0 {
             return prefix.is_decimal();
         }
-        true
+        false
     }
 
     pub const fn is_binary(&self) -> bool {
         if let Some(prefix) = self.0 {
             return prefix.is_binary();
         }
-        true
+        false
     }
 
     pub const fn is_bit(&self) -> bool {
@@ -644,8 +644,8 @@ mod tests {
 
     #[test]
     fn unit_is_decimal() {
-        assert!(BIT.is_decimal());
-        assert!(BYTE.is_decimal());
+        assert!(!BIT.is_decimal());
+        assert!(!BYTE.is_decimal());
         for unit in sizes::DECIMAL.iter() {
             assert!(unit.is_decimal())
         }
@@ -656,8 +656,8 @@ mod tests {
 
     #[test]
     fn unit_is_binary() {
-        assert!(BIT.is_binary());
-        assert!(BYTE.is_binary());
+        assert!(!BIT.is_binary());
+        assert!(!BYTE.is_binary());
         for unit in sizes::BINARY.iter() {
             assert!(unit.is_binary())
         }
