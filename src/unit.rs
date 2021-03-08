@@ -152,7 +152,11 @@ impl std::str::FromStr for SizeVariant {
             "" => Err(ParseError::EmptyString),
             "b" => Ok(Bit),
             "B" => Ok(Byte),
-            _ => Err(ParseError::SizeVariantParseError),
+            s => match s.to_lowercase().as_str() {
+                "bit" | "bits" => Ok(Bit),
+                "byte" | "bytes" => Ok(Byte),
+                _ => Err(ParseError::SizeVariantParseError),
+            },
         }
     }
 }
@@ -320,13 +324,9 @@ impl std::str::FromStr for Unit {
         if s.is_empty() {
             Err(ParseError::EmptyString)
         } else {
-            let (prefix, size_variant) = s.split_at(s.len() - 1);
-            let size_variant = size_variant
-                .parse::<SizeVariant>()
-                .map_err(|err| match err {
-                    ParseError::EmptyString => ParseError::SizeVariantParseError,
-                    err => err,
-                })?;
+            let index = s.rfind(|c| matches!(c, 'b' | 'B')).unwrap_or(0);
+            let (prefix, size_variant) = s.split_at(index);
+            let size_variant = size_variant.parse::<SizeVariant>()?;
             let prefix = (!prefix.is_empty())
                 .then(|| prefix.parse::<UnitPrefix>())
                 .transpose()?;
@@ -420,38 +420,14 @@ mod tests {
     fn size_variant_str_parse() {
         assert_eq!(Ok(Bit), "b".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "B".parse::<SizeVariant>());
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "bit".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "bits".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "Bit".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "Bits".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "byte".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "bytes".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "Byte".parse::<SizeVariant>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "Bytes".parse::<SizeVariant>()
-        );
+        assert_eq!(Ok(Bit), "bit".parse::<SizeVariant>());
+        assert_eq!(Ok(Bit), "bits".parse::<SizeVariant>());
+        assert_eq!(Ok(Bit), "Bit".parse::<SizeVariant>());
+        assert_eq!(Ok(Bit), "Bits".parse::<SizeVariant>());
+        assert_eq!(Ok(Byte), "byte".parse::<SizeVariant>());
+        assert_eq!(Ok(Byte), "bytes".parse::<SizeVariant>());
+        assert_eq!(Ok(Byte), "Byte".parse::<SizeVariant>());
+        assert_eq!(Ok(Byte), "Bytes".parse::<SizeVariant>());
         assert_eq!(Err(ParseError::EmptyString), "".parse::<SizeVariant>());
         assert_eq!(
             Err(ParseError::SizeVariantParseError),
@@ -822,14 +798,10 @@ mod tests {
         assert_eq!(Ok(MEGA_BYTE), "MB".parse::<Unit>());
         assert_eq!(Ok(MEBI_BIT), "Mib".parse::<Unit>());
         assert_eq!(Ok(MEBI_BYTE), "MiB".parse::<Unit>());
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "MegaBit".parse::<Unit>()
-        );
-        assert_eq!(
-            Err(ParseError::SizeVariantParseError),
-            "MegaByte".parse::<Unit>()
-        );
+        assert_eq!(Ok(MEGA_BIT), "MegaBit".parse::<Unit>());
+        assert_eq!(Ok(MEGA_BYTE), "MegaByte".parse::<Unit>());
+        assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>());
+        assert_eq!(Ok(GIGA_BYTE), "gigabyte".parse::<Unit>());
         assert_eq!(Err(ParseError::EmptyString), "".parse::<Unit>());
         assert_eq!(Err(ParseError::SizeVariantParseError), "m".parse::<Unit>());
         assert_eq!(Err(ParseError::PrefixParseError), "m b".parse::<Unit>());

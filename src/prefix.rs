@@ -142,7 +142,17 @@ impl std::str::FromStr for UnitPrefix {
             "E"        => Exa  ,   "Ei"  => Exbi,
             "Z"        => Zetta,   "Zi"  => Zebi,
             "Y"        => Yotta,   "Yi"  => Yobi,
-            _ => return Err(ParseError::PrefixParseError),
+            s => match s.to_lowercase().as_str() {
+                "kilo"  => Kilo ,   "kibi" => Kibi,
+                "mega"  => Mega ,   "mebi" => Mebi,
+                "giga"  => Giga ,   "gibi" => Gibi,
+                "tera"  => Tera ,   "tebi" => Tebi,
+                "peta"  => Peta ,   "pebi" => Pebi,
+                "exa"   => Exa  ,   "exbi" => Exbi,
+                "zetta" => Zetta,   "zebi" => Zebi,
+                "yotta" => Yotta,   "yobi" => Yobi,
+                _ => return Err(ParseError::PrefixParseError),
+            }
         };
         Ok(unit)
     }
