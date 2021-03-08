@@ -8,8 +8,8 @@ pub struct ByteSize<T>(T);
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
     EmptyInput,
-    PrefixParseError,
-    SizeVariantParseError,
+    InvalidPrefix,
+    InvalidSizeVariant,
     InvalidPrefixCaseFormat,
 }
 

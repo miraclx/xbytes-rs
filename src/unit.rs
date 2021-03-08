@@ -155,7 +155,7 @@ impl FromStr for SizeVariant {
             s => match s.to_lowercase().as_str() {
                 "bit" | "bits" => Ok(Bit),
                 "byte" | "bytes" => Ok(Byte),
-                _ => Err(ParseError::SizeVariantParseError),
+                _ => Err(ParseError::InvalidSizeVariant),
             },
         }
     }
@@ -430,15 +430,15 @@ mod tests {
         assert_eq!(Ok(Byte), "Bytes".parse::<SizeVariant>());
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<SizeVariant>());
         assert_eq!(
-            Err(ParseError::SizeVariantParseError),
+            Err(ParseError::InvalidSizeVariant),
             " b ".parse::<SizeVariant>()
         );
         assert_eq!(
-            Err(ParseError::SizeVariantParseError),
+            Err(ParseError::InvalidSizeVariant),
             "B ".parse::<SizeVariant>()
         );
         assert_eq!(
-            Err(ParseError::SizeVariantParseError),
+            Err(ParseError::InvalidSizeVariant),
             " Bytes".parse::<SizeVariant>()
         );
     }
@@ -820,7 +820,7 @@ mod tests {
         assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>()); // it is case insensitive in the long form
         assert_eq!(Ok(GIGA_BYTE), "gigabyte".parse::<Unit>());
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<Unit>());
-        assert_eq!(Err(ParseError::SizeVariantParseError), "m".parse::<Unit>());
-        assert_eq!(Err(ParseError::PrefixParseError), "m b".parse::<Unit>());
+        assert_eq!(Err(ParseError::InvalidSizeVariant), "m".parse::<Unit>());
+        assert_eq!(Err(ParseError::InvalidPrefix), "m b".parse::<Unit>());
     }
 }

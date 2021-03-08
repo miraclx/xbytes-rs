@@ -155,7 +155,7 @@ impl FromStr for UnitPrefix {
                 "exa"   => Exa  ,   "exbi" => Exbi,
                 "zetta" => Zetta,   "zebi" => Zebi,
                 "yotta" => Yotta,   "yobi" => Yobi,
-                _ => return Err(ParseError::PrefixParseError),
+                _ => return Err(ParseError::InvalidPrefix),
             }
         };
         Ok(unit)
