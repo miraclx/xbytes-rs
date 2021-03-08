@@ -18,7 +18,7 @@ type Int = u128;
 type Int = u64;
 
 impl<T> ByteSize<T> {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new(t: T) -> Self {
+        ByteSize(t)
     }
 }
