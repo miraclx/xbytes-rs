@@ -321,7 +321,12 @@ impl std::str::FromStr for Unit {
             Err(ParseError::EmptyString)
         } else {
             let (prefix, size_variant) = s.split_at(s.len() - 1);
-            let size_variant = size_variant.parse::<SizeVariant>()?;
+            let size_variant = size_variant
+                .parse::<SizeVariant>()
+                .map_err(|err| match err {
+                    ParseError::EmptyString => ParseError::SizeVariantParseError,
+                    err => err,
+                })?;
             let prefix = prefix
                 .is_empty()
                 .then(|| prefix.parse::<UnitPrefix>())
