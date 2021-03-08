@@ -1,4 +1,4 @@
-use super::Int;
+use super::{Int, ParseError};
 use std::fmt;
 
 #[rustfmt::skip]
@@ -126,15 +126,13 @@ impl fmt::Display for UnitPrefix {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct UnitPrefixParseError;
-
 impl std::str::FromStr for UnitPrefix {
-    type Err = UnitPrefixParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
         let unit = match s.trim().to_lowercase().as_str() {
+            "" => return Err(ParseError::EmptyString),
             "k"     => Kilo ,   "ki"   => Kibi,
             "kilo"  => Kilo ,   "kibi" => Kibi,
             // --
@@ -158,7 +156,7 @@ impl std::str::FromStr for UnitPrefix {
             // --
             "y"     => Yotta,   "yi"   => Yobi,
             "yotta" => Yotta,   "yobi" => Yobi,
-            _ => return Err(UnitPrefixParseError),
+            _ => return Err(ParseError::PrefixParseError),
         };
         Ok(unit)
     }
@@ -408,6 +406,7 @@ mod tests {
             ("Yotta", Yotta),  ("Yobi", Yobi),
         ];
 
+        assert_eq!(Err(ParseError::EmptyString), "".parse::<UnitPrefix>());
         for (value, unit) in map.iter() {
             assert_eq!(Ok(*unit), value.parse::<UnitPrefix>());
         }
