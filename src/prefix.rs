@@ -131,7 +131,7 @@ impl std::str::FromStr for UnitPrefix {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
-        let unit = match s.trim().to_lowercase().as_str() {
+        let unit = match s.to_lowercase().as_str() {
             "" => return Err(ParseError::EmptyString),
             "k"     => Kilo ,   "ki"   => Kibi,
             "kilo"  => Kilo ,   "kibi" => Kibi,
