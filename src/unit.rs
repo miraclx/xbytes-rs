@@ -794,13 +794,30 @@ mod tests {
     fn unit_str_parse() {
         assert_eq!(Ok(BIT), "b".parse::<Unit>());
         assert_eq!(Ok(BYTE), "B".parse::<Unit>());
+        assert_eq!(Ok(KILO_BIT), "kb".parse::<Unit>());
+        assert_eq!(Ok(KILO_BYTE), "kB".parse::<Unit>()); // small caps 'k' is only valid as decimal
+        assert_eq!(Ok(KILO_BYTE), "KB".parse::<Unit>());
+        assert_eq!(Ok(KIBI_BIT), "Kib".parse::<Unit>());
+        assert_eq!(Ok(KIBI_BYTE), "KiB".parse::<Unit>());
+        assert_eq!(
+            Err(ParseError::InvalidPrefixCaseFormat),
+            "kib".parse::<Unit>()
+        );
+        assert_eq!(
+            Err(ParseError::InvalidPrefixCaseFormat),
+            "mb".parse::<Unit>() // small caps is only valid for 'k' in the decimal format
+        );
         assert_eq!(Ok(MEGA_BIT), "Mb".parse::<Unit>());
         assert_eq!(Ok(MEGA_BYTE), "MB".parse::<Unit>());
         assert_eq!(Ok(MEBI_BIT), "Mib".parse::<Unit>());
         assert_eq!(Ok(MEBI_BYTE), "MiB".parse::<Unit>());
+        assert_eq!(
+            Err(ParseError::InvalidPrefixCaseFormat),
+            "mib".parse::<Unit>()
+        );
         assert_eq!(Ok(MEGA_BIT), "MegaBit".parse::<Unit>());
         assert_eq!(Ok(MEGA_BYTE), "MegaByte".parse::<Unit>());
-        assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>());
+        assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>()); // it is case insensitive in the long form
         assert_eq!(Ok(GIGA_BYTE), "gigabyte".parse::<Unit>());
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<Unit>());
         assert_eq!(Err(ParseError::SizeVariantParseError), "m".parse::<Unit>());

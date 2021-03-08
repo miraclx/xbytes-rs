@@ -142,6 +142,10 @@ impl FromStr for UnitPrefix {
             "E"        => Exa  ,   "Ei"  => Exbi,
             "Z"        => Zetta,   "Zi"  => Zebi,
             "Y"        => Yotta,   "Yi"  => Yobi,
+            s if matches!(s,
+                "m" | "g" | "t" | "p" | "e" | "z" | "y" |
+                "ki" | "mi" | "gi" | "ti" | "pi" | "ei" | "zi" | "yi"
+            ) => return Err(ParseError::InvalidPrefixCaseFormat),
             s => match s.to_lowercase().as_str() {
                 "kilo"  => Kilo ,   "kibi" => Kibi,
                 "mega"  => Mega ,   "mebi" => Mebi,
@@ -377,20 +381,34 @@ mod tests {
     fn str_parse() {
         #[rustfmt::skip]
         let map = [
-            ("k"    , Kilo ),
-            ("K"    , Kilo ),  ("Ki"  , Kibi),
-            ("M"    , Mega ),  ("Mi"  , Mebi),
-            ("G"    , Giga ),  ("Gi"  , Gibi),
-            ("T"    , Tera ),  ("Ti"  , Tebi),
-            ("P"    , Peta ),  ("Pi"  , Pebi),
-            ("E"    , Exa  ),  ("Ei"  , Exbi),
-            ("Z"    , Zetta),  ("Zi"  , Zebi),
-            ("Y"    , Yotta),  ("Yi"  , Yobi),
+            ("k"  , Ok(Kilo )),
+            ("K"  , Ok(Kilo )),  ("Ki"  , Ok(Kibi)),
+            ("M"  , Ok(Mega )),  ("Mi"  , Ok(Mebi)),
+            ("G"  , Ok(Giga )),  ("Gi"  , Ok(Gibi)),
+            ("T"  , Ok(Tera )),  ("Ti"  , Ok(Tebi)),
+            ("P"  , Ok(Peta )),  ("Pi"  , Ok(Pebi)),
+            ("E"  , Ok(Exa  )),  ("Ei"  , Ok(Exbi)),
+            ("Z"  , Ok(Zetta)),  ("Zi"  , Ok(Zebi)),
+            ("Y"  , Ok(Yotta)),  ("Yi"  , Ok(Yobi)),
         ];
 
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<UnitPrefix>());
+
         for (value, unit) in map.iter() {
-            assert_eq!(Ok(*unit), value.parse::<UnitPrefix>());
+            assert_eq!(*unit, value.parse::<UnitPrefix>());
+        }
+
+        #[rustfmt::skip]
+        let invalid_formats = [
+                 "ki", "m", "mi", "g", "gi", "t", "ti",
+            "p", "pi", "e", "ei", "z", "zi", "y", "yi",
+        ];
+
+        for value in invalid_formats.iter() {
+            assert_eq!(
+                Err(ParseError::InvalidPrefixCaseFormat),
+                value.parse::<UnitPrefix>()
+            );
         }
     }
 

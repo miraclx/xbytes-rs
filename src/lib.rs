@@ -10,6 +10,7 @@ pub enum ParseError {
     EmptyInput,
     PrefixParseError,
     SizeVariantParseError,
+    InvalidPrefixCaseFormat,
 }
 
 #[cfg(has_u128)]
