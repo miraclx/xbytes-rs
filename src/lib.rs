@@ -2,6 +2,7 @@ mod prefix;
 pub mod prelude;
 mod unit;
 pub use prelude::*;
+use std::fmt;
 
 pub struct ByteSize<T>(T);
 
@@ -12,6 +13,22 @@ pub enum ParseError {
     InvalidSizeVariant,
     InvalidUnitCaseFormat,
     InvalidPrefixCaseFormat,
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.pad(match self {
+            ParseError::EmptyInput => "empty input",
+            ParseError::InvalidPrefix => "invalid prefix",
+            ParseError::InvalidSizeVariant => "invalid size variant",
+            ParseError::InvalidUnitCaseFormat => {
+                "invalid case: expected format like 'kB', 'Kb', 'KiB', 'Mb', 'MiB'"
+            }
+            ParseError::InvalidPrefixCaseFormat => {
+                "invalid case: expected format like 'k', 'K', 'Ki', 'M', 'Mi'"
+            }
+        })
+    }
 }
 
 #[cfg(has_u128)]
