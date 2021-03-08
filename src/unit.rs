@@ -606,6 +606,8 @@ mod tests {
 
     #[test]
     fn unit_is_decimal() {
+        assert!(BIT.is_decimal());
+        assert!(BYTE.is_decimal());
         for unit in sizes::DECIMAL.iter() {
             assert!(unit.is_decimal())
         }
@@ -616,6 +618,8 @@ mod tests {
 
     #[test]
     fn unit_is_binary() {
+        assert!(BIT.is_binary());
+        assert!(BYTE.is_binary());
         for unit in sizes::BINARY.iter() {
             assert!(unit.is_binary())
         }
