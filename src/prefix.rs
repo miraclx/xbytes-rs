@@ -132,7 +132,7 @@ impl std::str::FromStr for UnitPrefix {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
         let unit = match s {
-            "" => return Err(ParseError::EmptyString),
+            "" => return Err(ParseError::EmptyInput),
             // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
             "k" | "K"  => Kilo ,   "Ki"  => Kibi,
             "M"        => Mega ,   "Mi"  => Mebi,
@@ -388,7 +388,7 @@ mod tests {
             ("Y"    , Yotta),  ("Yi"  , Yobi),
         ];
 
-        assert_eq!(Err(ParseError::EmptyString), "".parse::<UnitPrefix>());
+        assert_eq!(Err(ParseError::EmptyInput), "".parse::<UnitPrefix>());
         for (value, unit) in map.iter() {
             assert_eq!(Ok(*unit), value.parse::<UnitPrefix>());
         }

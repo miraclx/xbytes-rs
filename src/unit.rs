@@ -149,7 +149,7 @@ impl std::str::FromStr for SizeVariant {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError::EmptyString),
+            "" => Err(ParseError::EmptyInput),
             "b" => Ok(Bit),
             "B" => Ok(Byte),
             s => match s.to_lowercase().as_str() {
@@ -322,7 +322,7 @@ impl std::str::FromStr for Unit {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            Err(ParseError::EmptyString)
+            Err(ParseError::EmptyInput)
         } else {
             let index = s.rfind(|c| matches!(c, 'b' | 'B')).unwrap_or(0);
             let (prefix, size_variant) = s.split_at(index);
@@ -428,7 +428,7 @@ mod tests {
         assert_eq!(Ok(Byte), "bytes".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "Byte".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "Bytes".parse::<SizeVariant>());
-        assert_eq!(Err(ParseError::EmptyString), "".parse::<SizeVariant>());
+        assert_eq!(Err(ParseError::EmptyInput), "".parse::<SizeVariant>());
         assert_eq!(
             Err(ParseError::SizeVariantParseError),
             " b ".parse::<SizeVariant>()
@@ -802,7 +802,7 @@ mod tests {
         assert_eq!(Ok(MEGA_BYTE), "MegaByte".parse::<Unit>());
         assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>());
         assert_eq!(Ok(GIGA_BYTE), "gigabyte".parse::<Unit>());
-        assert_eq!(Err(ParseError::EmptyString), "".parse::<Unit>());
+        assert_eq!(Err(ParseError::EmptyInput), "".parse::<Unit>());
         assert_eq!(Err(ParseError::SizeVariantParseError), "m".parse::<Unit>());
         assert_eq!(Err(ParseError::PrefixParseError), "m b".parse::<Unit>());
     }

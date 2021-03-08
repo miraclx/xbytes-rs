@@ -7,7 +7,7 @@ pub struct ByteSize<T>(T);
 
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
-    EmptyString,
+    EmptyInput,
     PrefixParseError,
     SizeVariantParseError,
 }
