@@ -416,6 +416,38 @@ mod tests {
     fn size_variant_str_parse() {
         assert_eq!(Ok(Bit), "b".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "B".parse::<SizeVariant>());
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "bit".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "bits".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "Bit".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "Bits".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "byte".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "bytes".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "Byte".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError::SizeVariantParseError),
+            "Bytes".parse::<SizeVariant>()
+        );
         assert_eq!(Err(ParseError::EmptyString), "".parse::<SizeVariant>());
         assert_eq!(
             Err(ParseError::SizeVariantParseError),
