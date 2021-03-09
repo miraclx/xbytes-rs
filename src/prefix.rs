@@ -4,30 +4,50 @@ use std::{fmt, str::FromStr};
 #[rustfmt::skip]
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum UnitPrefix {
-    Kilo , Kibi,
-    Mega , Mebi,
-    Giga , Gibi,
-    Tera , Tebi,
-    Peta , Pebi,
-    Exa  , Exbi,
-    Zetta, Zebi,
-    Yotta, Yobi,
+    Kilo, Kibi,
+    Mega, Mebi,
+    Giga, Gibi,
+    Tera, Tebi,
+    Peta, Pebi,
+    Exa , Exbi,
+    #[cfg(feature = "u128")] Zetta,
+    #[cfg(feature = "u128")] Zebi ,
+    #[cfg(feature = "u128")] Yotta,
+    #[cfg(feature = "u128")] Yobi ,
 }
 
 use UnitPrefix::*;
 
 impl UnitPrefix {
+    #[cfg(feature = "u128")]
     pub const DECIMAL: [UnitPrefix; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
+    #[cfg(not(feature = "u128"))]
+    pub const DECIMAL: [UnitPrefix; 6] = [Kilo, Mega, Giga, Tera, Peta, Exa];
+
+    #[cfg(feature = "u128")]
     pub const BINARY: [UnitPrefix; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
+    #[cfg(not(feature = "u128"))]
+    pub const BINARY: [UnitPrefix; 6] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi];
 
     #[rustfmt::skip]
+    #[cfg(feature = "u128")]
     pub const ALL: [UnitPrefix; 16] = [
         Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta,
         Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi,
     ];
 
+    #[rustfmt::skip]
+    #[cfg(not(feature = "u128"))]
+    pub const ALL: [UnitPrefix; 12] = [
+        Kilo, Mega, Giga, Tera, Peta, Exa,
+        Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
+    ];
+
     pub const MIN: UnitPrefix = Kilo;
+    #[cfg(feature = "u128")]
     pub const MAX: UnitPrefix = Yobi;
+    #[cfg(not(feature = "u128"))]
+    pub const MAX: UnitPrefix = Exbi;
 
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
@@ -59,56 +79,62 @@ impl UnitPrefix {
     #[inline(always)]
     pub const fn effective_value(&self) -> Int {
         match self {
-            Kibi => 1 << 10,   Kilo  => 1000,
-            Mebi => 1 << 20,   Mega  => 1000000,
-            Gibi => 1 << 30,   Giga  => 1000000000,
-            Tebi => 1 << 40,   Tera  => 1000000000000,
-            Pebi => 1 << 50,   Peta  => 1000000000000000,
-            Exbi => 1 << 60,   Exa   => 1000000000000000000,
-            Zebi => 1 << 70,   Zetta => 1000000000000000000000,
-            Yobi => 1 << 80,   Yotta => 1000000000000000000000000,
+            Kibi => 1 << 10,   Kilo => 1000,
+            Mebi => 1 << 20,   Mega => 1000000,
+            Gibi => 1 << 30,   Giga => 1000000000,
+            Tebi => 1 << 40,   Tera => 1000000000000,
+            Pebi => 1 << 50,   Peta => 1000000000000000,
+            Exbi => 1 << 60,   Exa  => 1000000000000000000,
+            #[cfg(feature = "u128")] Zebi  => 1 << 70,
+            #[cfg(feature = "u128")] Yobi  => 1 << 80,
+            #[cfg(feature = "u128")] Zetta => 1000000000000000000000,
+            #[cfg(feature = "u128")] Yotta => 1000000000000000000000000,
         }
     }
 
     #[rustfmt::skip]
     pub const fn symbol(&self) -> &'static str {
         match self {
-            Kilo  => "K",   Kibi => "Ki",
-            Mega  => "M",   Mebi => "Mi",
-            Giga  => "G",   Gibi => "Gi",
-            Tera  => "T",   Tebi => "Ti",
-            Peta  => "P",   Pebi => "Pi",
-            Exa   => "E",   Exbi => "Ei",
-            Zetta => "Z",   Zebi => "Zi",
-            Yotta => "Y",   Yobi => "Yi",
+            Kilo => "K",   Kibi => "Ki",
+            Mega => "M",   Mebi => "Mi",
+            Giga => "G",   Gibi => "Gi",
+            Tera => "T",   Tebi => "Ti",
+            Peta => "P",   Pebi => "Pi",
+            Exa  => "E",   Exbi => "Ei",
+            #[cfg(feature = "u128")] Zetta => "Z" ,
+            #[cfg(feature = "u128")] Yotta => "Y" ,
+            #[cfg(feature = "u128")] Zebi  => "Zi",
+            #[cfg(feature = "u128")] Yobi  => "Yi",
         }
     }
 
     #[rustfmt::skip]
     pub const fn symbol_long(&self) -> &'static str {
         match self {
-            Kilo  => "Kilo" ,   Kibi => "Kibi",
-            Mega  => "Mega" ,   Mebi => "Mebi",
-            Giga  => "Giga" ,   Gibi => "Gibi",
-            Tera  => "Tera" ,   Tebi => "Tebi",
-            Peta  => "Peta" ,   Pebi => "Pebi",
-            Exa   => "Exa"  ,   Exbi => "Exbi",
-            Zetta => "Zetta",   Zebi => "Zebi",
-            Yotta => "Yotta",   Yobi => "Yobi",
+            Kilo => "Kilo",   Kibi => "Kibi",
+            Mega => "Mega",   Mebi => "Mebi",
+            Giga => "Giga",   Gibi => "Gibi",
+            Tera => "Tera",   Tebi => "Tebi",
+            Peta => "Peta",   Pebi => "Pebi",
+            Exa  => "Exa" ,   Exbi => "Exbi",
+            #[cfg(feature = "u128")] Zetta => "Zetta",
+            #[cfg(feature = "u128")] Yotta => "Yotta",
+            #[cfg(feature = "u128")] Zebi  => "Zebi" ,
+            #[cfg(feature = "u128")] Yobi  => "Yobi" ,
         }
     }
 
     #[rustfmt::skip]
     pub const fn symbol_initials(&self) -> &'static str {
         match self {
-            Kilo  | Kibi => "K",
-            Mega  | Mebi => "M",
-            Giga  | Gibi => "G",
-            Tera  | Tebi => "T",
-            Peta  | Pebi => "P",
-            Exa   | Exbi => "E",
-            Zetta | Zebi => "Z",
-            Yotta | Yobi => "Y",
+            Kilo | Kibi => "K",
+            Mega | Mebi => "M",
+            Giga | Gibi => "G",
+            Tera | Tebi => "T",
+            Peta | Pebi => "P",
+            Exa  | Exbi => "E",
+            #[cfg(feature = "u128")] Zetta | Zebi => "Z",
+            #[cfg(feature = "u128")] Yotta | Yobi => "Y",
         }
     }
 }
@@ -134,27 +160,32 @@ impl FromStr for UnitPrefix {
         let unit = match s {
             "" => return Err(ParseError::EmptyInput),
             // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
-            "k" | "K"  => Kilo ,   "Ki"  => Kibi,
-            "M"        => Mega ,   "Mi"  => Mebi,
-            "G"        => Giga ,   "Gi"  => Gibi,
-            "T"        => Tera ,   "Ti"  => Tebi,
-            "P"        => Peta ,   "Pi"  => Pebi,
-            "E"        => Exa  ,   "Ei"  => Exbi,
-            "Z"        => Zetta,   "Zi"  => Zebi,
-            "Y"        => Yotta,   "Yi"  => Yobi,
-            s if matches!(s,
-                "m" | "g" | "t" | "p" | "e" | "z" | "y" |
-                "ki" | "mi" | "gi" | "ti" | "pi" | "ei" | "zi" | "yi"
+            "k" | "K"  => Kilo,   "Ki"  => Kibi,
+            "M"        => Mega,   "Mi"  => Mebi,
+            "G"        => Giga,   "Gi"  => Gibi,
+            "T"        => Tera,   "Ti"  => Tebi,
+            "P"        => Peta,   "Pi"  => Pebi,
+            "E"        => Exa ,   "Ei"  => Exbi,
+            #[cfg(feature = "u128")] "Z"   => Zetta,
+            #[cfg(feature = "u128")] "Y"   => Yotta,
+            #[cfg(feature = "u128")] "Zi"  => Zebi ,
+            #[cfg(feature = "u128")] "Yi"  => Yobi ,
+            s if (
+                matches!(s,
+                    "m" | "g" | "t" | "p" | "e" | "ki" | "mi" | "gi" | "ti" | "pi" | "ei"
+                ) || (cfg!(feature = "u128") && matches!(s, "z" | "y" | "zi" | "yi"))
             ) => return Err(ParseError::InvalidPrefixCaseFormat),
             s => match s.to_lowercase().as_str() {
-                "kilo"  => Kilo ,   "kibi" => Kibi,
-                "mega"  => Mega ,   "mebi" => Mebi,
-                "giga"  => Giga ,   "gibi" => Gibi,
-                "tera"  => Tera ,   "tebi" => Tebi,
-                "peta"  => Peta ,   "pebi" => Pebi,
-                "exa"   => Exa  ,   "exbi" => Exbi,
-                "zetta" => Zetta,   "zebi" => Zebi,
-                "yotta" => Yotta,   "yobi" => Yobi,
+                "kilo" => Kilo,   "kibi" => Kibi,
+                "mega" => Mega,   "mebi" => Mebi,
+                "giga" => Giga,   "gibi" => Gibi,
+                "tera" => Tera,   "tebi" => Tebi,
+                "peta" => Peta,   "pebi" => Pebi,
+                "exa"  => Exa ,   "exbi" => Exbi,
+                #[cfg(feature = "u128")] "zetta" => Zetta,
+                #[cfg(feature = "u128")] "yotta" => Yotta,
+                #[cfg(feature = "u128")] "zebi"  => Zebi ,
+                #[cfg(feature = "u128")] "yobi"  => Yobi ,
                 _ => return Err(ParseError::InvalidPrefix),
             }
         };
@@ -168,7 +199,10 @@ mod tests {
 
     #[test]
     fn decimal() {
+        #[cfg(feature = "u128")]
         let lhs = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
+        #[cfg(not(feature = "u128"))]
+        let lhs = [Kilo, Mega, Giga, Tera, Peta, Exa];
 
         for (index, unit) in lhs.iter().enumerate() {
             assert_eq!(unit, &UnitPrefix::DECIMAL[index]);
@@ -178,7 +212,10 @@ mod tests {
 
     #[test]
     fn binary() {
+        #[cfg(feature = "u128")]
         let lhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
+        #[cfg(not(feature = "u128"))]
+        let lhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi];
 
         for (index, unit) in lhs.iter().enumerate() {
             assert_eq!(unit, &UnitPrefix::BINARY[index]);
@@ -210,14 +247,16 @@ mod tests {
     fn index() {
         #[rustfmt::skip]
         let map  = [
-            (Kilo ,   0), (Kibi,   0),
-            (Mega ,   1), (Mebi,   1),
-            (Giga ,   2), (Gibi,   2),
-            (Tera ,   3), (Tebi,   3),
-            (Peta ,   4), (Pebi,   4),
-            (Exa  ,   5), (Exbi,   5),
-            (Zetta,   6), (Zebi,   6),
-            (Yotta,   7), (Yobi,   7),
+            (Kilo,   0), (Kibi,   0),
+            (Mega,   1), (Mebi,   1),
+            (Giga,   2), (Gibi,   2),
+            (Tera,   3), (Tebi,   3),
+            (Peta,   4), (Pebi,   4),
+            (Exa ,   5), (Exbi,   5),
+            #[cfg(feature = "u128")] (Zetta,   6),
+            #[cfg(feature = "u128")] (Yotta,   7),
+            #[cfg(feature = "u128")] (Zebi ,   6),
+            #[cfg(feature = "u128")] (Yobi ,   7),
         ];
 
         for (unit, index) in map.iter() {
@@ -235,14 +274,16 @@ mod tests {
     fn to_decimal() {
         #[rustfmt::skip]
         let map = [
-            (Kilo ,   Kilo ), (Kibi,   Kilo ),
-            (Mega ,   Mega ), (Mebi,   Mega ),
-            (Giga ,   Giga ), (Gibi,   Giga ),
-            (Tera ,   Tera ), (Tebi,   Tera ),
-            (Peta ,   Peta ), (Pebi,   Peta ),
-            (Exa  ,   Exa  ), (Exbi,   Exa  ),
-            (Zetta,   Zetta), (Zebi,   Zetta),
-            (Yotta,   Yotta), (Yobi,   Yotta),
+            (Kilo,   Kilo), (Kibi,   Kilo),
+            (Mega,   Mega), (Mebi,   Mega),
+            (Giga,   Giga), (Gibi,   Giga),
+            (Tera,   Tera), (Tebi,   Tera),
+            (Peta,   Peta), (Pebi,   Peta),
+            (Exa ,   Exa ), (Exbi,   Exa ),
+            #[cfg(feature = "u128")] (Zetta,   Zetta),
+            #[cfg(feature = "u128")] (Yotta,   Yotta),
+            #[cfg(feature = "u128")] (Zebi ,   Zetta),
+            #[cfg(feature = "u128")] (Yobi ,   Yotta),
         ];
 
         for (unit, expected) in map.iter() {
@@ -260,14 +301,16 @@ mod tests {
     fn to_binary() {
         #[rustfmt::skip]
         let map = [
-            (Kilo ,   Kibi), (Kibi,   Kibi),
-            (Mega ,   Mebi), (Mebi,   Mebi),
-            (Giga ,   Gibi), (Gibi,   Gibi),
-            (Tera ,   Tebi), (Tebi,   Tebi),
-            (Peta ,   Pebi), (Pebi,   Pebi),
-            (Exa  ,   Exbi), (Exbi,   Exbi),
-            (Zetta,   Zebi), (Zebi,   Zebi),
-            (Yotta,   Yobi), (Yobi,   Yobi),
+            (Kilo,   Kibi), (Kibi,   Kibi),
+            (Mega,   Mebi), (Mebi,   Mebi),
+            (Giga,   Gibi), (Gibi,   Gibi),
+            (Tera,   Tebi), (Tebi,   Tebi),
+            (Peta,   Pebi), (Pebi,   Pebi),
+            (Exa ,   Exbi), (Exbi,   Exbi),
+            #[cfg(feature = "u128")] (Zetta,   Zebi),
+            #[cfg(feature = "u128")] (Yotta,   Yobi),
+            #[cfg(feature = "u128")] (Zebi ,   Zebi),
+            #[cfg(feature = "u128")] (Yobi ,   Yobi),
         ];
 
         for (unit, expected) in map.iter() {
@@ -285,14 +328,16 @@ mod tests {
     fn format_and_display_symbol() {
         #[rustfmt::skip]
         let map = [
-            (Kilo ,   "K"), (Kibi,   "Ki"),
-            (Mega ,   "M"), (Mebi,   "Mi"),
-            (Giga ,   "G"), (Gibi,   "Gi"),
-            (Tera ,   "T"), (Tebi,   "Ti"),
-            (Peta ,   "P"), (Pebi,   "Pi"),
-            (Exa  ,   "E"), (Exbi,   "Ei"),
-            (Zetta,   "Z"), (Zebi,   "Zi"),
-            (Yotta,   "Y"), (Yobi,   "Yi"),
+            (Kilo,   "K"), (Kibi,   "Ki"),
+            (Mega,   "M"), (Mebi,   "Mi"),
+            (Giga,   "G"), (Gibi,   "Gi"),
+            (Tera,   "T"), (Tebi,   "Ti"),
+            (Peta,   "P"), (Pebi,   "Pi"),
+            (Exa ,   "E"), (Exbi,   "Ei"),
+            #[cfg(feature = "u128")] (Zetta,   "Z" ),
+            #[cfg(feature = "u128")] (Yotta,   "Y" ),
+            #[cfg(feature = "u128")] (Zebi ,   "Zi"),
+            #[cfg(feature = "u128")] (Yobi ,   "Yi"),
         ];
 
         for (unit, repr) in map.iter() {
@@ -317,14 +362,16 @@ mod tests {
     fn format_and_display_symbol_long() {
         #[rustfmt::skip]
         let map = [
-            (Kilo ,   "Kilo" ),  (Kibi,   "Kibi"),
-            (Mega ,   "Mega" ),  (Mebi,   "Mebi"),
-            (Giga ,   "Giga" ),  (Gibi,   "Gibi"),
-            (Tera ,   "Tera" ),  (Tebi,   "Tebi"),
-            (Peta ,   "Peta" ),  (Pebi,   "Pebi"),
-            (Exa  ,   "Exa"  ),  (Exbi,   "Exbi"),
-            (Zetta,   "Zetta"),  (Zebi,   "Zebi"),
-            (Yotta,   "Yotta"),  (Yobi,   "Yobi"),
+            (Kilo,   "Kilo"),  (Kibi,   "Kibi"),
+            (Mega,   "Mega"),  (Mebi,   "Mebi"),
+            (Giga,   "Giga"),  (Gibi,   "Gibi"),
+            (Tera,   "Tera"),  (Tebi,   "Tebi"),
+            (Peta,   "Peta"),  (Pebi,   "Pebi"),
+            (Exa ,   "Exa" ),  (Exbi,   "Exbi"),
+            #[cfg(feature = "u128")] (Zetta,   "Zetta"),
+            #[cfg(feature = "u128")] (Yotta,   "Yotta"),
+            #[cfg(feature = "u128")] (Zebi ,   "Zebi" ),
+            #[cfg(feature = "u128")] (Yobi ,   "Yobi" ),
         ];
 
         for (unit, repr) in map.iter() {
@@ -349,14 +396,16 @@ mod tests {
     fn format_and_display_symbol_initials() {
         #[rustfmt::skip]
         let map = [
-            (Kilo ,   "K"),  (Kibi,   "K"),
-            (Mega ,   "M"),  (Mebi,   "M"),
-            (Giga ,   "G"),  (Gibi,   "G"),
-            (Tera ,   "T"),  (Tebi,   "T"),
-            (Peta ,   "P"),  (Pebi,   "P"),
-            (Exa  ,   "E"),  (Exbi,   "E"),
-            (Zetta,   "Z"),  (Zebi,   "Z"),
-            (Yotta,   "Y"),  (Yobi,   "Y"),
+            (Kilo,   "K"),  (Kibi,   "K"),
+            (Mega,   "M"),  (Mebi,   "M"),
+            (Giga,   "G"),  (Gibi,   "G"),
+            (Tera,   "T"),  (Tebi,   "T"),
+            (Peta,   "P"),  (Pebi,   "P"),
+            (Exa ,   "E"),  (Exbi,   "E"),
+            #[cfg(feature = "u128")] (Zetta,   "Z"),
+            #[cfg(feature = "u128")] (Yotta,   "Y"),
+            #[cfg(feature = "u128")] (Zebi ,   "Z"),
+            #[cfg(feature = "u128")] (Yobi ,   "Y"),
         ];
 
         for (unit, repr) in map.iter() {
@@ -381,15 +430,17 @@ mod tests {
     fn str_parse() {
         #[rustfmt::skip]
         let map = [
-            ("k"  , Ok(Kilo )),
-            ("K"  , Ok(Kilo )),  ("Ki"  , Ok(Kibi)),
-            ("M"  , Ok(Mega )),  ("Mi"  , Ok(Mebi)),
-            ("G"  , Ok(Giga )),  ("Gi"  , Ok(Gibi)),
-            ("T"  , Ok(Tera )),  ("Ti"  , Ok(Tebi)),
-            ("P"  , Ok(Peta )),  ("Pi"  , Ok(Pebi)),
-            ("E"  , Ok(Exa  )),  ("Ei"  , Ok(Exbi)),
-            ("Z"  , Ok(Zetta)),  ("Zi"  , Ok(Zebi)),
-            ("Y"  , Ok(Yotta)),  ("Yi"  , Ok(Yobi)),
+            ("k"  , Ok(Kilo)),
+            ("K"  , Ok(Kilo)),  ("Ki"  , Ok(Kibi)),
+            ("M"  , Ok(Mega)),  ("Mi"  , Ok(Mebi)),
+            ("G"  , Ok(Giga)),  ("Gi"  , Ok(Gibi)),
+            ("T"  , Ok(Tera)),  ("Ti"  , Ok(Tebi)),
+            ("P"  , Ok(Peta)),  ("Pi"  , Ok(Pebi)),
+            ("E"  , Ok(Exa )),  ("Ei"  , Ok(Exbi)),
+            #[cfg(feature = "u128")] ("Z" , Ok(Zetta)),
+            #[cfg(feature = "u128")] ("Y" , Ok(Yotta)),
+            #[cfg(feature = "u128")] ("Zi", Ok(Zebi )),
+            #[cfg(feature = "u128")] ("Yi", Ok(Yobi )),
         ];
 
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<UnitPrefix>());
@@ -400,8 +451,12 @@ mod tests {
 
         #[rustfmt::skip]
         let invalid_formats = [
-                 "ki", "m", "mi", "g", "gi", "t", "ti",
-            "p", "pi", "e", "ei", "z", "zi", "y", "yi",
+                 "ki", "m", "mi", "g", "gi",
+            "t", "ti", "p", "pi", "e", "ei",
+            #[cfg(feature = "u128")] "z" ,
+            #[cfg(feature = "u128")] "zi",
+            #[cfg(feature = "u128")] "y" ,
+            #[cfg(feature = "u128")] "yi",
         ];
 
         for value in invalid_formats.iter() {
@@ -416,14 +471,16 @@ mod tests {
     fn effective_value() {
         #[rustfmt::skip]
         let map = [
-            (Kilo , 1000),                       (Kibi, 1024),
-            (Mega , 1000000),                    (Mebi, 1048576),
-            (Giga , 1000000000),                 (Gibi, 1073741824),
-            (Tera , 1000000000000),              (Tebi, 1099511627776),
-            (Peta , 1000000000000000),           (Pebi, 1125899906842624),
-            (Exa  , 1000000000000000000),        (Exbi, 1152921504606846976),
-            (Zetta, 1000000000000000000000),     (Zebi, 1180591620717411303424),
-            (Yotta, 1000000000000000000000000),  (Yobi, 1208925819614629174706176)
+            (Kilo, 1000),                 (Kibi, 1024),
+            (Mega, 1000000),              (Mebi, 1048576),
+            (Giga, 1000000000),           (Gibi, 1073741824),
+            (Tera, 1000000000000),        (Tebi, 1099511627776),
+            (Peta, 1000000000000000),     (Pebi, 1125899906842624),
+            (Exa , 1000000000000000000),  (Exbi, 1152921504606846976),
+            #[cfg(feature = "u128")] (Zetta, 1000000000000000000000),
+            #[cfg(feature = "u128")] (Yotta, 1000000000000000000000000),
+            #[cfg(feature = "u128")] (Zebi , 1180591620717411303424),
+            #[cfg(feature = "u128")] (Yobi , 1208925819614629174706176)
         ];
 
         for (prefix, value) in map.iter() {
@@ -440,6 +497,9 @@ mod tests {
     #[test]
     fn min_max() {
         assert_eq!(Kilo, UnitPrefix::MIN);
+        #[cfg(feature = "u128")]
         assert_eq!(Yobi, UnitPrefix::MAX);
+        #[cfg(not(feature = "u128"))]
+        assert_eq!(Exbi, UnitPrefix::MAX);
     }
 }

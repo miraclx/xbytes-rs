@@ -31,9 +31,9 @@ impl fmt::Display for ParseError {
     }
 }
 
-#[cfg(has_u128)]
+#[cfg(feature = "u128")]
 type Int = u128;
-#[cfg(not(has_u128))]
+#[cfg(not(feature = "u128"))]
 type Int = u64;
 
 impl<T> ByteSize<T> {
