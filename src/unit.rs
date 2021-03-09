@@ -2,9 +2,13 @@ use super::{
     Int, ParseError,
     UnitPrefix::{self, *},
 };
-use std::{fmt, str::FromStr};
+use std::{
+    cmp::{Ord, Ordering},
+    fmt,
+    str::FromStr,
+};
 
-#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
     Bit,
     Byte,
