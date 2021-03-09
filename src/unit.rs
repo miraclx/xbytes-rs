@@ -4,7 +4,7 @@ use super::{
 };
 use std::{fmt, str::FromStr};
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
     Bit,
     Byte,
@@ -12,7 +12,7 @@ pub enum SizeVariant {
 
 use SizeVariant::*;
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
 pub mod sizes {

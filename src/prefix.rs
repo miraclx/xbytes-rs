@@ -2,7 +2,7 @@ use super::{Int, ParseError};
 use std::{fmt, str::FromStr};
 
 #[rustfmt::skip]
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum UnitPrefix {
     Kilo, Kibi,
     Mega, Mebi,
