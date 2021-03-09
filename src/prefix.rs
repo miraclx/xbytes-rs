@@ -270,6 +270,20 @@ mod tests {
     }
 
     #[test]
+    fn const_sorted() {
+        fn is_sorted(prefix: &mut [UnitPrefix]) -> bool {
+            let a = prefix.windows(2).all(|lr| lr[0] < lr[1]);
+            prefix.reverse();
+            let b = prefix.windows(2).all(|lr| lr[0] > lr[1]);
+            a && b
+        }
+
+        assert!(is_sorted(&mut { UnitPrefix::DECIMAL }));
+        assert!(is_sorted(&mut { UnitPrefix::BINARY }));
+        assert!(is_sorted(&mut { UnitPrefix::ALL }));
+    }
+
+    #[test]
     fn is_decimal() {
         for unit in UnitPrefix::DECIMAL.iter() {
             assert!(unit.is_decimal())

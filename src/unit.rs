@@ -573,6 +573,24 @@ mod tests {
     }
 
     #[test]
+    fn size_variant_const_sorted() {
+        fn is_sorted(prefix: &mut [Unit]) -> bool {
+            let a = prefix.windows(2).all(|lr| lr[0] < lr[1]);
+            prefix.reverse();
+            let b = prefix.windows(2).all(|lr| lr[0] > lr[1]);
+            a && b
+        }
+
+        assert!(is_sorted(&mut { sizes::NOPREFIX }));
+        assert!(is_sorted(&mut { sizes::DECIMAL }));
+        assert!(is_sorted(&mut { sizes::BINARY }));
+        assert!(is_sorted(&mut { sizes::BITS }));
+        assert!(is_sorted(&mut { sizes::BYTES }));
+        assert!(is_sorted(&mut { sizes::PREFIXED }));
+        assert!(is_sorted(&mut { sizes::ALL }));
+    }
+
+    #[test]
     #[rustfmt::skip]
     fn unit_decimal() {
         assert_eq!(KILO_BIT, Unit::of(Kilo, Bit));
