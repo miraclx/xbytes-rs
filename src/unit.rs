@@ -417,6 +417,11 @@ mod tests {
     }
 
     #[test]
+    fn size_variant_cmp() {
+        assert!(Bit < Byte && Byte > Bit);
+    }
+
+    #[test]
     fn format_display_size_variant_symbol() {
         let map = [(Bit, "b"), (Byte, "B")];
 
@@ -507,6 +512,43 @@ mod tests {
             Err(ParseError::InvalidSizeVariant),
             " Bytes".parse::<SizeVariant>()
         );
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn unit_cmp() {
+        assert!(KILO_BIT  < KIBI_BIT  && KIBI_BIT  > KILO_BIT );
+        assert!(KIBI_BIT  < KILO_BYTE && KILO_BYTE > KIBI_BIT );
+        assert!(KILO_BYTE < KIBI_BYTE && KIBI_BYTE > KILO_BYTE);
+        assert!(KIBI_BYTE < MEGA_BIT  && MEGA_BIT  > KIBI_BYTE);
+        assert!(MEGA_BIT  < MEBI_BIT  && MEBI_BIT  > MEGA_BIT );
+        assert!(MEBI_BIT  < MEGA_BYTE && MEGA_BYTE > MEBI_BIT );
+        assert!(MEGA_BYTE < MEBI_BYTE && MEBI_BYTE > MEGA_BYTE);
+        assert!(MEBI_BYTE < GIGA_BIT  && GIGA_BIT  > MEBI_BYTE);
+        assert!(GIGA_BIT  < GIBI_BIT  && GIBI_BIT  > GIGA_BIT );
+        assert!(GIBI_BIT  < GIGA_BYTE && GIGA_BYTE > GIBI_BIT );
+        assert!(GIGA_BYTE < GIBI_BYTE && GIBI_BYTE > GIGA_BYTE);
+        assert!(GIBI_BYTE < TERA_BIT  && TERA_BIT  > GIBI_BYTE);
+        assert!(TERA_BIT  < TEBI_BIT  && TEBI_BIT  > TERA_BIT );
+        assert!(TEBI_BIT  < TERA_BYTE && TERA_BYTE > TEBI_BIT );
+        assert!(TERA_BYTE < TEBI_BYTE && TEBI_BYTE > TERA_BYTE);
+        assert!(TEBI_BYTE < PETA_BIT  && PETA_BIT  > TEBI_BYTE);
+        assert!(PETA_BIT  < PEBI_BIT  && PEBI_BIT  > PETA_BIT );
+        assert!(PEBI_BIT  < PETA_BYTE && PETA_BYTE > PEBI_BIT );
+        assert!(PETA_BYTE < PEBI_BYTE && PEBI_BYTE > PETA_BYTE);
+        assert!(PEBI_BYTE < EXA_BIT   && EXA_BIT   > PEBI_BYTE);
+        assert!(EXA_BIT   < EXBI_BIT  && EXBI_BIT  > EXA_BIT  );
+        assert!(EXBI_BIT  < EXA_BYTE  && EXA_BYTE  > EXBI_BIT );
+        assert!(EXA_BYTE  < EXBI_BYTE && EXBI_BYTE > EXA_BYTE );
+
+        #[cfg(feature = "u128")] assert!(EXBI_BYTE  < ZETTA_BIT  && ZETTA_BIT  > EXBI_BYTE );
+        #[cfg(feature = "u128")] assert!(ZETTA_BIT  < ZEBI_BIT   && ZEBI_BIT   > ZETTA_BIT );
+        #[cfg(feature = "u128")] assert!(ZEBI_BIT   < ZETTA_BYTE && ZETTA_BYTE > ZEBI_BIT  );
+        #[cfg(feature = "u128")] assert!(ZETTA_BYTE < ZEBI_BYTE  && ZEBI_BYTE  > ZETTA_BYTE);
+        #[cfg(feature = "u128")] assert!(ZEBI_BYTE  < YOTTA_BIT  && YOTTA_BIT  > ZEBI_BYTE );
+        #[cfg(feature = "u128")] assert!(YOTTA_BIT  < YOBI_BIT   && YOBI_BIT   > YOTTA_BIT );
+        #[cfg(feature = "u128")] assert!(YOBI_BIT   < YOTTA_BYTE && YOTTA_BYTE > YOBI_BIT  );
+        #[cfg(feature = "u128")] assert!(YOTTA_BYTE < YOBI_BYTE  && YOBI_BYTE  > YOTTA_BYTE);
     }
 
     #[test]
