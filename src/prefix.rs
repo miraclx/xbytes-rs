@@ -53,10 +53,11 @@ impl UnitPrefix {
     ];
 
     pub const MIN: UnitPrefix = Kilo;
-    #[cfg(feature = "u128")]
-    pub const MAX: UnitPrefix = Yobi;
-    #[cfg(not(feature = "u128"))]
-    pub const MAX: UnitPrefix = Exbi;
+    #[rustfmt::skip]
+    pub const MAX: UnitPrefix = {
+        #[cfg(feature = "u128")]      { Yobi }
+        #[cfg(not(feature = "u128"))] { Exbi }
+    };
 
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
