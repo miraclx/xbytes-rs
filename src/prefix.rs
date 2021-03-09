@@ -466,6 +466,38 @@ mod tests {
             #[cfg(feature = "u128")] ("Y" , Ok(Yotta)),
             #[cfg(feature = "u128")] ("Zi", Ok(Zebi )),
             #[cfg(feature = "u128")] ("Yi", Ok(Yobi )),
+            #[cfg(feature = "case-insensitive")] ("k" , Ok(Kilo)),
+            #[cfg(feature = "case-insensitive")] ("ki", Ok(Kibi)),
+            #[cfg(feature = "case-insensitive")] ("m" , Ok(Mega)),
+            #[cfg(feature = "case-insensitive")] ("mi", Ok(Mebi)),
+            #[cfg(feature = "case-insensitive")] ("g" , Ok(Giga)),
+            #[cfg(feature = "case-insensitive")] ("gi", Ok(Gibi)),
+            #[cfg(feature = "case-insensitive")] ("t" , Ok(Tera)),
+            #[cfg(feature = "case-insensitive")] ("ti", Ok(Tebi)),
+            #[cfg(feature = "case-insensitive")] ("p" , Ok(Peta)),
+            #[cfg(feature = "case-insensitive")] ("pi", Ok(Pebi)),
+            #[cfg(feature = "case-insensitive")] ("e" , Ok(Exa )),
+            #[cfg(feature = "case-insensitive")] ("ei", Ok(Exbi)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("z" , Ok(Zetta)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("y" , Ok(Yotta)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("zi", Ok(Zebi )),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("yi", Ok(Yobi )),
+            #[cfg(feature = "case-insensitive")] ("kI", Ok(Kibi)),
+            #[cfg(feature = "case-insensitive")] ("KI", Ok(Kibi)),
+            #[cfg(feature = "case-insensitive")] ("mI", Ok(Mebi)),
+            #[cfg(feature = "case-insensitive")] ("MI", Ok(Mebi)),
+            #[cfg(feature = "case-insensitive")] ("gI", Ok(Gibi)),
+            #[cfg(feature = "case-insensitive")] ("GI", Ok(Gibi)),
+            #[cfg(feature = "case-insensitive")] ("tI", Ok(Tebi)),
+            #[cfg(feature = "case-insensitive")] ("TI", Ok(Tebi)),
+            #[cfg(feature = "case-insensitive")] ("pI", Ok(Pebi)),
+            #[cfg(feature = "case-insensitive")] ("PI", Ok(Pebi)),
+            #[cfg(feature = "case-insensitive")] ("eI", Ok(Exbi)),
+            #[cfg(feature = "case-insensitive")] ("EI", Ok(Exbi)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("zI", Ok(Zebi)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("ZI", Ok(Zebi)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("yI", Ok(Yobi)),
+            #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("YI", Ok(Yobi)),
         ];
 
         assert_eq!(Err(ParseError::EmptyInput), "".parse::<UnitPrefix>());
@@ -474,21 +506,38 @@ mod tests {
             assert_eq!(*unit, value.parse::<UnitPrefix>());
         }
 
-        #[rustfmt::skip]
-        let invalid_formats = [
-                 "ki", "m", "mi", "g", "gi",
-            "t", "ti", "p", "pi", "e", "ei",
-            #[cfg(feature = "u128")] "z" ,
-            #[cfg(feature = "u128")] "zi",
-            #[cfg(feature = "u128")] "y" ,
-            #[cfg(feature = "u128")] "yi",
-        ];
+        #[cfg(not(feature = "case-insensitive"))]
+        {
+            #[rustfmt::skip]
+            let invalid_formats = [
+                     "ki", "m", "mi", "g", "gi",
+                "t", "ti", "p", "pi", "e", "ei",
+                #[cfg(feature = "u128")] "z" ,
+                #[cfg(feature = "u128")] "zi",
+                #[cfg(feature = "u128")] "y" ,
+                #[cfg(feature = "u128")] "yi",
+            ];
 
-        for value in invalid_formats.iter() {
-            assert_eq!(
-                Err(ParseError::InvalidPrefixCaseFormat),
-                value.parse::<UnitPrefix>()
-            );
+            for value in invalid_formats.iter() {
+                assert_eq!(
+                    Err(ParseError::InvalidPrefixCaseFormat),
+                    value.parse::<UnitPrefix>()
+                );
+            }
+
+            #[rustfmt::skip]
+            let invalid_prefixes = [
+                "kI", "KI", "mI", "MI", "gI", "GI",
+                "tI", "TI", "pI", "PI", "eI", "EI",
+                #[cfg(feature = "u128")] "zI" ,
+                #[cfg(feature = "u128")] "ZI",
+                #[cfg(feature = "u128")] "yI" ,
+                #[cfg(feature = "u128")] "YI",
+            ];
+
+            for value in invalid_prefixes.iter() {
+                assert_eq!(Err(ParseError::InvalidPrefix), value.parse::<UnitPrefix>());
+            }
         }
     }
 

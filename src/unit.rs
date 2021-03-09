@@ -870,20 +870,41 @@ mod tests {
         assert_eq!(Ok(KILO_BYTE), "KB".parse::<Unit>());
         assert_eq!(Ok(KIBI_BIT), "Kib".parse::<Unit>());
         assert_eq!(Ok(KIBI_BYTE), "KiB".parse::<Unit>());
+        #[rustfmt::skip]
         assert_eq!(
-            Err(ParseError::InvalidUnitCaseFormat),
+            {
+                #[cfg(not(feature = "case-insensitive"))]
+                { Err(ParseError::InvalidUnitCaseFormat) }
+                #[cfg(feature = "case-insensitive")]
+                { Ok(KIBI_BIT) }
+            },
             "kib".parse::<Unit>()
         );
+        #[rustfmt::skip]
         assert_eq!(
-            Err(ParseError::InvalidUnitCaseFormat),
-            "mb".parse::<Unit>() // small caps is only valid for 'k' in the decimal format
+            {
+                #[cfg(not(feature = "case-insensitive"))]
+                { Err(ParseError::InvalidUnitCaseFormat) }
+                #[cfg(feature = "case-insensitive")]
+                { Ok(MEGA_BIT) }
+            },
+            // with th default case sensitivity on, small caps is
+            // only valid for 'k' in the decimal format
+            // otherwise, it's treated as a valid parse
+            "mb".parse::<Unit>()
         );
         assert_eq!(Ok(MEGA_BIT), "Mb".parse::<Unit>());
         assert_eq!(Ok(MEGA_BYTE), "MB".parse::<Unit>());
         assert_eq!(Ok(MEBI_BIT), "Mib".parse::<Unit>());
         assert_eq!(Ok(MEBI_BYTE), "MiB".parse::<Unit>());
+        #[rustfmt::skip]
         assert_eq!(
-            Err(ParseError::InvalidUnitCaseFormat),
+            {
+                #[cfg(not(feature = "case-insensitive"))]
+                { Err(ParseError::InvalidUnitCaseFormat) }
+                #[cfg(feature = "case-insensitive")]
+                { Ok(MEBI_BIT) }
+            },
             "mib".parse::<Unit>()
         );
         assert_eq!(Ok(MEGA_BIT), "MegaBit".parse::<Unit>());
