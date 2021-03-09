@@ -75,79 +75,75 @@ pub mod sizes {
     pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
 
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const DECIMAL: [Unit; 16] = [
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
-    ];
-
-    #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const DECIMAL: [Unit; 12] = [
+    pub const DECIMAL: [Unit; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
         KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
         KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
     ];
 
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const BINARY: [Unit; 16] = [
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
-    ];
-
-    #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const BINARY: [Unit; 12] = [
+    pub const BINARY: [Unit; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
         KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
         KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const BITS: [Unit; 17] = [
-        BIT, KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
-    ];
-
-    #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const BITS: [Unit; 13] = [
+    pub const BITS: [Unit; {
+        #[cfg(feature = "u128")] { 17 }
+        #[cfg(not(feature = "u128"))] { 13 }
+    }] = [
         BIT, KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
         KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
     ];
 
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const BYTES: [Unit; 17] = [
-        BYTE, KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
-    ];
-
-    #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const BYTES: [Unit; 13] = [
+    pub const BYTES: [Unit; {
+        #[cfg(feature = "u128")] { 17 }
+        #[cfg(not(feature = "u128"))] { 13 }
+    }] = [
         BYTE, KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
         KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const ALL: [Unit; 34] = [
-        BIT, BYTE,
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT, ZETTA_BIT, YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE, ZETTA_BYTE, YOTTA_BYTE,
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT, ZEBI_BIT, YOBI_BIT,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE, ZEBI_BYTE, YOBI_BYTE,
-    ];
-
-    #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const ALL: [Unit; 26] = [
+    pub const ALL: [Unit; {
+        #[cfg(feature = "u128")] { 34 }
+        #[cfg(not(feature = "u128"))] { 26 }
+    }] = [
         BIT, BYTE,
         KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
         KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
         KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
         KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 }
 

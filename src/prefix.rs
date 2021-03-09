@@ -19,28 +19,37 @@ pub enum UnitPrefix {
 use UnitPrefix::*;
 
 impl UnitPrefix {
-    #[cfg(feature = "u128")]
-    pub const DECIMAL: [UnitPrefix; 8] = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-    #[cfg(not(feature = "u128"))]
-    pub const DECIMAL: [UnitPrefix; 6] = [Kilo, Mega, Giga, Tera, Peta, Exa];
-
-    #[cfg(feature = "u128")]
-    pub const BINARY: [UnitPrefix; 8] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
-    #[cfg(not(feature = "u128"))]
-    pub const BINARY: [UnitPrefix; 6] = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi];
-
     #[rustfmt::skip]
-    #[cfg(feature = "u128")]
-    pub const ALL: [UnitPrefix; 16] = [
-        Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta,
-        Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi,
+    pub const DECIMAL: [UnitPrefix; {
+        #[cfg(feature = "u128")] { 8 }
+        #[cfg(not(feature = "u128"))] { 6 }
+    }] = [
+        Kilo, Mega, Giga, Tera, Peta, Exa,
+        #[cfg(feature = "u128")] Zetta,
+        #[cfg(feature = "u128")] Yotta,
     ];
 
     #[rustfmt::skip]
-    #[cfg(not(feature = "u128"))]
-    pub const ALL: [UnitPrefix; 12] = [
-        Kilo, Mega, Giga, Tera, Peta, Exa,
+    pub const BINARY: [UnitPrefix; {
+        #[cfg(feature = "u128")] { 8 }
+        #[cfg(not(feature = "u128"))] { 6 }
+    }] = [
         Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
+        #[cfg(feature = "u128")] Zebi,
+        #[cfg(feature = "u128")] Yobi,
+    ];
+
+    #[rustfmt::skip]
+    pub const ALL: [UnitPrefix; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
+        Kilo, Mega, Giga, Tera, Peta, Exa,
+        #[cfg(feature = "u128")] Zetta,
+        #[cfg(feature = "u128")] Yotta,
+        Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
+        #[cfg(feature = "u128")] Zebi,
+        #[cfg(feature = "u128")]Yobi,
     ];
 
     pub const MIN: UnitPrefix = Kilo;
@@ -199,10 +208,12 @@ mod tests {
 
     #[test]
     fn decimal() {
-        #[cfg(feature = "u128")]
-        let lhs = [Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta];
-        #[cfg(not(feature = "u128"))]
-        let lhs = [Kilo, Mega, Giga, Tera, Peta, Exa];
+        #[rustfmt::skip]
+        let lhs = [
+            Kilo, Mega, Giga, Tera, Peta, Exa,
+            #[cfg(feature = "u128")] Zetta,
+            #[cfg(feature = "u128")] Yotta
+        ];
 
         for (index, unit) in lhs.iter().enumerate() {
             assert_eq!(unit, &UnitPrefix::DECIMAL[index]);
@@ -212,10 +223,12 @@ mod tests {
 
     #[test]
     fn binary() {
-        #[cfg(feature = "u128")]
-        let lhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi];
-        #[cfg(not(feature = "u128"))]
-        let lhs = [Kibi, Mebi, Gibi, Tebi, Pebi, Exbi];
+        #[rustfmt::skip]
+        let lhs = [
+            Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
+            #[cfg(feature = "u128")] Zebi,
+            #[cfg(feature = "u128")] Yobi
+        ];
 
         for (index, unit) in lhs.iter().enumerate() {
             assert_eq!(unit, &UnitPrefix::BINARY[index]);
