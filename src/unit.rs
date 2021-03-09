@@ -366,12 +366,20 @@ impl FromStr for Unit {
             let index = s.rfind(|c| matches!(c, 'b' | 'B')).unwrap_or(0);
             let (prefix, size_variant) = s.split_at(index);
             let size_variant = size_variant.parse::<SizeVariant>()?;
+            #[rustfmt::skip]
             let prefix = (!prefix.is_empty())
                 .then(|| {
-                    prefix.parse::<UnitPrefix>().map_err(|err| match err {
-                        ParseError::InvalidPrefixCaseFormat => ParseError::InvalidUnitCaseFormat,
-                        err => err,
-                    })
+                    let prefix = prefix.parse::<UnitPrefix>();
+                    #[cfg(feature = "case-insensitive")] { prefix }
+                    #[cfg(not(feature = "case-insensitive"))]
+                    {
+                        prefix.map_err(|err| match err {
+                            ParseError::InvalidPrefixCaseFormat => {
+                                ParseError::InvalidUnitCaseFormat
+                            }
+                            err => err,
+                        })
+                    }
                 })
                 .transpose()?;
             Ok(Unit(prefix, size_variant))

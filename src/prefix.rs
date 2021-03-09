@@ -167,7 +167,17 @@ impl FromStr for UnitPrefix {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
-        let unit = match s {
+        let unit = match &{
+            #[cfg(not(feature = "case-insensitive"))] { s }
+            #[cfg(feature = "case-insensitive")] {
+                if !s.is_empty() {
+                    let (first, rest) = s.split_at(1);
+                    format!("{}{}", first.to_uppercase(), rest.to_lowercase())
+                } else {
+                    s.to_string()
+                }
+            }
+        }[..] {
             "" => return Err(ParseError::EmptyInput),
             // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
             "k" | "K"  => Kilo,   "Ki"  => Kibi,
@@ -180,6 +190,7 @@ impl FromStr for UnitPrefix {
             #[cfg(feature = "u128")] "Y"   => Yotta,
             #[cfg(feature = "u128")] "Zi"  => Zebi ,
             #[cfg(feature = "u128")] "Yi"  => Yobi ,
+            #[cfg(not(feature = "case-insensitive"))]
             s if (
                 matches!(s,
                     "m" | "g" | "t" | "p" | "e" | "ki" | "mi" | "gi" | "ti" | "pi" | "ei"
