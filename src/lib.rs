@@ -1,8 +1,15 @@
-mod prefix;
-pub mod prelude;
-mod unit;
-pub use prelude::*;
 use std::fmt;
+
+mod prefix;
+mod unit;
+
+pub mod prelude {
+    pub use super::prefix::UnitPrefix;
+    pub use super::unit::{sizes, SizeVariant, Unit};
+    pub use super::ParseError;
+}
+
+pub use prelude::*;
 
 pub struct ByteSize<T>(T);
 
