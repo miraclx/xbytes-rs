@@ -44,11 +44,11 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] { 16 }
         #[cfg(not(feature = "u128"))] { 12 }
     }] = [
-        Kilo, Mega, Giga, Tera, Peta, Exa,
+        Kilo, Kibi, Mega, Mebi, Giga, Gibi,
+        Tera, Tebi, Peta, Pebi, Exa, Exbi,
         #[cfg(feature = "u128")] Zetta,
-        #[cfg(feature = "u128")] Yotta,
-        Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
         #[cfg(feature = "u128")] Zebi,
+        #[cfg(feature = "u128")] Yotta,
         #[cfg(feature = "u128")] Yobi,
     ];
 

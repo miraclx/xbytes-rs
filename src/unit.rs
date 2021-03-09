@@ -75,11 +75,11 @@ pub mod sizes {
         #[cfg(feature = "u128")] { 16 }
         #[cfg(not(feature = "u128"))] { 12 }
     }] = [
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        KILO_BIT, KILO_BYTE, MEGA_BIT, MEGA_BYTE, GIGA_BIT, GIGA_BYTE,
+        TERA_BIT, TERA_BYTE, PETA_BIT, PETA_BYTE, EXA_BIT, EXA_BYTE,
         #[cfg(feature = "u128")] ZETTA_BIT,
-        #[cfg(feature = "u128")] YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
         #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
         #[cfg(feature = "u128")] YOTTA_BYTE,
     ];
 
@@ -88,11 +88,11 @@ pub mod sizes {
         #[cfg(feature = "u128")] { 16 }
         #[cfg(not(feature = "u128"))] { 12 }
     }] = [
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
+        KIBI_BIT, KIBI_BYTE, MEBI_BIT, MEBI_BYTE, GIBI_BIT, GIBI_BYTE,
+        TEBI_BIT, TEBI_BYTE, PEBI_BIT, PEBI_BYTE, EXBI_BIT, EXBI_BYTE,
         #[cfg(feature = "u128")] ZEBI_BIT,
-        #[cfg(feature = "u128")] YOBI_BIT,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
         #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BIT,
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
@@ -101,11 +101,11 @@ pub mod sizes {
         #[cfg(feature = "u128")] { 17 }
         #[cfg(not(feature = "u128"))] { 13 }
     }] = [
-        BIT, KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        BIT, KILO_BIT, KIBI_BIT, MEGA_BIT, MEBI_BIT, GIGA_BIT, GIBI_BIT,
+        TERA_BIT, TEBI_BIT, PETA_BIT, PEBI_BIT, EXA_BIT, EXBI_BIT,
         #[cfg(feature = "u128")] ZETTA_BIT,
-        #[cfg(feature = "u128")] YOTTA_BIT,
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
         #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
         #[cfg(feature = "u128")] YOBI_BIT,
     ];
 
@@ -114,11 +114,11 @@ pub mod sizes {
         #[cfg(feature = "u128")] { 17 }
         #[cfg(not(feature = "u128"))] { 13 }
     }] = [
-        BYTE, KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
+        BYTE, KILO_BYTE, KIBI_BYTE, MEGA_BYTE, MEBI_BYTE, GIGA_BYTE, GIBI_BYTE,
+        TERA_BYTE, TEBI_BYTE, PETA_BYTE, PEBI_BYTE, EXA_BYTE, EXBI_BYTE,
         #[cfg(feature = "u128")] ZETTA_BYTE,
-        #[cfg(feature = "u128")] YOTTA_BYTE,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
         #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
@@ -127,17 +127,16 @@ pub mod sizes {
         #[cfg(feature = "u128")] { 32 }
         #[cfg(not(feature = "u128"))] { 24 }
     }] = [
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
         #[cfg(feature = "u128")] ZETTA_BIT,
-        #[cfg(feature = "u128")] YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
-        #[cfg(feature = "u128")] ZETTA_BYTE,
-        #[cfg(feature = "u128")] YOTTA_BYTE,
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
         #[cfg(feature = "u128")] ZEBI_BIT,
-        #[cfg(feature = "u128")] YOBI_BIT,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
         #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
@@ -147,17 +146,16 @@ pub mod sizes {
         #[cfg(not(feature = "u128"))] { 26 }
     }] = [
         BIT, BYTE,
-        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
         #[cfg(feature = "u128")] ZETTA_BIT,
-        #[cfg(feature = "u128")] YOTTA_BIT,
-        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
-        #[cfg(feature = "u128")] ZETTA_BYTE,
-        #[cfg(feature = "u128")] YOTTA_BYTE,
-        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
         #[cfg(feature = "u128")] ZEBI_BIT,
-        #[cfg(feature = "u128")] YOBI_BIT,
-        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
         #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 }
