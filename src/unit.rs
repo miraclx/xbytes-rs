@@ -123,6 +123,25 @@ pub mod sizes {
     ];
 
     #[rustfmt::skip]
+    pub const PREFIXED: [Unit; {
+        #[cfg(feature = "u128")] { 32 }
+        #[cfg(not(feature = "u128"))] { 24 }
+    }] = [
+        KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+        KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
+
+    #[rustfmt::skip]
     pub const ALL: [Unit; {
         #[cfg(feature = "u128")] { 34 }
         #[cfg(not(feature = "u128"))] { 26 }
