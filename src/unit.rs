@@ -12,7 +12,7 @@ pub enum SizeVariant {
 
 use SizeVariant::*;
 
-#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
 pub mod sizes {
@@ -336,6 +336,20 @@ impl Unit {
     pub fn symbol_initials(&self) -> String {
         let (prefix, size_variant) = self.symbols_initials();
         format!("{}{}", prefix, size_variant)
+    }
+}
+
+impl Ord for Unit {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.effective_value().cmp(&other.effective_value())
+    }
+}
+
+impl PartialOrd for Unit {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
