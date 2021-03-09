@@ -28,18 +28,18 @@ pub mod sizes {
     #[rustfmt::skip]
     pub mod decimal {
         use super::*;
-        pub const KILO_BIT  : Unit = Unit::of(Kilo , Bit );
-        pub const MEGA_BIT  : Unit = Unit::of(Mega , Bit );
-        pub const GIGA_BIT  : Unit = Unit::of(Giga , Bit );
-        pub const TERA_BIT  : Unit = Unit::of(Tera , Bit );
-        pub const PETA_BIT  : Unit = Unit::of(Peta , Bit );
-        pub const EXA_BIT   : Unit = Unit::of(Exa  , Bit );
-        pub const KILO_BYTE : Unit = Unit::of(Kilo , Byte);
-        pub const MEGA_BYTE : Unit = Unit::of(Mega , Byte);
-        pub const GIGA_BYTE : Unit = Unit::of(Giga , Byte);
-        pub const TERA_BYTE : Unit = Unit::of(Tera , Byte);
-        pub const PETA_BYTE : Unit = Unit::of(Peta , Byte);
-        pub const EXA_BYTE  : Unit = Unit::of(Exa  , Byte);
+        pub const KILO_BIT : Unit = Unit::of(Kilo, Bit );
+        pub const MEGA_BIT : Unit = Unit::of(Mega, Bit );
+        pub const GIGA_BIT : Unit = Unit::of(Giga, Bit );
+        pub const TERA_BIT : Unit = Unit::of(Tera, Bit );
+        pub const PETA_BIT : Unit = Unit::of(Peta, Bit );
+        pub const EXA_BIT  : Unit = Unit::of(Exa , Bit );
+        pub const KILO_BYTE: Unit = Unit::of(Kilo, Byte);
+        pub const MEGA_BYTE: Unit = Unit::of(Mega, Byte);
+        pub const GIGA_BYTE: Unit = Unit::of(Giga, Byte);
+        pub const TERA_BYTE: Unit = Unit::of(Tera, Byte);
+        pub const PETA_BYTE: Unit = Unit::of(Peta, Byte);
+        pub const EXA_BYTE : Unit = Unit::of(Exa , Byte);
         #[cfg(feature = "u128")] pub const ZETTA_BIT : Unit = Unit::of(Zetta, Bit );
         #[cfg(feature = "u128")] pub const YOTTA_BIT : Unit = Unit::of(Yotta, Bit );
         #[cfg(feature = "u128")] pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
