@@ -13,7 +13,7 @@ pub use prelude::*;
 
 pub struct ByteSize<T>(T);
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
     EmptyInput,
     InvalidPrefix,
