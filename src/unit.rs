@@ -30,20 +30,16 @@ pub mod sizes {
         pub const TERA_BIT  : Unit = Unit::of(Tera , Bit );
         pub const PETA_BIT  : Unit = Unit::of(Peta , Bit );
         pub const EXA_BIT   : Unit = Unit::of(Exa  , Bit );
-        #[cfg(feature = "u128")]
-        pub const ZETTA_BIT : Unit = Unit::of(Zetta, Bit );
-        #[cfg(feature = "u128")]
-        pub const YOTTA_BIT : Unit = Unit::of(Yotta, Bit );
         pub const KILO_BYTE : Unit = Unit::of(Kilo , Byte);
         pub const MEGA_BYTE : Unit = Unit::of(Mega , Byte);
         pub const GIGA_BYTE : Unit = Unit::of(Giga , Byte);
         pub const TERA_BYTE : Unit = Unit::of(Tera , Byte);
         pub const PETA_BYTE : Unit = Unit::of(Peta , Byte);
         pub const EXA_BYTE  : Unit = Unit::of(Exa  , Byte);
-        #[cfg(feature = "u128")]
-        pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
-        #[cfg(feature = "u128")]
-        pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
+        #[cfg(feature = "u128")] pub const ZETTA_BIT : Unit = Unit::of(Zetta, Bit );
+        #[cfg(feature = "u128")] pub const YOTTA_BIT : Unit = Unit::of(Yotta, Bit );
+        #[cfg(feature = "u128")] pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
+        #[cfg(feature = "u128")] pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
     }
     #[rustfmt::skip]
     pub mod binary {
@@ -54,20 +50,16 @@ pub mod sizes {
         pub const TEBI_BIT : Unit = Unit::of(Tebi, Bit );
         pub const PEBI_BIT : Unit = Unit::of(Pebi, Bit );
         pub const EXBI_BIT : Unit = Unit::of(Exbi, Bit );
-        #[cfg(feature = "u128")]
-        pub const ZEBI_BIT : Unit = Unit::of(Zebi, Bit );
-        #[cfg(feature = "u128")]
-        pub const YOBI_BIT : Unit = Unit::of(Yobi, Bit );
         pub const KIBI_BYTE: Unit = Unit::of(Kibi, Byte);
         pub const MEBI_BYTE: Unit = Unit::of(Mebi, Byte);
         pub const GIBI_BYTE: Unit = Unit::of(Gibi, Byte);
         pub const TEBI_BYTE: Unit = Unit::of(Tebi, Byte);
         pub const PEBI_BYTE: Unit = Unit::of(Pebi, Byte);
         pub const EXBI_BYTE: Unit = Unit::of(Exbi, Byte);
-        #[cfg(feature = "u128")]
-        pub const ZEBI_BYTE: Unit = Unit::of(Zebi, Byte);
-        #[cfg(feature = "u128")]
-        pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
+        #[cfg(feature = "u128")] pub const ZEBI_BIT : Unit = Unit::of(Zebi, Bit );
+        #[cfg(feature = "u128")] pub const YOBI_BIT : Unit = Unit::of(Yobi, Bit );
+        #[cfg(feature = "u128")] pub const ZEBI_BYTE: Unit = Unit::of(Zebi, Byte);
+        #[cfg(feature = "u128")] pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
     pub use {binary::*, decimal::*};
