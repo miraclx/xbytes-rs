@@ -49,7 +49,7 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] Yotta,
         Kibi, Mebi, Gibi, Tebi, Pebi, Exbi,
         #[cfg(feature = "u128")] Zebi,
-        #[cfg(feature = "u128")]Yobi,
+        #[cfg(feature = "u128")] Yobi,
     ];
 
     pub const MIN: UnitPrefix = Kilo;
