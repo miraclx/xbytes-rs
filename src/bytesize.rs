@@ -61,12 +61,12 @@ impl ByteSize {
     // (value, unit) -> (ByteSize(80), MEBI_BYTE)
 
     #[inline]
-    pub const fn from_bits(&self, value: Int) -> Self {
+    pub const fn from_bits(value: Int) -> Self {
         Self(value)
     }
 
     #[inline]
-    pub const fn from_bytes(&self, value: Int) -> Option<Self> {
+    pub const fn from_bytes(value: Int) -> Option<Self> {
         if let Some(bits) = value.checked_mul(8) {
             return Some(Self(bits));
         }
