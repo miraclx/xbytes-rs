@@ -78,6 +78,16 @@ impl ByteSize {
         self.0.into()
     }
 
+    #[inline]
+    pub const fn bits(&self) -> Int {
+        self.0
+    }
+
+    #[inline]
+    pub const fn bytes(&self) -> Option<Int> {
+        self.0.checked_div(8)
+    }
+
     pub fn to_string(&self, mode: Mode) -> String {
         todo!()
     }
