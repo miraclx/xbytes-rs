@@ -1,9 +1,11 @@
 use std::fmt;
 
+mod bytesize;
 mod prefix;
 mod unit;
 
 pub mod prelude {
+    pub use super::bytesize::ByteSize;
     pub use super::prefix::UnitPrefix;
     pub use super::unit::{
         sizes::{self, binary::*, decimal::*},
@@ -13,6 +15,7 @@ pub mod prelude {
 }
 
 pub use {
+    bytesize::ByteSize,
     prefix::UnitPrefix,
     unit::{sizes, SizeVariant, Unit},
 };
@@ -21,8 +24,6 @@ pub use {
 type Int = u128;
 #[cfg(not(feature = "u128"))]
 type Int = u64;
-
-pub struct ByteSize<T>(T);
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
@@ -50,11 +51,5 @@ impl fmt::Display for ParseError {
                 "invalid case: expected format like 'k', 'K', 'Ki', 'M', 'Mi'"
             }
         })
-    }
-}
-
-impl<T> ByteSize<T> {
-    pub fn new(t: T) -> Self {
-        ByteSize(t)
     }
 }
