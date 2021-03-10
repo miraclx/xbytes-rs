@@ -70,6 +70,14 @@ impl ByteSizer {
     }
 }
 
+impl std::ops::BitOr for ByteSizer {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0, self.1 | rhs.1)
+    }
+}
+
 pub struct ByteSize(Int);
 
 impl ByteSize {
@@ -153,5 +161,30 @@ impl ByteSize {
     #[inline]
     pub fn repr_with(&self, sizer: &ByteSizer) -> String {
         sizer.format(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bytesizer() {
+        let size = ByteSize::from_bytes(1073741824).unwrap();
+
+        let sizer = ByteSizer::new();
+        assert_eq!("1 GiB", sizer.format(&size).as_str());
+
+        let fractional_sizer = sizer.with_format(Format::ForceFraction);
+        assert_eq!("1.00 GiB", fractional_sizer.format(&size).as_str());
+
+        let decimal_bit_sizer = sizer.with_mode(Mode::Decimal | Mode::Bits);
+        assert_eq!("8 Gib", decimal_bit_sizer.format(&size).as_str());
+
+        let fractional_decimal_bit_sizer = fractional_sizer | decimal_bit_sizer;
+        assert_eq!(
+            "8.00 Gib",
+            fractional_decimal_bit_sizer.format(&size).as_str()
+        );
     }
 }
