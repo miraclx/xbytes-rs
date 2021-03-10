@@ -301,7 +301,7 @@ impl Unit {
     }
 
     #[inline(always)]
-    pub const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
+    const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
         Self(Some(prefix), size_variant)
     }
 
