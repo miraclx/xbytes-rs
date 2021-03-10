@@ -10,11 +10,16 @@ use std::{
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
+    // magnitude
     Bit,
     Byte,
 }
 
 use SizeVariant::*;
+
+// 5 * Sizes::MEGA_BYTE => 5 MB
+// MAX 64-bit value => 2 EiB
+// MAX 128-bit value => 35184372088832 YiB
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
@@ -22,8 +27,12 @@ pub struct Unit(Option<UnitPrefix>, SizeVariant);
 pub mod sizes {
     use super::*;
 
-    pub const BIT: Unit = Unit(None, Bit);
-    pub const BYTE: Unit = Unit(None, Byte);
+    #[rustfmt::skip]
+    pub mod noprefix {
+        use super::*;
+        pub const BIT: Unit = Unit(None, Bit);
+        pub const BYTE: Unit = Unit(None, Byte);
+    }
 
     #[rustfmt::skip]
     pub mod decimal {
@@ -66,7 +75,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
-    pub use {binary::*, decimal::*};
+    pub use {binary::*, decimal::*, noprefix::*};
 
     pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
 
