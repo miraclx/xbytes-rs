@@ -1,6 +1,20 @@
 use super::{Int, Unit};
+use bitflags::bitflags;
 
-pub enum Mode {}
+bitflags! {
+    pub struct Mode: u32 {
+        const Bits    = 0b0001;
+        const Bytes   = 0b0010;
+        const Binary  = 0b0100;
+        const Decimal = 0b1000;
+    }
+}
+
+impl Default for Mode {
+    fn default() -> Self {
+        Mode::Binary | Mode::Bytes
+    }
+}
 
 pub enum Format {}
 

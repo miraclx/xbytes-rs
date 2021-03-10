@@ -6,7 +6,8 @@ edition = "2018"
 description = "convert byte sizes to human readable sizes"
 license = "Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+bitflags = "1.2.1"
 
 [features]
 default = ["u128"]
