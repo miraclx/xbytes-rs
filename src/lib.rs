@@ -11,6 +11,11 @@ pub mod prelude {
 
 pub use prelude::*;
 
+#[cfg(feature = "u128")]
+type Int = u128;
+#[cfg(not(feature = "u128"))]
+type Int = u64;
+
 pub struct ByteSize<T>(T);
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -41,11 +46,6 @@ impl fmt::Display for ParseError {
         })
     }
 }
-
-#[cfg(feature = "u128")]
-type Int = u128;
-#[cfg(not(feature = "u128"))]
-type Int = u64;
 
 impl<T> ByteSize<T> {
     pub fn new(t: T) -> Self {
