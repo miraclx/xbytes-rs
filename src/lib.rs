@@ -5,7 +5,7 @@ mod prefix;
 mod unit;
 
 pub mod prelude {
-    pub use super::bytesize::ByteSize;
+    pub use super::bytesize::{ByteSize, Format, Mode};
     pub use super::prefix::UnitPrefix;
     pub use super::unit::{
         sizes::{self, binary::*, decimal::*},
@@ -15,7 +15,7 @@ pub mod prelude {
 }
 
 pub use {
-    bytesize::ByteSize,
+    bytesize::{ByteSize, Format, Mode},
     prefix::UnitPrefix,
     unit::{sizes, SizeVariant, Unit},
 };
