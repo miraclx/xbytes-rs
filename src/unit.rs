@@ -238,6 +238,16 @@ impl Unit {
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
 
     #[inline(always)]
+    pub const fn prefix(&self) -> Option<UnitPrefix> {
+        self.0
+    }
+
+    #[inline(always)]
+    pub const fn size_variant(&self) -> SizeVariant {
+        self.1
+    }
+
+    #[inline(always)]
     pub const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
         Self(Some(prefix), size_variant)
     }
@@ -588,6 +598,19 @@ mod tests {
         assert!(is_sorted(&mut { sizes::BYTES }));
         assert!(is_sorted(&mut { sizes::PREFIXED }));
         assert!(is_sorted(&mut { sizes::ALL }));
+    }
+
+    #[test]
+    fn unit_components() {
+        let b = BIT;
+        assert_eq!((None, Bit), (b.prefix(), b.size_variant()));
+
+        let kb = KILO_BIT;
+        assert_eq!((Some(Kilo), Bit), (kb.prefix(), kb.size_variant()));
+
+        #[allow(non_snake_case)]
+        let GB = GIGA_BYTE;
+        assert_eq!((Some(Giga), Byte), (GB.prefix(), GB.size_variant()));
     }
 
     #[test]
