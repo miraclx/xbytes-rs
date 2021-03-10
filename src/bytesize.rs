@@ -27,6 +27,7 @@ mod flags {
 
 pub use flags::*;
 
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizer(Mode, Format);
 
 impl ByteSizer {
@@ -78,6 +79,7 @@ impl std::ops::BitOr for ByteSizer {
     }
 }
 
+#[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSize(Int);
 
 impl ByteSize {
@@ -159,7 +161,7 @@ impl ByteSize {
     }
 
     #[inline]
-    pub fn repr_with(&self, sizer: &ByteSizer) -> String {
+    pub fn repr_with(&self, sizer: ByteSizer) -> String {
         sizer.format(self)
     }
 }
