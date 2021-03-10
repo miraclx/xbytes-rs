@@ -60,8 +60,15 @@ impl ByteSize {
     // let (value, unit) = "10 MiB".parse::<(ByteSize, Unit)>().unwrap();
     // (value, unit) -> (ByteSize(80), MEBI_BYTE)
 
-    pub fn new<T: Into<Int>>(value: T) -> Self {
-        Self(value.into())
+    pub const fn from_bits(&self, value: Int) -> Self {
+        Self(value)
+    }
+
+    pub const fn from_bytes(&self, value: Int) -> Option<Self> {
+        if let Some(bits) = value.checked_mul(8) {
+            return Some(Self(bits));
+        }
+        None
     }
 
     pub fn value<T: From<Int>>(&self) -> T {
