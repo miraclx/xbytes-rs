@@ -54,6 +54,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
         #[cfg(feature = "u128")] pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
     }
+
     #[rustfmt::skip]
     pub mod binary {
         use super::*;
@@ -76,6 +77,49 @@ pub mod sizes {
     }
 
     pub use {binary::*, decimal::*, noprefix::*};
+
+    #[rustfmt::skip]
+    pub mod bits {
+        pub use super::{
+            BIT,
+            KILO_BIT, KIBI_BIT, MEGA_BIT, MEBI_BIT, GIGA_BIT, GIBI_BIT,
+            TERA_BIT, TEBI_BIT, PETA_BIT, PEBI_BIT, EXA_BIT, EXBI_BIT,
+        };
+
+        #[cfg(feature = "u128")]
+        pub use super::{
+            ZETTA_BIT, ZEBI_BIT, YOTTA_BIT, YOBI_BIT,
+        };
+    }
+
+    #[rustfmt::skip]
+    pub mod bytes {
+        pub use super::{
+            BYTE,
+            KILO_BYTE, KIBI_BYTE, MEGA_BYTE, MEBI_BYTE, GIGA_BYTE, GIBI_BYTE,
+            TERA_BYTE, TEBI_BYTE, PETA_BYTE, PEBI_BYTE, EXA_BYTE, EXBI_BYTE,
+        };
+
+        #[cfg(feature = "u128")]
+        pub use super::{
+            ZETTA_BYTE, ZEBI_BYTE, YOTTA_BYTE, YOBI_BYTE,
+        };
+    }
+
+    #[rustfmt::skip]
+    pub mod prefixed {
+        pub use super::{
+            KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+            GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+            PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
+        };
+
+        #[cfg(feature = "u128")]
+        pub use super::{
+            ZETTA_BIT, ZEBI_BIT, ZETTA_BYTE, ZEBI_BYTE,
+            YOTTA_BIT, YOBI_BIT, YOTTA_BYTE, YOBI_BYTE,
+        };
+    }
 
     pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
 
