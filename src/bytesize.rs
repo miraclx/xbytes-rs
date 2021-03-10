@@ -1,20 +1,26 @@
 use super::{Int, Unit};
-use bitflags::bitflags;
 
-bitflags! {
-    pub struct Mode: u32 {
-        const Bits    = 0b0001;
-        const Bytes   = 0b0010;
-        const Binary  = 0b0100;
-        const Decimal = 0b1000;
+mod flags {
+    #![allow(non_upper_case_globals)]
+    use bitflags::bitflags;
+
+    bitflags! {
+        pub struct Mode: u32 {
+            const Bits    = 0b0001;
+            const Bytes   = 0b0010;
+            const Binary  = 0b0100;
+            const Decimal = 0b1000;
+        }
+    }
+
+    impl Default for Mode {
+        fn default() -> Self {
+            Mode::Binary | Mode::Bytes
+        }
     }
 }
 
-impl Default for Mode {
-    fn default() -> Self {
-        Mode::Binary | Mode::Bytes
-    }
-}
+pub use flags::*;
 
 pub enum Format {}
 
