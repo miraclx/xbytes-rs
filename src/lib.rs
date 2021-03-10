@@ -5,11 +5,17 @@ mod unit;
 
 pub mod prelude {
     pub use super::prefix::UnitPrefix;
-    pub use super::unit::{sizes, SizeVariant, Unit};
+    pub use super::unit::{
+        sizes::{self, binary::*, decimal::*},
+        SizeVariant, Unit,
+    };
     pub use super::ParseError;
 }
 
-pub use prelude::*;
+pub use {
+    prefix::UnitPrefix,
+    unit::{sizes, SizeVariant, Unit},
+};
 
 #[cfg(feature = "u128")]
 type Int = u128;
