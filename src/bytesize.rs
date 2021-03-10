@@ -162,7 +162,7 @@ impl ByteSize {
 
     #[inline]
     pub fn repr_with(&self, sizer: ByteSizer) -> String {
-        sizer.format(self)
+        self.to_string_as(sizer.0, sizer.1)
     }
 }
 
@@ -175,18 +175,18 @@ mod tests {
         let size = ByteSize::from_bytes(1073741824).unwrap();
 
         let sizer = ByteSizer::new();
-        assert_eq!("1 GiB", sizer.format(&size).as_str());
+        assert_eq!("1 GiB", size.repr_with(sizer).as_str());
 
         let fractional_sizer = sizer.with_format(Format::ForceFraction);
-        assert_eq!("1.00 GiB", fractional_sizer.format(&size).as_str());
+        assert_eq!("1.00 GiB", size.repr_with(fractional_sizer).as_str());
 
         let decimal_bit_sizer = sizer.with_mode(Mode::Decimal | Mode::Bits);
-        assert_eq!("8 Gib", decimal_bit_sizer.format(&size).as_str());
+        assert_eq!("8 Gib", size.repr_with(decimal_bit_sizer).as_str());
 
         let fractional_decimal_bit_sizer = fractional_sizer | decimal_bit_sizer;
         assert_eq!(
             "8.00 Gib",
-            fractional_decimal_bit_sizer.format(&size).as_str()
+            size.repr_with(fractional_decimal_bit_sizer).as_str()
         );
     }
 }
