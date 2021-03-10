@@ -11,16 +11,20 @@ mod flags {
         }
     }
 
-    impl Default for Mode {
-        fn default() -> Self {
-            Mode::Binary | Mode::Bytes
+    bitflags! {
+        pub struct Format: u8 {
+            const Initials           = 0b0000001;
+            const Condensed          = 0b0000010;
+            const Long               = 0b0000100;
+            const Plural             = 0b0001000;
+            const LowerCaps          = 0b0010000;
+            const UpperCaps          = 0b0100000;
+            const ThousandsSeparator = 0b1000000;
         }
     }
 }
 
 pub use flags::*;
-
-pub enum Format {}
 
 pub struct ByteSize(Int);
 
