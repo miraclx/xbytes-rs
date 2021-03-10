@@ -16,7 +16,7 @@ mod flags {
             const Initials           = 0b00000001;
             const Condensed          = 0b00000010;
             const Long               = 0b00000100;
-            const Plural             = 0b00001000;
+            const NoPlural           = 0b00001000;
             const LowerCaps          = 0b00010000;
             const UpperCaps          = 0b00100000;
             const ForceFraction      = 0b01000000;
