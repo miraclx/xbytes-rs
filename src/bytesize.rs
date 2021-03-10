@@ -27,6 +27,49 @@ mod flags {
 
 pub use flags::*;
 
+pub struct ByteSizer(Mode, Format);
+
+impl ByteSizer {
+    const MODE: Mode = Mode::empty();
+    const FORMAT: Format = Format::empty();
+
+    #[inline]
+    pub const fn new() -> Self {
+        Self(Self::MODE, Self::FORMAT)
+    }
+
+    #[inline]
+    pub const fn with_mode(&self, mode: Mode) -> Self {
+        Self(
+            Mode::from_bits_truncate(self.0.bits() | mode.bits()),
+            self.1,
+        )
+    }
+
+    #[inline]
+    pub const fn with_format(&self, format: Format) -> Self {
+        Self(
+            self.0,
+            Format::from_bits_truncate(self.1.bits() | format.bits()),
+        )
+    }
+
+    #[inline]
+    pub const fn reset_mode(&self) -> Self {
+        Self(Self::MODE, self.1)
+    }
+
+    #[inline]
+    pub const fn reset_format(&self) -> Self {
+        Self(self.0, Self::FORMAT)
+    }
+
+    #[inline]
+    pub fn format(&self, size: &ByteSize) -> String {
+        size.to_string_as(self.0, self.1)
+    }
+}
+
 pub struct ByteSize(Int);
 
 impl ByteSize {
@@ -105,5 +148,10 @@ impl ByteSize {
 
     pub fn repr_as(&self, unit: Unit, format: Format) -> String {
         todo!()
+    }
+
+    #[inline]
+    pub fn repr_with(&self, sizer: &ByteSizer) -> String {
+        sizer.format(self)
     }
 }
