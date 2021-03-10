@@ -56,6 +56,16 @@ impl ByteSizer {
     }
 
     #[inline]
+    pub const fn mode(&self) -> Mode {
+        self.0
+    }
+
+    #[inline]
+    pub const fn format(&self) -> Format {
+        self.1
+    }
+
+    #[inline]
     pub const fn reset_mode(&self) -> Self {
         Self(Self::MODE, self.1)
     }
@@ -66,7 +76,7 @@ impl ByteSizer {
     }
 
     #[inline]
-    pub fn format(&self, size: &ByteSize) -> String {
+    pub fn repr(&self, size: &ByteSize) -> String {
         size.to_string_as(self.0, self.1)
     }
 }
