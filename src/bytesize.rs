@@ -5,11 +5,9 @@ mod flags {
     use bitflags::bitflags;
 
     bitflags! {
-        pub struct Mode: u32 {
-            const Bits    = 0b0001;
-            const Bytes   = 0b0010;
-            const Binary  = 0b0100;
-            const Decimal = 0b1000;
+        pub struct Mode: u8 {
+            const Bits    = 0b01;
+            const Decimal = 0b10;
         }
     }
 
