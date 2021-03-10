@@ -13,13 +13,14 @@ mod flags {
 
     bitflags! {
         pub struct Format: u8 {
-            const Initials           = 0b0000001;
-            const Condensed          = 0b0000010;
-            const Long               = 0b0000100;
-            const Plural             = 0b0001000;
-            const LowerCaps          = 0b0010000;
-            const UpperCaps          = 0b0100000;
-            const ThousandsSeparator = 0b1000000;
+            const Initials           = 0b00000001;
+            const Condensed          = 0b00000010;
+            const Long               = 0b00000100;
+            const Plural             = 0b00001000;
+            const LowerCaps          = 0b00010000;
+            const UpperCaps          = 0b00100000;
+            const ForceFraction      = 0b01000000;
+            const ThousandsSeparator = 0b10000000;
         }
     }
 }
@@ -51,6 +52,8 @@ impl ByteSize {
     // let size = "10 MiB".parse::<ByteSize>()?;
     // size.value()     -> 83886080 (in bits)
     // size.value() / 8 -> 10485760 (in bytes)
+    // size.repr(MEBI_BYTE) -> '10 MiB'
+    // size.repr_as(MEBI_BYTE, Format::ForceFraction) -> '10.00 MiB'
 
     // destructure and create size
     // let (value, unit) = "10 MiB".parse::<(Int, Unit)>().unwrap();
