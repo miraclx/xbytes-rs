@@ -1,4 +1,4 @@
-use super::{Int, Unit};
+use super::{Int, Unit, UnitPrefix};
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -29,71 +29,79 @@ mod flags {
 pub use flags::*;
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
-pub struct ByteSizer(Mode, Format);
+pub struct ByteSizeOptions {
+    pub mode: Mode,
+    pub format: Format,
+    pub fixed_prefix: Option<UnitPrefix>,
+    pub decimal_places: usize,
+}
 
-impl ByteSizer {
+impl Default for ByteSizeOptions {
+    fn default() -> Self {
+        Self::BINARY
+    }
+}
+
+impl ByteSizeOptions {
     const MODE: Mode = Mode::empty();
     const FORMAT: Format = Format::empty();
 
-    pub const BINARY: Self = Self::new(); // b, B, KiB, MiB
-    pub const DECIMAL: Self = Self::new().with_mode(Mode::Decimal); // b, B, KB, MB
+    pub const BINARY: Self = Self::default(); // b, B, KiB, MiB
+    pub const DECIMAL: Self = Self::default().with_mode(Mode::Decimal); // b, B, KB, MB
 
-    pub const INITIALS: Self = Self::new().with_format(Format::Initials); // b, B, KB, MB (no binary symbols)
-    pub const CONDENSED: Self = Self::new().with_format(Format::Condensed); // b, B, K, M (single chars)
-    pub const LONG: Self = Self::new().with_format(Format::Long); // Bits, Bytes, KiloBytes
+    pub const INITIALS: Self = Self::default().with_format(Format::Initials); // b, B, KB, MB (no binary symbols)
+    pub const CONDENSED: Self = Self::default().with_format(Format::Condensed); // b, B, K, M (single chars)
+    pub const LONG: Self = Self::default().with_format(Format::Long); // Bits, Bytes, KiloBytes
+    pub const NOSPACE: Self = Self::default().with_format(Format::NoSpace); // 10b, 10B, 10MB
 
     #[inline]
-    pub const fn new() -> Self {
-        Self(Self::MODE, Self::FORMAT)
+    const fn default() -> Self {
+        Self {
+            mode: Self::MODE,
+            format: Self::FORMAT,
+            fixed_prefix: None,
+            decimal_places: 2,
+        }
     }
 
     #[inline]
     pub const fn with_mode(&self, mode: Mode) -> Self {
-        Self(
-            Mode::from_bits_truncate(self.0.bits() | mode.bits()),
-            self.1,
-        )
+        let mut new = *self;
+        new.mode = Mode::from_bits_truncate(new.mode.bits() | mode.bits());
+        new
     }
 
     #[inline]
     pub const fn with_format(&self, format: Format) -> Self {
-        Self(
-            self.0,
-            Format::from_bits_truncate(self.1.bits() | format.bits()),
-        )
-    }
-
-    #[inline]
-    pub const fn mode(&self) -> Mode {
-        self.0
-    }
-
-    #[inline]
-    pub const fn format(&self) -> Format {
-        self.1
+        let mut new = *self;
+        new.format = Format::from_bits_truncate(self.format.bits() | format.bits());
+        new
     }
 
     #[inline]
     pub const fn reset_mode(&self) -> Self {
-        Self(Self::MODE, self.1)
+        let mut new = *self;
+        new.mode = Self::MODE;
+        new
     }
 
     #[inline]
     pub const fn reset_format(&self) -> Self {
-        Self(self.0, Self::FORMAT)
-    }
-
-    #[inline]
-    pub fn repr(&self, size: &ByteSize) -> String {
-        size.to_string_as(self.0, self.1)
+        let mut new = *self;
+        new.format = Self::FORMAT;
+        new
     }
 }
 
-impl std::ops::BitOr for ByteSizer {
+impl std::ops::BitOr for ByteSizeOptions {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        Self(self.0 | rhs.0, self.1 | rhs.1)
+        Self {
+            mode: self.mode | rhs.mode,
+            format: self.format | rhs.format,
+            ..self
+        }
     }
 }
 
@@ -188,14 +196,6 @@ impl ByteSize {
         self.0.checked_mul(8)
     }
 
-    pub fn to_string(&self, mode: Mode) -> String {
-        todo!()
-    }
-
-    pub fn to_string_as(&self, mode: Mode, format: Format) -> String {
-        todo!()
-    }
-
     pub fn repr(&self, unit: Unit) -> String {
         todo!()
     }
@@ -204,9 +204,8 @@ impl ByteSize {
         todo!()
     }
 
-    #[inline]
-    pub fn repr_with(&self, sizer: ByteSizer) -> String {
-        self.to_string_as(sizer.0, sizer.1)
+    pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
+        todo!()
     }
 }
 
@@ -221,7 +220,7 @@ mod tests {
         #[cfg(feature = "bits")]
         let size = size.unwrap();
 
-        let sizer = ByteSizer::new();
+        let sizer = ByteSizeOptions::BINARY;
         assert_eq!("1 GiB", size.repr_with(sizer).as_str());
 
         let fractional_sizer = sizer.with_format(Format::ForceFraction);
