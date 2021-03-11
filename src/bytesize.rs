@@ -1,4 +1,4 @@
-use super::{Int, ParseError, Unit, UnitPrefix};
+use super::{sizes, Int, ParseError, Unit, UnitPrefix};
 use std::fmt;
 
 mod flags {
@@ -208,15 +208,46 @@ impl ByteSize {
     }
 
     pub fn repr(&self, unit: Unit) -> String {
-        todo!()
+        self.repr_as(unit, ByteSizeOptions::FORMAT)
     }
 
-    pub fn repr_as(&self, unit: Unit, format: Format) -> String {
-        todo!()
+    #[rustfmt::skip]
+    fn prep_value(&self, mode: Mode) -> f64 {
+        let value = self.0 as f64;
+        let wants_bits = mode.contains(Mode::Bits);
+        if {
+            #[cfg(feature = "bits")] {!wants_bits}
+            #[cfg(not(feature = "bits"))] {wants_bits}
+        } {
+            #[cfg(feature = "bits")] {value / 8.0}
+            #[cfg(not(feature = "bits"))] {value * 8.0}
+        } else { value }
+    }
+
+    pub fn repr_as(&self, unit: Unit, _format: Format) -> String {
+        let value = self.prep_value(unit.mode());
+        format!("{} {}", value / unit.effective_value() as f64, unit,)
     }
 
     pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
-        todo!()
+        let mut value = self.prep_value(sizer.mode);
+        let as_decimal = sizer.mode.contains(Mode::Decimal);
+        #[rustfmt::skip]
+        let divisor = if as_decimal { 1000f64 } else { 1024f64 };
+        let mut prefix_index = 0;
+        while value >= divisor {
+            value /= divisor;
+            prefix_index += 2;
+        }
+        if prefix_index > 0 && as_decimal {
+            prefix_index -= 1
+        }
+        let unit = (if sizer.mode.contains(Mode::Bits) {
+            sizes::BITS
+        } else {
+            sizes::BYTES
+        })[prefix_index];
+        format!("{} {}", value, unit)
     }
 }
 
