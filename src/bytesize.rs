@@ -34,6 +34,13 @@ impl ByteSizer {
     const MODE: Mode = Mode::empty();
     const FORMAT: Format = Format::empty();
 
+    pub const BINARY: Self = Self::new(); // b, B, KiB, MiB
+    pub const DECIMAL: Self = Self::new().with_mode(Mode::Decimal); // b, B, KB, MB
+
+    pub const INITIALS: Self = Self::new().with_format(Format::Initials); // b, B, KB, MB (no binary symbols)
+    pub const CONDENSED: Self = Self::new().with_format(Format::Condensed); // b, B, K, M (single chars)
+    pub const LONG: Self = Self::new().with_format(Format::Long); // Bits, Bytes, KiloBytes
+
     #[inline]
     pub const fn new() -> Self {
         Self(Self::MODE, Self::FORMAT)
