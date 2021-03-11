@@ -13,15 +13,16 @@ mod flags {
 
     bitflags! {
         pub struct Format: u16 {
-            const Initials           = 0b_0000_0000_0001;
-            const Condensed          = 0b_0000_0000_0010;
-            const Long               = 0b_0000_0000_0100;
-            const NoPlural           = 0b_0000_0000_1000;
-            const LowerCaps          = 0b_0000_0001_0000;
-            const UpperCaps          = 0b_0000_0010_0000;
-            const ForceFraction      = 0b_0000_0100_0000;
-            const ThousandsSeparator = 0b_0000_1000_0000;
-            const NoSpace            = 0b_0001_0000_0000;
+            const Initials           = 1 << 0;
+            const Condensed          = 1 << 1;
+            const Long               = 1 << 2;
+            const NoPlural           = 1 << 3;
+            const ForcePlural        = 1 << 4;
+            const LowerCaps          = 1 << 5;
+            const UpperCaps          = 1 << 6;
+            const ForceFraction      = 1 << 7;
+            const ThousandsSeparator = 1 << 8;
+            const NoSpace            = 1 << 9;
         }
     }
 }
