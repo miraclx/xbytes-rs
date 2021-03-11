@@ -222,6 +222,13 @@ impl SizeVariant {
         *self as u8 == 1
     }
 
+    pub const fn mode(&self) -> Mode {
+        if let Bit = self {
+            return Mode::Bits;
+        }
+        Mode::empty()
+    }
+
     pub const fn symbol(&self) -> &'static str {
         match self {
             Bit => "b",
@@ -367,6 +374,15 @@ impl Unit {
             Some(prefix) => prefix.effective_value(),
             None => 1,
         } * self.1.effective_value() as Int)
+    }
+
+    pub const fn mode(&self) -> Mode {
+        match (self.is_decimal(), self.is_bit()) {
+            (false, false) => Mode::empty(),
+            (true, false) => Mode::Decimal,
+            (false, true) => Mode::Bits,
+            (true, true) => bitflags_const_or!(Mode::{Decimal | Bits}),
+        }
     }
 
     pub const fn symbols(&self) -> (&'static str, &'static str) {
