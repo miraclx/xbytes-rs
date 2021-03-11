@@ -30,6 +30,19 @@ mod flags {
 
 pub use flags::*;
 
+// thousands separator
+// thsep("1234567") -> ['1', '234', '567']
+fn thsep(digits: &str) -> Vec<&str> {
+    let chars = digits.as_bytes();
+    let len = chars.len();
+    let tip = len - ((len / 3) * 3);
+    std::iter::once(&chars[..tip])
+        .chain(chars[tip..].chunks(3))
+        .map(std::str::from_utf8)
+        .collect::<Result<Vec<_>, _>>()
+        .expect("where did the non-utf8 character come from?")
+}
+
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeOptions {
     pub mode: Mode,
@@ -95,11 +108,19 @@ impl ByteSizeOptions {
     }
 
     pub fn repr(&self, value: f64, unit: Unit) -> (String, String) {
-        let value_part = if self.format.contains(Format::ForceFraction) || value.fract() != 0.0 {
+        let mut value_part = if self.format.contains(Format::ForceFraction) || value.fract() != 0.0
+        {
             format!("{:.fixed$}", value, fixed = self.decimal_places)
         } else {
             format!("{}", value)
         };
+
+        if self.format.contains(Format::ThousandsSeparator) {
+            let (whole, fract) = value_part
+                .find('.')
+                .map_or((&value_part[..], ""), |index| value_part.split_at(index));
+            value_part = format!("{}{}", thsep(whole).join(","), fract);
+        }
 
         (value_part, format!("{}", unit))
     }
