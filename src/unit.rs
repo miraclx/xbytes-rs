@@ -1,5 +1,5 @@
 use super::{
-    Int, ParseError,
+    Int, Mode, ParseError,
     UnitPrefix::{self, *},
 };
 use std::{
