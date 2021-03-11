@@ -32,15 +32,15 @@ pub use flags::*;
 
 // thousands separator
 // thsep("1234567") -> ['1', '234', '567']
-fn thsep(digits: &str) -> Vec<&str> {
+fn thsep(digits: &str) -> impl Iterator<Item = &str> {
     let chars = digits.as_bytes();
     let len = chars.len();
     let tip = len - ((len / 3) * 3);
     std::iter::once(&chars[..tip])
         .chain(chars[tip..].chunks(3))
-        .map(std::str::from_utf8)
-        .collect::<Result<Vec<_>, _>>()
-        .expect("where did the non-utf8 character come from?")
+        .map(|digits| {
+            std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
+        })
 }
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
