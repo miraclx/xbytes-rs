@@ -93,6 +93,16 @@ impl ByteSizeOptions {
         new.format = Self::FORMAT;
         new
     }
+
+    pub fn repr(&self, value: f64, unit: Unit) -> (String, String) {
+        let value_part = if self.format.contains(Format::ForceFraction) || value.fract() != 0.0 {
+            format!("{:.fixed$}", value, fixed = self.decimal_places)
+        } else {
+            format!("{}", value)
+        };
+
+        (value_part, format!("{}", unit))
+    }
 }
 
 impl std::ops::BitOr for ByteSizeOptions {
@@ -224,30 +234,33 @@ impl ByteSize {
         } else { value }
     }
 
-    pub fn repr_as(&self, unit: Unit, _format: Format) -> String {
+    pub fn repr_as(&self, unit: Unit, format: Format) -> String {
         let value = self.prep_value(unit.mode());
-        format!("{} {}", value / unit.effective_value() as f64, unit,)
+        let sizer = ByteSizeOptions::BINARY.with_format(format);
+        let (value, postfix) = sizer.repr(value / unit.effective_value() as f64, unit);
+        format!("{} {}", value, postfix)
     }
 
-    pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
-        let mut value = self.prep_value(sizer.mode);
-        let as_decimal = sizer.mode.contains(Mode::Decimal);
-        #[rustfmt::skip]
+    #[rustfmt::skip]
+    pub fn repr_with_components(&self, mode: Mode) -> (f64, Unit) {
+        let mut value = self.prep_value(mode);
+        let as_bits = mode.contains(Mode::Bits);
+        let as_decimal = mode.contains(Mode::Decimal);
         let divisor = if as_decimal { 1000f64 } else { 1024f64 };
         let mut prefix_index = 0;
         while value >= divisor {
             value /= divisor;
             prefix_index += 2;
         }
-        if prefix_index > 0 && as_decimal {
-            prefix_index -= 1
-        }
-        let unit = (if sizer.mode.contains(Mode::Bits) {
-            sizes::BITS
-        } else {
-            sizes::BYTES
-        })[prefix_index];
-        format!("{} {}", value, unit)
+        if prefix_index > 0 && as_decimal { prefix_index -= 1 }
+        let unit = (if as_bits { sizes::BITS } else { sizes::BYTES })[prefix_index];
+        (value, unit)
+    }
+
+    pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
+        let (value, unit) = self.repr_with_components(sizer.mode);
+        let (value, postfix) = sizer.repr(value, unit);
+        format!("{} {}", value, postfix)
     }
 }
 
