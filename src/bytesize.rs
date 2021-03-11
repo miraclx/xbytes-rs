@@ -123,7 +123,7 @@ impl ByteSizeOptions {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            value_part = format!("{}{}", thsep(whole).join(","), fract);
+            value_part = format!("{}{}", thsep(whole).collect::<Vec<_>>().join(","), fract);
         }
 
         #[rustfmt::skip]
