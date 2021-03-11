@@ -1,4 +1,5 @@
 use super::{Int, Unit, UnitPrefix};
+use std::fmt;
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -207,6 +208,31 @@ impl ByteSize {
 
     pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
         todo!()
+    }
+}
+
+impl fmt::Display for ByteSize {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut sizer = ByteSizeOptions::BINARY;
+        if f.sign_plus() {
+            let mut format = Format::Long;
+            if f.alternate() {
+                format |= Format::NoPlural;
+            }
+            sizer = sizer.with_format(format)
+        } else if f.sign_minus() {
+            let format = if f.alternate() {
+                Format::Condensed
+            } else {
+                Format::Initials
+            };
+            sizer = sizer.with_format(format);
+        }
+        if let Some(precision) = f.precision() {
+            sizer.decimal_places = precision;
+        }
+        write!(f, "{}", self.repr_with(sizer))
     }
 }
 
