@@ -1,5 +1,14 @@
 use std::fmt;
 
+macro_rules! bitflags_const_or {
+    ($flag:ident::{$($variant:ident)|+}) => {
+        bitflags_const_or!($flag::{$($flag::$variant),+})
+    };
+    ($flag:ident::{$($variant:expr),+}) => {
+        $flag::from_bits_truncate($($variant.bits())|+)
+    }
+}
+
 mod bytesize;
 mod prefix;
 mod unit;

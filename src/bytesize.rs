@@ -69,14 +69,14 @@ impl ByteSizeOptions {
     #[inline]
     pub const fn with_mode(&self, mode: Mode) -> Self {
         let mut new = *self;
-        new.mode = Mode::from_bits_truncate(new.mode.bits() | mode.bits());
+        new.mode = bitflags_const_or!(Mode::{new.mode, mode});
         new
     }
 
     #[inline]
     pub const fn with_format(&self, format: Format) -> Self {
         let mut new = *self;
-        new.format = Format::from_bits_truncate(self.format.bits() | format.bits());
+        new.format = bitflags_const_or!(Format::{new.format, format});
         new
     }
 
