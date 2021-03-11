@@ -440,7 +440,7 @@ impl PartialOrd for Unit {
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_plus() {
-            self.symbol_long(f.alternate())
+            self.symbol_long(!f.alternate())
         } else if f.sign_minus() {
             if f.alternate() {
                 self.symbol_condensed().to_string()
@@ -1017,14 +1017,14 @@ mod tests {
             );
             assert_eq!(
                 (long.to_string(), long.to_string()),
-                (unit.symbol_long(false), format!("{:+}", unit)),
+                (unit.symbol_long(false), format!("{:+#}", unit)),
                 "expected [{:?}] to be represented in long form as [{}]",
                 unit,
                 long
             );
             assert_eq!(
                 (long_extra.to_string(), long_extra.to_string()),
-                (unit.symbol_long(true), format!("{:+#}", unit)),
+                (unit.symbol_long(true), format!("{:+}", unit)),
                 "expected [{:?}] to be represented in plural long form as [{}]",
                 unit,
                 long_extra
