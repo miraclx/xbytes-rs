@@ -11,5 +11,6 @@ bitflags = "1.2.1"
 
 [features]
 default = ["u128"]
+bits = []
 u128 = []
 case-insensitive = []

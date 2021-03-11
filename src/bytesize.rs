@@ -134,11 +134,13 @@ impl ByteSize {
     // (value, unit) -> (ByteSize(80), MEBI_BYTE)
 
     #[inline]
+    #[cfg(feature = "bits")]
     pub const fn from_bits(value: Int) -> Self {
         Self(value)
     }
 
     #[inline]
+    #[cfg(feature = "bits")]
     pub const fn from_bytes(value: Int) -> Option<Self> {
         if let Some(bits) = value.checked_mul(8) {
             return Some(Self(bits));
@@ -147,18 +149,42 @@ impl ByteSize {
     }
 
     #[inline]
-    pub fn value<T: From<Int>>(&self) -> T {
-        self.0.into()
+    #[cfg(not(feature = "bits"))]
+    pub const fn from_bytes(value: Int) -> Self {
+        Self(value)
     }
 
     #[inline]
+    #[cfg(not(feature = "bits"))]
+    pub const fn from_bits(value: Int) -> Option<Self> {
+        if let Some(bytes) = value.checked_div(8) {
+            return Some(Self(bytes));
+        }
+        None
+    }
+
+    #[inline]
+    #[cfg(feature = "bits")]
     pub const fn bits(&self) -> Int {
         self.0
     }
 
     #[inline]
+    #[cfg(feature = "bits")]
     pub const fn bytes(&self) -> Option<Int> {
         self.0.checked_div(8)
+    }
+
+    #[inline]
+    #[cfg(not(feature = "bits"))]
+    pub const fn bytes(&self) -> Int {
+        self.0
+    }
+
+    #[inline]
+    #[cfg(not(feature = "bits"))]
+    pub const fn bits(&self) -> Option<Int> {
+        self.0.checked_mul(8)
     }
 
     pub fn to_string(&self, mode: Mode) -> String {
@@ -189,7 +215,10 @@ mod tests {
 
     #[test]
     fn bytesizer() {
-        let size = ByteSize::from_bytes(1073741824).unwrap();
+        let size = ByteSize::from_bytes(1073741824);
+
+        #[cfg(feature = "bits")]
+        let size = size.unwrap();
 
         let sizer = ByteSizer::new();
         assert_eq!("1 GiB", size.repr_with(sizer).as_str());
