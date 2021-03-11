@@ -31,12 +31,16 @@ mod flags {
 pub use flags::*;
 
 // thousands separator
+// thsep("503") -> ['503']
+// thsep("405503") -> ['405', '503']
 // thsep("1234567") -> ['1', '234', '567']
 fn thsep(digits: &str) -> impl Iterator<Item = &str> {
     let chars = digits.as_bytes();
     let len = chars.len();
     let tip = len - ((len / 3) * 3);
-    std::iter::once(&chars[..tip])
+    let tip_chars = &chars[..tip];
+    std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
+        .take(1)
         .chain(chars[tip..].chunks(3))
         .map(|digits| {
             std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
