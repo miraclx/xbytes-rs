@@ -34,17 +34,22 @@ pub use flags::*;
 // thsep("503") -> ['503']
 // thsep("405503") -> ['405', '503']
 // thsep("1234567") -> ['1', '234', '567']
-fn thsep(digits: &str) -> impl Iterator<Item = &str> {
+fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
     let chars = digits.as_bytes();
     let len = chars.len();
-    let tip = len - ((len / 3) * 3);
+    let part = len / 3;
+    let tip = len - (part * 3);
     let tip_chars = &chars[..tip];
-    std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
-        .take(1)
-        .chain(chars[tip..].chunks(3))
-        .map(|digits| {
-            std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
-        })
+    (
+        len,
+        (tip_chars.is_empty()).then(|| part - 1).unwrap_or(part),
+        std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
+            .take(1)
+            .chain(chars[tip..].chunks(3))
+            .map(|digits| {
+                std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
+            }),
+    )
 }
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
@@ -123,7 +128,10 @@ impl ByteSizeOptions {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            value_part = format!("{}{}", thsep(whole).collect::<Vec<_>>().join(","), fract);
+            let (len, holes, parts) = thsep(whole);
+            let mut whole = Vec::with_capacity(len + holes);
+            whole.extend(parts);
+            value_part = format!("{}{}", whole.join(","), fract);
         }
 
         #[rustfmt::skip]
