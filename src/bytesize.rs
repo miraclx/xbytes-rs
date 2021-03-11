@@ -122,7 +122,14 @@ impl ByteSizeOptions {
             value_part = format!("{}{}", thsep(whole).join(","), fract);
         }
 
-        (value_part, format!("{}", unit))
+        #[rustfmt::skip]
+        let unit_part = format!(
+            "{}{}",
+            if !self.format.contains(Format::NoSpace) { " " } else { "" },
+            unit
+        );
+
+        (value_part, unit_part)
     }
 }
 
