@@ -29,6 +29,7 @@ type Int = u64;
 pub enum ParseError {
     EmptyInput,
     InvalidPrefix,
+    ValueOverflow,
     InvalidSizeVariant,
     #[cfg(not(feature = "case-insensitive"))]
     InvalidUnitCaseFormat,
@@ -42,6 +43,7 @@ impl fmt::Display for ParseError {
             ParseError::EmptyInput => "empty input",
             ParseError::InvalidPrefix => "invalid prefix",
             ParseError::InvalidSizeVariant => "invalid size variant",
+            ParseError::ValueOverflow => "value overflow",
             #[cfg(not(feature = "case-insensitive"))]
             ParseError::InvalidUnitCaseFormat => {
                 "invalid case: expected format like 'kB', 'Kb', 'KiB', 'Mb', 'MiB'"

@@ -1,4 +1,4 @@
-use super::{Int, Unit, UnitPrefix};
+use super::{Int, ParseError, Unit, UnitPrefix};
 use std::fmt;
 
 mod flags {
@@ -107,6 +107,15 @@ impl std::ops::BitOr for ByteSizeOptions {
     }
 }
 
+macro_rules! ok_or {
+    ($value:expr, $err:expr) => {
+        match ($value, $err) {
+            (Some(value), _) => Ok(value),
+            (_, err) => Err(err),
+        }
+    };
+}
+
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSize(Int);
 
@@ -152,11 +161,11 @@ impl ByteSize {
 
     #[inline]
     #[cfg(feature = "bits")]
-    pub const fn from_bytes(value: Int) -> Option<Self> {
-        if let Some(bits) = value.checked_mul(8) {
-            return Some(Self(bits));
+    pub const fn from_bytes(value: Int) -> Result<Self, ParseError> {
+        match ok_or!(value.checked_mul(8), ParseError::ValueOverflow) {
+            Ok(value) => Ok(Self(value)),
+            Err(err) => Err(err),
         }
-        None
     }
 
     #[inline]
@@ -167,11 +176,11 @@ impl ByteSize {
 
     #[inline]
     #[cfg(not(feature = "bits"))]
-    pub const fn from_bits(value: Int) -> Option<Self> {
-        if let Some(bytes) = value.checked_div(8) {
-            return Some(Self(bytes));
+    pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
+        match ok_or!(value.checked_div(8), ParseError::ValueOverflow) {
+            Ok(value) => Ok(Self(value)),
+            Err(err) => Err(err),
         }
-        None
     }
 
     #[inline]
@@ -182,8 +191,8 @@ impl ByteSize {
 
     #[inline]
     #[cfg(feature = "bits")]
-    pub const fn bytes(&self) -> Option<Int> {
-        self.0.checked_div(8)
+    pub const fn bytes(&self) -> Result<Int, ParseError> {
+        ok_or!(self.0.checked_div(8), ParseError::ValueOverflow)
     }
 
     #[inline]
@@ -194,8 +203,8 @@ impl ByteSize {
 
     #[inline]
     #[cfg(not(feature = "bits"))]
-    pub const fn bits(&self) -> Option<Int> {
-        self.0.checked_mul(8)
+    pub const fn bits(&self) -> Result<Int, ParseError> {
+        ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
     }
 
     pub fn repr(&self, unit: Unit) -> String {
