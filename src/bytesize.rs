@@ -278,7 +278,7 @@ impl ByteSize {
         let value = self.prep_value(unit.mode());
         let sizer = ByteSizeOptions::BINARY.with_format(format);
         let (value, postfix) = sizer.repr(value / unit.effective_value() as f64, unit);
-        format!("{} {}", value, postfix)
+        format!("{}{}", value, postfix)
     }
 
     #[rustfmt::skip]
@@ -300,7 +300,7 @@ impl ByteSize {
     pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
         let (value, unit) = self.repr_with_components(sizer.mode);
         let (value, postfix) = sizer.repr(value, unit);
-        format!("{} {}", value, postfix)
+        format!("{}{}", value, postfix)
     }
 }
 
