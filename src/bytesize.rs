@@ -421,14 +421,15 @@ impl ByteSize {
         let as_bits = mode.contains(Mode::Bits);
         let as_decimal = mode.contains(Mode::Decimal);
         let divisor = if as_decimal { 1000f64 } else { 1024f64 };
+        let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
+        let max_index = unit_stack.len() - 1;
         let mut prefix_index = 0;
-        while value >= divisor {
+        while prefix_index < max_index && value >= divisor {
             value /= divisor;
             prefix_index += 2;
         }
         if prefix_index > 0 && as_decimal { prefix_index -= 1 }
-        let unit = (if as_bits { sizes::BITS } else { sizes::BYTES })[prefix_index];
-        (value, unit)
+        (value, unit_stack[prefix_index])
     }
 
     pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
