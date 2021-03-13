@@ -2,7 +2,7 @@ use super::{sizes, Int, ParseError, Unit, UnitPrefix};
 use std::fmt;
 
 mod flags {
-    #![allow(non_upper_case_globals)]
+    #![allow(non_upper_case_globals, non_snake_case)]
     use std::ops::BitOr;
 
     use bitflags::bitflags;
@@ -31,128 +31,141 @@ mod flags {
         }
     }
 
-    #[derive(Eq, Copy, Clone, Debug, PartialEq)]
-    pub enum FormatSpec {
-        DecimalPlaces(usize),
-    }
-
-    impl Format {
-        pub const DecimalPlaces: fn(usize) -> FormatSpec = FormatSpec::DecimalPlaces;
-    }
-
-    impl FormatSpec {
-        fn apply_on_spec(&self, spec: &mut ExtendedFormatSpec) {
-            match *self {
-                Self::DecimalPlaces(fixed) => {
-                    spec.decimal_places = spec.decimal_places.or(Some(fixed))
-                }
-            }
-        }
-    }
-
-    #[derive(Eq, Copy, Clone, Debug, Default, PartialEq)]
-    pub struct ExtendedFormatSpec {
-        flags: Format,
-        decimal_places: Option<usize>,
-    }
-
     pub trait ByteSizeFormatter: Sized {
         fn apply_flags(&self, sizer: &mut super::ByteSizeOptions);
     }
 
-    impl ByteSizeFormatter for Format {
-        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
-            sizer.format.insert(*self);
-        }
-    }
-
-    impl ByteSizeFormatter for FormatSpec {
-        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
-            match *self {
-                Self::DecimalPlaces(fixed) => sizer.decimal_places = fixed,
-            };
-        }
-    }
-
-    impl ByteSizeFormatter for ExtendedFormatSpec {
-        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
-            self.flags.apply_flags(sizer);
-            self.decimal_places
-                .map(|fixed| sizer.decimal_places = fixed);
-        }
-    }
-
-    impl BitOr for FormatSpec {
-        type Output = ExtendedFormatSpec;
-        fn bitor(self, rhs: Self) -> Self::Output {
-            let mut ret = ExtendedFormatSpec::default();
-            self.apply_on_spec(&mut ret);
-            rhs.apply_on_spec(&mut ret);
-            ret
-        }
-    }
-
-    impl BitOr<Format> for FormatSpec {
-        type Output = ExtendedFormatSpec;
-        fn bitor(self, rhs: Format) -> Self::Output {
-            let mut ret = ExtendedFormatSpec {
-                flags: rhs,
-                ..Default::default()
-            };
-            self.apply_on_spec(&mut ret);
-            ret
-        }
-    }
-
-    impl BitOr<FormatSpec> for Format {
-        type Output = ExtendedFormatSpec;
-        #[inline]
-        fn bitor(self, rhs: FormatSpec) -> Self::Output {
-            rhs | self
-        }
-    }
-
-    impl BitOr<Format> for ExtendedFormatSpec {
-        type Output = ExtendedFormatSpec;
-        fn bitor(mut self, rhs: Format) -> Self::Output {
-            self.flags.insert(rhs);
-            self
-        }
-    }
-
-    impl BitOr<ExtendedFormatSpec> for Format {
-        type Output = ExtendedFormatSpec;
-        #[inline]
-        fn bitor(self, rhs: ExtendedFormatSpec) -> Self::Output {
-            rhs | self
-        }
-    }
-
-    impl BitOr<FormatSpec> for ExtendedFormatSpec {
-        type Output = ExtendedFormatSpec;
-        fn bitor(mut self, rhs: FormatSpec) -> Self::Output {
-            rhs.apply_on_spec(&mut self);
-            self
-        }
-    }
-
-    impl BitOr<ExtendedFormatSpec> for FormatSpec {
-        type Output = ExtendedFormatSpec;
-        #[inline]
-        fn bitor(self, rhs: ExtendedFormatSpec) -> Self::Output {
-            rhs | self
-        }
-    }
-
-    impl BitOr for ExtendedFormatSpec {
-        type Output = Self;
-        fn bitor(self, rhs: Self) -> Self::Output {
-            Self {
-                flags: self.flags | rhs.flags,
-                decimal_places: self.decimal_places.or(rhs.decimal_places),
+    macro_rules! add_valued_variants {
+        ({$flag:ident -> ($flag_enum:ident, $extended_flag:ident)}($base:ident: $base_ty:ty) {
+            $flag_in_base:ident,
+            $( $variant:ident( $( $arg:ident: $arg_ty:ty ),+ ) => $action:block ),+
+        }) => {
+            #[derive(Eq, Copy, Clone, Debug, PartialEq)]
+            pub enum $flag_enum {
+                $( $variant($($arg_ty),+) ),+
             }
-        }
+
+            impl $flag {
+                $( pub const $variant: fn($($arg_ty),+) -> $flag_enum = $flag_enum::$variant; )+
+            }
+
+            #[allow(unused_parens)]
+            #[derive(Eq, Copy, Clone, Debug, Default, PartialEq)]
+            pub struct $extended_flag {
+                flags: $flag,
+                $( $variant: Option<($($arg_ty),+)> ),+
+            }
+
+            impl $flag_enum {
+                fn apply_on_spec(&self, spec: &mut $extended_flag) {
+                    match *self {
+                        $(
+                            Self::$variant($($arg),+) => spec.$variant = spec.$variant.or(Some(($($arg),+)))
+                        ),+
+                    };
+                }
+            }
+
+            impl ByteSizeFormatter for $flag {
+                fn apply_flags(&self, $base: &mut $base_ty) {
+                    $base.$flag_in_base.insert(*self);
+                }
+            }
+
+            impl ByteSizeFormatter for $flag_enum {
+                fn apply_flags(&self, $base: &mut $base_ty) {
+                    match *self {
+                        $( Self::$variant($($arg),+) => {$action;} ),+
+                    };
+                }
+            }
+
+            impl ByteSizeFormatter for $extended_flag {
+                #[allow(unused_parens)]
+                fn apply_flags(&self, $base: &mut $base_ty) {
+                    self.flags.apply_flags($base);
+                    $( self.$variant.map(|($($arg),+): ($($arg_ty),+)| $action); )+
+                }
+            }
+
+            impl BitOr<Self> for $flag_enum {
+                type Output = $extended_flag;
+                fn bitor(self, rhs: Self) -> Self::Output {
+                    let mut ret = $extended_flag::default();
+                    self.apply_on_spec(&mut ret);
+                    rhs.apply_on_spec(&mut ret);
+                    ret
+                }
+            }
+
+            impl BitOr<Self> for $extended_flag {
+                type Output = Self;
+                fn bitor(self, rhs: Self) -> Self::Output {
+                    Self {
+                        flags: self.flags | rhs.flags,
+                        $( $variant: self.$variant.or(rhs.$variant) ),+
+                    }
+                }
+            }
+
+            impl BitOr<$flag> for $flag_enum {
+                type Output = $extended_flag;
+                fn bitor(self, rhs: $flag) -> Self::Output {
+                    let mut ret = Self::Output {
+                        flags: rhs,
+                        ..Default::default()
+                    };
+                    self.apply_on_spec(&mut ret);
+                    ret
+                }
+            }
+
+            impl BitOr<$flag_enum> for $flag {
+                type Output = $extended_flag;
+                #[inline]
+                fn bitor(self, rhs: $flag_enum) -> Self::Output {
+                    rhs | self
+                }
+            }
+
+            impl BitOr<$flag> for $extended_flag {
+                type Output = $extended_flag;
+                fn bitor(mut self, rhs: $flag) -> Self::Output {
+                    self.flags.insert(rhs);
+                    self
+                }
+            }
+
+            impl BitOr<$extended_flag> for $flag {
+                type Output = $extended_flag;
+                #[inline]
+                fn bitor(self, rhs: $extended_flag) -> Self::Output {
+                    rhs | self
+                }
+            }
+
+            impl BitOr<$flag_enum> for $extended_flag {
+                type Output = $extended_flag;
+                fn bitor(mut self, rhs: $flag_enum) -> Self::Output {
+                    rhs.apply_on_spec(&mut self);
+                    self
+                }
+            }
+
+            impl BitOr<$extended_flag> for $flag_enum {
+                type Output = $extended_flag;
+                #[inline]
+                fn bitor(self, rhs: $extended_flag) -> Self::Output {
+                    rhs | self
+                }
+            }
+        };
     }
+
+    add_valued_variants!({Format -> (FormatSpec, ExtendedFormatSpec)}(sizer: super::ByteSizeOptions) {
+        format,
+        DecimalPlaces(fixed: usize) => { sizer.decimal_places = fixed }
+    });
 }
 
 pub use flags::*;
