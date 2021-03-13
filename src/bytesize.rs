@@ -6,6 +6,7 @@ mod flags {
     use bitflags::bitflags;
 
     bitflags! {
+        #[derive(Default)]
         pub struct Mode: u8 {
             const Bits    = 0b01;
             const Decimal = 0b10;
@@ -13,6 +14,7 @@ mod flags {
     }
 
     bitflags! {
+        #[derive(Default)]
         pub struct Format: u16 {
             const Initials           = 1 << 0;
             const Condensed          = 1 << 1;
