@@ -3,6 +3,8 @@ use std::fmt;
 
 mod flags {
     #![allow(non_upper_case_globals)]
+    use std::ops::BitOr;
+
     use bitflags::bitflags;
 
     bitflags! {
@@ -26,6 +28,129 @@ mod flags {
             const ForceFraction      = 1 << 7;
             const ThousandsSeparator = 1 << 8;
             const NoSpace            = 1 << 9;
+        }
+    }
+
+    #[derive(Eq, Copy, Clone, Debug, PartialEq)]
+    pub enum FormatSpec {
+        DecimalPlaces(usize),
+    }
+
+    impl Format {
+        pub const DecimalPlaces: fn(usize) -> FormatSpec = FormatSpec::DecimalPlaces;
+    }
+
+    impl FormatSpec {
+        fn apply_on_spec(&self, spec: &mut ExtendedFormatSpec) {
+            match *self {
+                Self::DecimalPlaces(fixed) => {
+                    spec.decimal_places = spec.decimal_places.or(Some(fixed))
+                }
+            }
+        }
+    }
+
+    #[derive(Eq, Copy, Clone, Debug, Default, PartialEq)]
+    pub struct ExtendedFormatSpec {
+        flags: Format,
+        decimal_places: Option<usize>,
+    }
+
+    pub trait ByteSizeFormatter: Sized {
+        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions);
+    }
+
+    impl ByteSizeFormatter for Format {
+        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
+            sizer.format.insert(*self);
+        }
+    }
+
+    impl ByteSizeFormatter for FormatSpec {
+        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
+            match *self {
+                Self::DecimalPlaces(fixed) => sizer.decimal_places = fixed,
+            };
+        }
+    }
+
+    impl ByteSizeFormatter for ExtendedFormatSpec {
+        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions) {
+            self.flags.apply_flags(sizer);
+            self.decimal_places
+                .map(|fixed| sizer.decimal_places = fixed);
+        }
+    }
+
+    impl BitOr for FormatSpec {
+        type Output = ExtendedFormatSpec;
+        fn bitor(self, rhs: Self) -> Self::Output {
+            let mut ret = ExtendedFormatSpec::default();
+            self.apply_on_spec(&mut ret);
+            rhs.apply_on_spec(&mut ret);
+            ret
+        }
+    }
+
+    impl BitOr<Format> for FormatSpec {
+        type Output = ExtendedFormatSpec;
+        fn bitor(self, rhs: Format) -> Self::Output {
+            let mut ret = ExtendedFormatSpec {
+                flags: rhs,
+                ..Default::default()
+            };
+            self.apply_on_spec(&mut ret);
+            ret
+        }
+    }
+
+    impl BitOr<FormatSpec> for Format {
+        type Output = ExtendedFormatSpec;
+        #[inline]
+        fn bitor(self, rhs: FormatSpec) -> Self::Output {
+            rhs | self
+        }
+    }
+
+    impl BitOr<Format> for ExtendedFormatSpec {
+        type Output = ExtendedFormatSpec;
+        fn bitor(mut self, rhs: Format) -> Self::Output {
+            self.flags.insert(rhs);
+            self
+        }
+    }
+
+    impl BitOr<ExtendedFormatSpec> for Format {
+        type Output = ExtendedFormatSpec;
+        #[inline]
+        fn bitor(self, rhs: ExtendedFormatSpec) -> Self::Output {
+            rhs | self
+        }
+    }
+
+    impl BitOr<FormatSpec> for ExtendedFormatSpec {
+        type Output = ExtendedFormatSpec;
+        fn bitor(mut self, rhs: FormatSpec) -> Self::Output {
+            rhs.apply_on_spec(&mut self);
+            self
+        }
+    }
+
+    impl BitOr<ExtendedFormatSpec> for FormatSpec {
+        type Output = ExtendedFormatSpec;
+        #[inline]
+        fn bitor(self, rhs: ExtendedFormatSpec) -> Self::Output {
+            rhs | self
+        }
+    }
+
+    impl BitOr for ExtendedFormatSpec {
+        type Output = Self;
+        fn bitor(self, rhs: Self) -> Self::Output {
+            Self {
+                flags: self.flags | rhs.flags,
+                decimal_places: self.decimal_places.or(rhs.decimal_places),
+            }
         }
     }
 }
@@ -75,10 +200,10 @@ impl ByteSizeOptions {
     pub const BINARY: Self = Self::default(); // b, B, KiB, MiB
     pub const DECIMAL: Self = Self::default().with_mode(Mode::Decimal); // b, B, KB, MB
 
-    pub const INITIALS: Self = Self::default().with_format(Format::Initials); // b, B, KB, MB (no binary symbols)
-    pub const CONDENSED: Self = Self::default().with_format(Format::Condensed); // b, B, K, M (single chars)
-    pub const LONG: Self = Self::default().with_format(Format::Long); // Bits, Bytes, KiloBytes
-    pub const NOSPACE: Self = Self::default().with_format(Format::NoSpace); // 10b, 10B, 10MB
+    pub const INITIALS: Self = Self::default().with_format_const(Format::Initials); // b, B, KB, MB (no binary symbols)
+    pub const CONDENSED: Self = Self::default().with_format_const(Format::Condensed); // b, B, K, M (single chars)
+    pub const LONG: Self = Self::default().with_format_const(Format::Long); // Bits, Bytes, KiloBytes
+    pub const NOSPACE: Self = Self::default().with_format_const(Format::NoSpace); // 10b, 10B, 10MB
 
     #[inline]
     const fn default() -> Self {
@@ -98,7 +223,14 @@ impl ByteSizeOptions {
     }
 
     #[inline]
-    pub const fn with_format(&self, format: Format) -> Self {
+    pub fn with_format(&self, format: impl ByteSizeFormatter) -> Self {
+        let mut new = *self;
+        format.apply_flags(&mut new);
+        new
+    }
+
+    #[inline]
+    pub const fn with_format_const(&self, format: Format) -> Self {
         let mut new = *self;
         new.format = bitflags_const_or!(Format::{new.format, format});
         new
@@ -276,7 +408,7 @@ impl ByteSize {
         } else { value }
     }
 
-    pub fn repr_as(&self, unit: Unit, format: Format) -> String {
+    pub fn repr_as(&self, unit: Unit, format: impl ByteSizeFormatter) -> String {
         let value = self.prep_value(unit.mode());
         let sizer = ByteSizeOptions::BINARY.with_format(format);
         let (value, postfix) = sizer.repr(value / unit.effective_value() as f64, unit);
