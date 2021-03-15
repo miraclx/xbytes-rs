@@ -23,11 +23,12 @@ mod flags {
             const Long               = 1 << 2;
             const NoPlural           = 1 << 3;
             const ForcePlural        = 1 << 4;
-            const LowerCaps          = 1 << 5;
-            const UpperCaps          = 1 << 6;
-            const ForceFraction      = 1 << 7;
-            const ThousandsSeparator = 1 << 8;
-            const NoSpace            = 1 << 9;
+            const NoMultiCaps        = 1 << 5;
+            const LowerCaps          = 1 << 6;
+            const UpperCaps          = 1 << 7;
+            const ForceFraction      = 1 << 8;
+            const ThousandsSeparator = 1 << 9;
+            const NoSpace            = 1 << 10;
         }
     }
 
