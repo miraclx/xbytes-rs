@@ -436,7 +436,8 @@ impl Unit {
                 Some(prefix) => prefix.symbol_long(),
                 None => "",
             },
-            self.1.symbol_long(plural, multi_caps),
+            self.1
+                .symbol_long(plural, !self.is_prefixed() || multi_caps),
         )
     }
 
