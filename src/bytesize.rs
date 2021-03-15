@@ -263,6 +263,7 @@ impl std::ops::BitOr for ByteSizeOptions {
         Self {
             mode: self.mode | rhs.mode,
             format: self.format | rhs.format,
+            fixed_prefix: self.fixed_prefix.or(rhs.fixed_prefix),
             ..self
         }
     }
