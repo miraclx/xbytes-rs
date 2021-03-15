@@ -119,6 +119,22 @@ pub mod sizes {
         };
     }
 
+    #[rustfmt::skip]
+    pub mod all {
+        pub use super::{
+            BIT, BYTE,
+            KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+            GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+            PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
+        };
+
+        #[cfg(feature = "u128")]
+        pub use super::{
+            ZETTA_BIT, ZEBI_BIT, ZETTA_BYTE, ZEBI_BYTE,
+            YOTTA_BIT, YOBI_BIT, YOTTA_BYTE, YOBI_BYTE,
+        };
+    }
+
     pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
 
     #[rustfmt::skip]
