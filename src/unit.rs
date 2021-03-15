@@ -348,6 +348,10 @@ impl Unit {
         false
     }
 
+    pub const fn is_prefixed(&self) -> bool {
+        self.0.is_some()
+    }
+
     pub const fn is_bit(&self) -> bool {
         self.1.is_bit()
     }
@@ -943,6 +947,16 @@ mod tests {
         }
         for unit in sizes::BITS.iter() {
             assert!(!unit.is_byte())
+        }
+    }
+
+    #[test]
+    fn unit_is_prefixed() {
+        for unit in sizes::NOPREFIX.iter() {
+            assert!(!unit.is_prefixed())
+        }
+        for unit in sizes::PREFIXED.iter() {
+            assert!(unit.is_prefixed())
         }
     }
 
