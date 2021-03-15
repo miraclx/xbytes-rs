@@ -10,14 +10,12 @@ use std::{
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
-    // magnitude
     Bit,
     Byte,
 }
 
 use SizeVariant::*;
 
-// 5 * Sizes::MEGA_BYTE => 5 MB
 // MAX 64-bit value => 2 EiB
 // MAX 128-bit value => 35184372088832 YiB
 
@@ -1075,9 +1073,13 @@ mod tests {
                 #[cfg(feature = "case-insensitive")]
                 { Ok(MEGA_BIT) }
             },
-            // with th default case sensitivity on, small caps is
-            // only valid for 'k' in the decimal format
-            // otherwise, it's treated as a valid parse
+            // with the default case sensitivity on,
+            // the only valid small-caps prefix is `k`
+            // even then, it's only valid in the decimal system
+            // so while 'kB' is valid, 'kib' is not
+            // turn on the `feature="case-insensitive"` flag to relax this
+            // and allow all prefixes to be parsed case-insensitively
+            // 'kb', 'mB', 'gIB' alike
             "mb".parse::<Unit>()
         );
         assert_eq!(Ok(MEGA_BIT), "Mb".parse::<Unit>());
