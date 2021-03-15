@@ -1019,45 +1019,62 @@ mod tests {
     fn unit_format_and_display_symbol() {
         #[rustfmt::skip]
         let map = [
-            (BIT      , "b", "b" , "b"  , "Bit"      , "Bits"     ),
-            (BYTE     , "B", "B" , "B"  , "Byte"     , "Bytes"    ),
-            // --
-            (KILO_BIT , "K", "Kb", "Kb" , "KiloBit"  , "KiloBits" ),
-            (KILO_BYTE, "K", "KB", "KB" , "KiloByte" , "KiloBytes"),
-            (MEGA_BIT , "M", "Mb", "Mb" , "MegaBit"  , "MegaBits" ),
-            (MEGA_BYTE, "M", "MB", "MB" , "MegaByte" , "MegaBytes"),
-            (GIGA_BIT , "G", "Gb", "Gb" , "GigaBit"  , "GigaBits" ),
-            (GIGA_BYTE, "G", "GB", "GB" , "GigaByte" , "GigaBytes"),
-            (TERA_BIT , "T", "Tb", "Tb" , "TeraBit"  , "TeraBits" ),
-            (TERA_BYTE, "T", "TB", "TB" , "TeraByte" , "TeraBytes"),
-            (PETA_BIT , "P", "Pb", "Pb" , "PetaBit"  , "PetaBits" ),
-            (PETA_BYTE, "P", "PB", "PB" , "PetaByte" , "PetaBytes"),
-            (EXA_BIT  , "E", "Eb", "Eb" , "ExaBit"   , "ExaBits"  ),
-            (EXA_BYTE , "E", "EB", "EB" , "ExaByte"  , "ExaBytes" ),
-            #[cfg(feature = "u128")] (ZETTA_BIT , "Z", "Zb", "Zb" , "ZettaBit" , "ZettaBits" ),
-            #[cfg(feature = "u128")] (ZETTA_BYTE, "Z", "ZB", "ZB" , "ZettaByte", "ZettaBytes"),
-            #[cfg(feature = "u128")] (YOTTA_BIT , "Y", "Yb", "Yb" , "YottaBit" , "YottaBits" ),
-            #[cfg(feature = "u128")] (YOTTA_BYTE, "Y", "YB", "YB" , "YottaByte", "YottaBytes"),
-            // --
-            (KIBI_BIT , "K", "Kb", "Kib", "KibiBit"  , "KibiBits" ),
-            (KIBI_BYTE, "K", "KB", "KiB", "KibiByte" , "KibiBytes"),
-            (MEBI_BIT , "M", "Mb", "Mib", "MebiBit"  , "MebiBits" ),
-            (MEBI_BYTE, "M", "MB", "MiB", "MebiByte" , "MebiBytes"),
-            (GIBI_BIT , "G", "Gb", "Gib", "GibiBit"  , "GibiBits" ),
-            (GIBI_BYTE, "G", "GB", "GiB", "GibiByte" , "GibiBytes"),
-            (TEBI_BIT , "T", "Tb", "Tib", "TebiBit"  , "TebiBits" ),
-            (TEBI_BYTE, "T", "TB", "TiB", "TebiByte" , "TebiBytes"),
-            (PEBI_BIT , "P", "Pb", "Pib", "PebiBit"  , "PebiBits" ),
-            (PEBI_BYTE, "P", "PB", "PiB", "PebiByte" , "PebiBytes"),
-            (EXBI_BIT , "E", "Eb", "Eib", "ExbiBit"  , "ExbiBits" ),
-            (EXBI_BYTE, "E", "EB", "EiB", "ExbiByte" , "ExbiBytes"),
-            #[cfg(feature = "u128")] (ZEBI_BIT , "Z", "Zb", "Zib", "ZebiBit"  , "ZebiBits"  ),
-            #[cfg(feature = "u128")] (ZEBI_BYTE, "Z", "ZB", "ZiB", "ZebiByte" , "ZebiBytes" ),
-            #[cfg(feature = "u128")] (YOBI_BIT , "Y", "Yb", "Yib", "YobiBit"  , "YobiBits"  ),
-            #[cfg(feature = "u128")] (YOBI_BYTE, "Y", "YB", "YiB", "YobiByte" , "YobiBytes" ),
+        //  size,
+        //   |         condensed,
+        //   |           |  initials,
+        //   |           |    |   normal,
+        //   |           |    |     |    long,
+        //   |           |    |     |      |          long_single_caps,
+        //   |           |    |     |      |            |          long_extra,
+        //   |           |    |     |      |            |            |          long_extra_single_caps,
+        //   |           |    |     |      |            |            |            |
+            (BIT      , "b", "b" , "b"  , "Bit"      , "Bit"      , "Bits"     , "Bits"     ),
+            (BYTE     , "B", "B" , "B"  , "Byte"     , "Byte"     , "Bytes"    , "Bytes"    ),
+            (KILO_BIT , "K", "Kb", "Kb" , "KiloBit"  , "Kilobit"  , "KiloBits" , "Kilobits" ),
+            (KILO_BYTE, "K", "KB", "KB" , "KiloByte" , "Kilobyte" , "KiloBytes", "Kilobytes"),
+            (MEGA_BIT , "M", "Mb", "Mb" , "MegaBit"  , "Megabit"  , "MegaBits" , "Megabits" ),
+            (MEGA_BYTE, "M", "MB", "MB" , "MegaByte" , "Megabyte" , "MegaBytes", "Megabytes"),
+            (GIGA_BIT , "G", "Gb", "Gb" , "GigaBit"  , "Gigabit"  , "GigaBits" , "Gigabits" ),
+            (GIGA_BYTE, "G", "GB", "GB" , "GigaByte" , "Gigabyte" , "GigaBytes", "Gigabytes"),
+            (TERA_BIT , "T", "Tb", "Tb" , "TeraBit"  , "Terabit"  , "TeraBits" , "Terabits" ),
+            (TERA_BYTE, "T", "TB", "TB" , "TeraByte" , "Terabyte" , "TeraBytes", "Terabytes"),
+            (PETA_BIT , "P", "Pb", "Pb" , "PetaBit"  , "Petabit"  , "PetaBits" , "Petabits" ),
+            (PETA_BYTE, "P", "PB", "PB" , "PetaByte" , "Petabyte" , "PetaBytes", "Petabytes"),
+            (EXA_BIT  , "E", "Eb", "Eb" , "ExaBit"   , "Exabit"   , "ExaBits"  , "Exabits"  ),
+            (EXA_BYTE , "E", "EB", "EB" , "ExaByte"  , "Exabyte"  , "ExaBytes" , "Exabytes" ),
+            #[cfg(feature = "u128")] (ZETTA_BIT , "Z", "Zb", "Zb" , "ZettaBit" , "Zettabit" , "ZettaBits" , "Zettabits" ),
+            #[cfg(feature = "u128")] (ZETTA_BYTE, "Z", "ZB", "ZB" , "ZettaByte", "Zettabyte", "ZettaBytes", "Zettabytes"),
+            #[cfg(feature = "u128")] (YOTTA_BIT , "Y", "Yb", "Yb" , "YottaBit" , "Yottabit" , "YottaBits" , "Yottabits" ),
+            #[cfg(feature = "u128")] (YOTTA_BYTE, "Y", "YB", "YB" , "YottaByte", "Yottabyte", "YottaBytes", "Yottabytes"),
+            (KIBI_BIT , "K", "Kb", "Kib", "KibiBit"  , "Kibibit"  , "KibiBits" , "Kibibits" ),
+            (KIBI_BYTE, "K", "KB", "KiB", "KibiByte" , "Kibibyte" , "KibiBytes", "Kibibytes"),
+            (MEBI_BIT , "M", "Mb", "Mib", "MebiBit"  , "Mebibit"  , "MebiBits" , "Mebibits" ),
+            (MEBI_BYTE, "M", "MB", "MiB", "MebiByte" , "Mebibyte" , "MebiBytes", "Mebibytes"),
+            (GIBI_BIT , "G", "Gb", "Gib", "GibiBit"  , "Gibibit"  , "GibiBits" , "Gibibits" ),
+            (GIBI_BYTE, "G", "GB", "GiB", "GibiByte" , "Gibibyte" , "GibiBytes", "Gibibytes"),
+            (TEBI_BIT , "T", "Tb", "Tib", "TebiBit"  , "Tebibit"  , "TebiBits" , "Tebibits" ),
+            (TEBI_BYTE, "T", "TB", "TiB", "TebiByte" , "Tebibyte" , "TebiBytes", "Tebibytes"),
+            (PEBI_BIT , "P", "Pb", "Pib", "PebiBit"  , "Pebibit"  , "PebiBits" , "Pebibits" ),
+            (PEBI_BYTE, "P", "PB", "PiB", "PebiByte" , "Pebibyte" , "PebiBytes", "Pebibytes"),
+            (EXBI_BIT , "E", "Eb", "Eib", "ExbiBit"  , "Exbibit"  , "ExbiBits" , "Exbibits" ),
+            (EXBI_BYTE, "E", "EB", "EiB", "ExbiByte" , "Exbibyte" , "ExbiBytes", "Exbibytes"),
+            #[cfg(feature = "u128")] (ZEBI_BIT , "Z", "Zb", "Zib", "ZebiBit"  , "Zebibit"  , "ZebiBits"  , "Zebibits"  ),
+            #[cfg(feature = "u128")] (ZEBI_BYTE, "Z", "ZB", "ZiB", "ZebiByte" , "Zebibyte" , "ZebiBytes" , "Zebibytes" ),
+            #[cfg(feature = "u128")] (YOBI_BIT , "Y", "Yb", "Yib", "YobiBit"  , "Yobibit"  , "YobiBits"  , "Yobibits"  ),
+            #[cfg(feature = "u128")] (YOBI_BYTE, "Y", "YB", "YiB", "YobiByte" , "Yobibyte" , "YobiBytes" , "Yobibytes" ),
         ];
 
-        for (unit, condensed, initials, normal, long, long_extra) in map.iter() {
+        for (
+            unit,
+            condensed,
+            initials,
+            normal,
+            long,
+            long_single_caps,
+            long_extra,
+            long_extra_single_caps,
+        ) in map.iter()
+        {
             assert_eq!(
                 (*condensed, *condensed),
                 (unit.symbol_condensed(), format!("{:-#}", unit).as_str()),
@@ -1087,9 +1104,23 @@ mod tests {
                 long
             );
             assert_eq!(
+                long_single_caps.to_string(),
+                unit.symbol_long(false, false),
+                "expected [{:?}] to be represented in long single-caps form as [{}]",
+                unit,
+                long
+            );
+            assert_eq!(
                 (long_extra.to_string(), long_extra.to_string()),
                 (unit.symbol_long(true, true), format!("{:+}", unit)),
-                "expected [{:?}] to be represented in plural long form as [{}]",
+                "expected [{:?}] to be represented in long, plural form as [{}]",
+                unit,
+                long_extra
+            );
+            assert_eq!(
+                long_extra_single_caps.to_string(),
+                unit.symbol_long(true, false),
+                "expected [{:?}] to be represented in long, plural, single-caps form as [{}]",
                 unit,
                 long_extra
             );
