@@ -250,12 +250,20 @@ impl SizeVariant {
         }
     }
 
-    pub const fn symbol_long(&self, plural: bool) -> &'static str {
-        match (self, plural) {
-            (Bit, true) => "Bits",
-            (Bit, false) => "Bit",
-            (Byte, true) => "Bytes",
-            (Byte, false) => "Byte",
+    pub const fn symbol_long(&self, plural: bool, caps: bool) -> &'static str {
+        match self {
+            Bit => match (plural, caps) {
+                (true, true) => "Bits",
+                (false, true) => "Bit",
+                (true, false) => "bits",
+                (false, false) => "bit",
+            },
+            Byte => match (plural, caps) {
+                (true, true) => "Bytes",
+                (false, true) => "Byte",
+                (true, false) => "bytes",
+                (false, false) => "byte",
+            },
         }
     }
 
@@ -270,7 +278,7 @@ impl SizeVariant {
 impl fmt::Display for SizeVariant {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let variant = if f.alternate() {
-            self.symbol_long(f.sign_plus())
+            self.symbol_long(f.sign_plus(), true)
         } else {
             self.symbol()
         };
@@ -414,18 +422,22 @@ impl Unit {
         format!("{}{}", prefix, size_variant)
     }
 
-    pub const fn symbols_long(&self, plural: bool) -> (&'static str, &'static str) {
+    pub const fn symbols_long(
+        &self,
+        plural: bool,
+        multi_caps: bool,
+    ) -> (&'static str, &'static str) {
         (
             match self.0 {
                 Some(prefix) => prefix.symbol_long(),
                 None => "",
             },
-            self.1.symbol_long(plural),
+            self.1.symbol_long(plural, multi_caps),
         )
     }
 
-    pub fn symbol_long(&self, plural: bool) -> String {
-        let (prefix, size_variant) = self.symbols_long(plural);
+    pub fn symbol_long(&self, plural: bool, multi_caps: bool) -> String {
+        let (prefix, size_variant) = self.symbols_long(plural, multi_caps);
         format!("{}{}", prefix, size_variant)
     }
 
@@ -470,7 +482,7 @@ impl PartialOrd for Unit {
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_plus() {
-            self.symbol_long(!f.alternate())
+            self.symbol_long(!f.alternate(), true)
         } else if f.sign_minus() {
             if f.alternate() {
                 self.symbol_condensed().to_string()
@@ -568,8 +580,15 @@ mod tests {
         for (index, (unit, repr)) in map.iter().enumerate() {
             assert_eq!(
                 *repr,
-                unit.symbol_long(index % 2 != 0),
+                unit.symbol_long(index % 2 != 0, true),
                 "expected [{:?}] to be represented in long form as [{}]",
+                unit,
+                repr
+            );
+            assert_eq!(
+                repr.to_lowercase(),
+                unit.symbol_long(index % 2 != 0, false),
+                "expected [{:?}] to be represented in its long single-caps form as [{}]",
                 unit,
                 repr
             );
@@ -1047,14 +1066,14 @@ mod tests {
             );
             assert_eq!(
                 (long.to_string(), long.to_string()),
-                (unit.symbol_long(false), format!("{:+#}", unit)),
+                (unit.symbol_long(false, true), format!("{:+#}", unit)),
                 "expected [{:?}] to be represented in long form as [{}]",
                 unit,
                 long
             );
             assert_eq!(
                 (long_extra.to_string(), long_extra.to_string()),
-                (unit.symbol_long(true), format!("{:+}", unit)),
+                (unit.symbol_long(true, true), format!("{:+}", unit)),
                 "expected [{:?}] to be represented in plural long form as [{}]",
                 unit,
                 long_extra
