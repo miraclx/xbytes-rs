@@ -10,8 +10,9 @@ mod flags {
     bitflags! {
         #[derive(Default)]
         pub struct Mode: u8 {
-            const Bits    = 0b01;
-            const Decimal = 0b10;
+            const Bits     = 0b001;
+            const Decimal  = 0b010;
+            const NoPrefix = 0b100;
         }
     }
 
@@ -398,17 +399,18 @@ impl ByteSize {
     pub fn repr_with_components(&self, mode: Mode) -> (f64, Unit) {
         let mut value = self.prep_value(mode);
         let as_bits = mode.contains(Mode::Bits);
+        let no_prefix = mode.contains(Mode::NoPrefix);
         let as_decimal = mode.contains(Mode::Decimal);
         let divisor = if as_decimal { 1000f64 } else { 1024f64 };
         let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
-        let max_index = unit_stack.len() - 1;
+        let max_index = if no_prefix { 0 } else { unit_stack.len() - 1 };
         let mut prefix_index = 0;
         while prefix_index < max_index && value >= divisor {
             value /= divisor;
             prefix_index += 2;
         }
         if prefix_index > 0 && as_decimal { prefix_index -= 1 }
-        (value, unit_stack[prefix_index])
+        ByteSizeRepr::of(value, unit_stack[prefix_index])
     }
 
     pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
