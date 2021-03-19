@@ -315,6 +315,12 @@ impl From<SizeVariant> for Unit {
     }
 }
 
+impl From<UnitPrefix> for Unit {
+    fn from(prefix: UnitPrefix) -> Self {
+        Self::of(prefix, SizeVariant::Byte)
+    }
+}
+
 impl Unit {
     pub const MIN: Unit = Unit(None, Bit);
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
@@ -774,6 +780,14 @@ mod tests {
         assert_eq!(KILO_BYTE, Unit::from((Kilo, Byte))); // KB
         assert_eq!(PEBI_BIT , (Pebi, Bit).into()      ); // Pib
         assert_eq!(EXBI_BYTE, Unit::of(Exbi, Byte)    ); // EiB
+    }
+
+    #[test]
+    fn unit_from_prefix_and_default() {
+        assert_eq!(KILO_BYTE, Unit::from(Kilo));
+        assert_eq!(KIBI_BYTE, Unit::from(Kibi));
+        assert_eq!(GIGA_BYTE, Giga.into());
+        assert_eq!(GIBI_BYTE, Gibi.into());
     }
 
     #[test]
