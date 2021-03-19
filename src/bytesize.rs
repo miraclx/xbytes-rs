@@ -1,9 +1,7 @@
-use super::{sizes, Int, ParseError, Unit, UnitPrefix};
+use super::{sizes, Int, ParseError, Unit};
 use std::fmt;
-
 mod flags {
-    #![allow(non_upper_case_globals, non_snake_case)]
-    use std::ops::BitOr;
+    #![allow(non_upper_case_globals)]
 
     use bitflags::bitflags;
 
@@ -27,247 +25,54 @@ mod flags {
             const NoMultiCaps        = 1 << 5;
             const LowerCaps          = 1 << 6;
             const UpperCaps          = 1 << 7;
-            const ForceFraction      = 1 << 8;
-            const ThousandsSeparator = 1 << 9;
-            const NoSpace            = 1 << 10;
+            const NoFraction         = 1 << 8;
+            const ForceFraction      = 1 << 9;
+            const ThousandsSeparator = 1 << 10;
+            const NoSpace            = 1 << 11;
         }
     }
-
-    pub trait ByteSizeFormatter: Sized {
-        fn apply_flags(&self, sizer: &mut super::ByteSizeOptions);
-    }
-
-    macro_rules! add_valued_variants {
-        ($extended_flag:ident($base:ident: $base_ty:ty) {
-            $(
-                [$flag:ident: $flag_ty:ty => $flag_enum:ident]::{
-                    $(
-                        $variant:ident( $( $arg:ident: $arg_ty:ty ),+ ) => $action:block
-                    ),+
-                }
-            ),+
-        }) => {
-            $(
-                #[allow(unused_parens)]
-                #[derive(Eq, Copy, Clone, Debug, Default, PartialEq)]
-                pub struct $flag_enum {
-                    $( $variant: Option<($($arg_ty),+)> ),+
-                }
-            )+
-
-            #[allow(unused_parens)]
-            #[derive(Eq, Copy, Clone, Debug, Default, PartialEq)]
-            pub struct $extended_flag {
-                $( $flag: ($flag_ty, $flag_enum) ),+
-            }
-
-            $(
-                impl $flag_ty {
-                    $(
-                        pub const $variant: fn($($arg_ty),+) -> $extended_flag = |$($arg: $arg_ty),+| {
-                            $extended_flag {
-                                $flag: (Default::default(), $flag_enum { $variant: Some(($($arg),+)), ..Default::default() }),
-                                ..Default::default()
-                            }
-                        };
-                    )+
-                }
-
-                impl ByteSizeFormatter for $flag_ty {
-                    fn apply_flags(&self, $base: &mut $base_ty) {
-                        $base.$flag.insert(*self);
-                    }
-                }
-            )+
-
-            impl ByteSizeFormatter for $extended_flag {
-                #[allow(unused_parens)]
-                fn apply_flags(&self, $base: &mut $base_ty) {
-                    $(
-                        $(
-                            if let (flags, $flag_enum { $variant: Some(($($arg),+)), .. }) = self.$flag {
-                                $base.$flag.insert(flags);
-                                $action;
-                            }
-                        )+
-                    )+
-                }
-            }
-
-            impl BitOr<Self> for $extended_flag {
-                type Output = Self;
-                fn bitor(self, rhs: Self) -> Self::Output {
-                    Self {
-                        $(
-                            $flag: (self.$flag.0 | rhs.$flag.0, $flag_enum {
-                                $( $variant: self.$flag.1.$variant.or(rhs.$flag.1.$variant) ),+
-                            })
-                        ),+
-                    }
-                }
-            }
-
-            $(
-                impl BitOr<$flag_ty> for $extended_flag {
-                    type Output = $extended_flag;
-                    fn bitor(mut self, rhs: $flag_ty) -> Self::Output {
-                        self.$flag.0.insert(rhs);
-                        self
-                    }
-                }
-
-                impl BitOr<$extended_flag> for $flag_ty {
-                    type Output = $extended_flag;
-                    #[inline]
-                    fn bitor(self, rhs: $extended_flag) -> Self::Output {
-                        rhs | self
-                    }
-                }
-            )+
-        };
-    }
-
-    add_valued_variants!(ExtendedSpec(sizer: super::ByteSizeOptions) {
-        [format: Format => FormatSpec]::{
-            DecimalPlaces(fixed: usize) => { sizer.decimal_places = fixed }
-        }
-    });
 }
 
 pub use flags::*;
 
-// thousands separator
-// thsep("503") -> ['503']
-// thsep("405503") -> ['405', '503']
-// thsep("1234567") -> ['1', '234', '567']
-fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
-    let chars = digits.as_bytes();
-    let len = chars.len();
-    let part = len / 3;
-    let tip = len - (part * 3);
-    let tip_chars = &chars[..tip];
-    (
-        len,
-        (tip_chars.is_empty()).then(|| part - 1).unwrap_or(part),
-        std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
-            .take(1)
-            .chain(chars[tip..].chunks(3))
-            .map(|digits| {
-                std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
-            }),
-    )
+#[derive(Copy, Clone, Debug)]
+pub struct ReprFormat {
+    flags: Format,
+    precision: usize,
 }
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
-pub struct ByteSizeOptions {
-    pub mode: Mode,
-    pub format: Format,
-    pub fixed_prefix: Option<UnitPrefix>,
-    pub decimal_places: usize,
-}
-
-impl Default for ByteSizeOptions {
+impl Default for ReprFormat {
     fn default() -> Self {
-        Self::BINARY
+        Self::default()
     }
 }
 
-impl ByteSizeOptions {
-    const MODE: Mode = Mode::empty();
-    const FORMAT: Format = Format::empty();
+impl ReprFormat {
+    const FLAGS: Format = Format::empty();
 
-    pub const BINARY: Self = Self::default(); // b, B, KiB, MiB
-    pub const DECIMAL: Self = Self::default().with_mode(Mode::Decimal); // b, B, KB, MB
-
-    pub const INITIALS: Self = Self::default().with_format_const(Format::Initials); // b, B, KB, MB (no binary symbols)
-    pub const CONDENSED: Self = Self::default().with_format_const(Format::Condensed); // b, B, K, M (single chars)
-    pub const LONG: Self = Self::default().with_format_const(Format::Long); // Bits, Bytes, KiloBytes
-    pub const NOSPACE: Self = Self::default().with_format_const(Format::NoSpace); // 10b, 10B, 10MB
-
-    #[inline]
     const fn default() -> Self {
         Self {
-            mode: Self::MODE,
-            format: Self::FORMAT,
-            fixed_prefix: None,
-            decimal_places: 2,
+            flags: Self::FLAGS,
+            precision: 2,
         }
     }
 
-    #[inline]
-    pub const fn with_mode(&self, mode: Mode) -> Self {
+    pub const fn with_format(&self, format: Format) -> Self {
         let mut new = *self;
-        new.mode = bitflags_const_or!(Mode::{new.mode, mode});
+        new.flags = bitflags_const_or!(Format::{new.flags, format});
         new
     }
 
-    #[inline]
-    pub fn with_format(&self, format: impl ByteSizeFormatter) -> Self {
+    pub const fn with_precision(&self, precision: usize) -> Self {
         let mut new = *self;
-        format.apply_flags(&mut new);
+        new.precision = precision;
         new
     }
 
-    #[inline]
-    pub const fn with_format_const(&self, format: Format) -> Self {
+    pub const fn reset_flags(&self) -> Self {
         let mut new = *self;
-        new.format = bitflags_const_or!(Format::{new.format, format});
+        new.flags = Self::FLAGS;
         new
-    }
-
-    #[inline]
-    pub const fn reset_mode(&self) -> Self {
-        let mut new = *self;
-        new.mode = Self::MODE;
-        new
-    }
-
-    #[inline]
-    pub const fn reset_format(&self) -> Self {
-        let mut new = *self;
-        new.format = Self::FORMAT;
-        new
-    }
-
-    pub fn repr(&self, value: f64, unit: Unit) -> (String, String) {
-        let mut value_part = if self.format.contains(Format::ForceFraction) || value.fract() != 0.0
-        {
-            format!("{:.fixed$}", value, fixed = self.decimal_places)
-        } else {
-            format!("{}", value)
-        };
-
-        if self.format.contains(Format::ThousandsSeparator) {
-            let (whole, fract) = value_part
-                .find('.')
-                .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            let (len, holes, parts) = thsep(whole);
-            let mut whole = Vec::with_capacity(len + holes);
-            whole.extend(parts);
-            value_part = format!("{}{}", whole.join(","), fract);
-        }
-
-        #[rustfmt::skip]
-        let unit_part = format!(
-            "{}{}",
-            if !self.format.contains(Format::NoSpace) { " " } else { "" },
-            unit
-        );
-
-        (value_part, unit_part)
-    }
-}
-
-impl std::ops::BitOr for ByteSizeOptions {
-    type Output = Self;
-
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Self {
-            mode: self.mode | rhs.mode,
-            format: self.format | rhs.format,
-            fixed_prefix: self.fixed_prefix.or(rhs.fixed_prefix),
-            ..self
-        }
     }
 }
 
@@ -280,43 +85,10 @@ macro_rules! ok_or {
     };
 }
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Debug)]
 pub struct ByteSize(Int);
 
 impl ByteSize {
-    // let size = ByteSize(1039384);
-
-    // size.to_string(Mode::Binary) -> '1015.02 KiB'
-    // size.to_string(Mode::Binary | Mode::Bits) -> '7.93 Mib'
-    // size.to_string_as(Mode::Binary, Format::SmallCaps) -> '1015.02 kib'
-
-    // size.to_string(Mode::Decimal) -> '1.04 MB'
-    // size.to_string_as(Mode::Decimal, Format::Long) -> '1.04 MegaBytes'
-    // size.to_string_as(Mode::Decimal, Format::Long | Format::SmallCaps) -> '1.04 megabytes'
-    // size.to_string_as(Mode::Decimal, Format::Long | Format::NoPlural) -> '1.04 MegaByte'
-    // size.to_string_as(Mode::Decimal, Format::Initials | Format::NoSpace) -> '1.04M'
-
-    // size.repr(KIBI_BYTE) -> '1015.02 KiB'
-    // size.repr_as(KIBI_BYTE, Format::Initials) -> '1015.02 KB'
-    // size.repr_as(KIBI_BYTE, Format::Condensed) -> '1015.02 K'
-    // size.repr_as(KIBI_BYTE, Format::ThousandsSeparator) -> '1,039.38 KiB'
-    // size.repr_as(KIBI_BYTE, Format::ThousandsSeparator) -> '1,039.38 KiB'
-    // size.repr_as(KIBI_BYTE, Format::Long | Format::NoPlural | Format::SmallCaps) -> '1015.02 kilobyte'
-
-    // let size = "10 MiB".parse::<ByteSize>()?;
-    // size.value()     -> 83886080 (in bits)
-    // size.value() / 8 -> 10485760 (in bytes)
-    // size.repr(MEBI_BYTE) -> '10 MiB'
-    // size.repr_as(MEBI_BYTE, Format::ForceFraction) -> '10.00 MiB'
-
-    // destructure and create size
-    // let (value, unit) = "10 MiB".parse::<(Int, Unit)>().unwrap();
-    // (value, unit) -> (80, MEBI_BYTE)
-    // let size = ByteSize(value);
-
-    // let (value, unit) = "10 MiB".parse::<(ByteSize, Unit)>().unwrap();
-    // (value, unit) -> (ByteSize(80), MEBI_BYTE)
-
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn from_bits(value: Int) -> Self {
@@ -371,10 +143,6 @@ impl ByteSize {
         ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
     }
 
-    pub fn repr(&self, unit: Unit) -> String {
-        self.repr_as(unit, ByteSizeOptions::FORMAT)
-    }
-
     #[rustfmt::skip]
     fn prep_value(&self, mode: Mode) -> f64 {
         let value = self.0 as f64;
@@ -388,19 +156,12 @@ impl ByteSize {
         } else { value }
     }
 
-    pub fn repr_as(&self, unit: Unit, format: impl ByteSizeFormatter) -> String {
-        let value = self.prep_value(unit.mode());
-        let sizer = ByteSizeOptions::BINARY.with_format(format);
-        let (value, postfix) = sizer.repr(value / unit.effective_value() as f64, unit);
-        format!("{}{}", value, postfix)
-    }
-
     #[rustfmt::skip]
-    pub fn repr_with_components(&self, mode: Mode) -> (f64, Unit) {
-        let mut value = self.prep_value(mode);
+    pub fn repr(&self, mode: Mode) -> ByteSizeRepr {
         let as_bits = mode.contains(Mode::Bits);
         let no_prefix = mode.contains(Mode::NoPrefix);
         let as_decimal = mode.contains(Mode::Decimal);
+        let mut value = self.prep_value(mode);
         let divisor = if as_decimal { 1000f64 } else { 1024f64 };
         let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
         let max_index = if no_prefix { 0 } else { unit_stack.len() - 1 };
@@ -413,62 +174,93 @@ impl ByteSize {
         ByteSizeRepr::of(value, unit_stack[prefix_index])
     }
 
-    pub fn repr_with(&self, sizer: ByteSizeOptions) -> String {
-        let (value, unit) = self.repr_with_components(sizer.mode);
-        let (value, postfix) = sizer.repr(value, unit);
-        format!("{}{}", value, postfix)
+    pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
+        let unit = unit.into();
+        ByteSizeRepr::of(
+            self.prep_value(unit.mode()) / unit.effective_value() as f64 * 8.0,
+            unit,
+        )
     }
 }
 
-impl fmt::Display for ByteSize {
-    #[inline]
+#[derive(Copy, Clone, Debug)]
+pub struct ByteSizeRepr(f64, Unit, ReprFormat);
+
+impl ByteSizeRepr {
+    const fn of(value: f64, unit: Unit) -> Self {
+        Self(value, unit, ReprFormat::default())
+    }
+
+    pub const fn with(&self, format: Format) -> Self {
+        let mut new = *self;
+        new.2 = new.2.with_format(format);
+        new
+    }
+
+    pub const fn with_precision(&self, precision: usize) -> Self {
+        let mut new = *self;
+        new.2 = new.2.with_precision(precision);
+        new
+    }
+}
+
+// thousands separator
+// thsep("503") -> ['503']
+// thsep("405503") -> ['405', '503']
+// thsep("1234567") -> ['1', '234', '567']
+fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
+    let chars = digits.as_bytes();
+    let len = chars.len();
+    let part = len / 3;
+    let tip = len - (part * 3);
+    let tip_chars = &chars[..tip];
+    (
+        len,
+        (tip_chars.is_empty()).then(|| part - 1).unwrap_or(part),
+        std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
+            .take(1)
+            .chain(chars[tip..].chunks(3))
+            .map(|digits| {
+                std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
+            }),
+    )
+}
+
+impl fmt::Display for ByteSizeRepr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut sizer = ByteSizeOptions::BINARY;
-        if f.sign_plus() {
-            let mut format = Format::Long;
-            if f.alternate() {
-                format |= Format::NoPlural;
-            }
-            sizer = sizer.with_format(format)
-        } else if f.sign_minus() {
-            let format = if f.alternate() {
-                Format::Condensed
-            } else {
-                Format::Initials
-            };
-            sizer = sizer.with_format(format);
+        let contains = |format| self.2.flags.contains(format);
+        let long = f.sign_plus() || contains(Format::Long);
+        let plural = contains(Format::ForcePlural)
+            || (f.sign_plus() && f.alternate())
+            || !contains(Format::NoPlural);
+        let condensed = (f.sign_minus() && f.alternate()) || contains(Format::Condensed);
+        let initials = f.sign_minus() && !f.alternate() || contains(Format::Initials);
+        let precision = self.2.precision;
+        let value = self.0;
+
+        let mut value_part = if contains(Format::ForceFraction) || value.fract() != 0.0 {
+            format!("{:.1$}", value, precision)
+        } else {
+            format!("{}", value)
+        };
+
+        if contains(Format::ThousandsSeparator) {
+            let (whole, fract) = value_part
+                .find('.')
+                .map_or((&value_part[..], ""), |index| value_part.split_at(index));
+            let (len, holes, parts) = thsep(whole);
+            let mut whole = Vec::with_capacity(len + holes);
+            whole.extend(parts);
+            value_part = format!("{}{}", whole.join(","), fract);
         }
-        if let Some(precision) = f.precision() {
-            sizer.decimal_places = precision;
-        }
-        write!(f, "{}", self.repr_with(sizer))
-    }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn bytesizer() {
-        let size = ByteSize::from_bytes(1073741824);
-
-        #[cfg(feature = "bits")]
-        let size = size.unwrap();
-
-        let sizer = ByteSizeOptions::BINARY;
-        assert_eq!("1 GiB", size.repr_with(sizer).as_str());
-
-        let fractional_sizer = sizer.with_format(Format::ForceFraction);
-        assert_eq!("1.00 GiB", size.repr_with(fractional_sizer).as_str());
-
-        let decimal_bit_sizer = sizer.with_mode(Mode::Decimal | Mode::Bits);
-        assert_eq!("8 Gib", size.repr_with(decimal_bit_sizer).as_str());
-
-        let fractional_decimal_bit_sizer = fractional_sizer | decimal_bit_sizer;
-        assert_eq!(
-            "8.00 Gib",
-            size.repr_with(fractional_decimal_bit_sizer).as_str()
+        #[rustfmt::skip]
+        let unit_part = format!(
+            "{}{}",
+            if !contains(Format::NoSpace) { " " } else { "" },
+            self.1
         );
+
+        write!(f, "{}{}", value_part, unit_part)
     }
 }
