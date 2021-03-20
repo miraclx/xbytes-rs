@@ -183,6 +183,12 @@ impl ByteSize {
     }
 }
 
+impl fmt::Display for ByteSize {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.repr(Mode::empty()), f)
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct ByteSizeRepr(f64, Unit, ReprFormat);
 
