@@ -228,23 +228,23 @@ fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
 
 impl fmt::Display for ByteSizeRepr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let contains = |format| self.2.flags.contains(format);
-        let long = f.sign_plus() || contains(Format::Long);
-        let plural = contains(Format::ForcePlural)
+        let flags = self.2.flags;
+        let long = f.sign_plus() || flags.contains(Format::Long);
+        let plural = flags.contains(Format::ForcePlural)
             || (f.sign_plus() && f.alternate())
-            || !contains(Format::NoPlural);
-        let condensed = (f.sign_minus() && f.alternate()) || contains(Format::Condensed);
-        let initials = f.sign_minus() && !f.alternate() || contains(Format::Initials);
+            || !flags.contains(Format::NoPlural);
+        let condensed = (f.sign_minus() && f.alternate()) || flags.contains(Format::Condensed);
+        let initials = f.sign_minus() && !f.alternate() || flags.contains(Format::Initials);
         let precision = self.2.precision;
         let value = self.0;
 
-        let mut value_part = if contains(Format::ForceFraction) || value.fract() != 0.0 {
+        let mut value_part = if flags.contains(Format::ForceFraction) || value.fract() != 0.0 {
             format!("{:.1$}", value, precision)
         } else {
             format!("{}", value)
         };
 
-        if contains(Format::ThousandsSeparator) {
+        if flags.contains(Format::ThousandsSeparator) {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
@@ -257,7 +257,7 @@ impl fmt::Display for ByteSizeRepr {
         #[rustfmt::skip]
         let unit_part = format!(
             "{}{}",
-            if !contains(Format::NoSpace) { " " } else { "" },
+            if !flags.contains(Format::NoSpace) { " " } else { "" },
             self.1
         );
 
