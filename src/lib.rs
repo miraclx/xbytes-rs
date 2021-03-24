@@ -30,9 +30,9 @@ pub use {
 };
 
 #[cfg(feature = "u128")]
-type Int = u128;
+pub type Int = u128;
 #[cfg(not(feature = "u128"))]
-type Int = u64;
+pub type Int = u64;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
