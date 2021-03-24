@@ -244,6 +244,10 @@ impl fmt::Display for ByteSizeRepr {
         let precision = self.2.precision;
         let value = self.0;
 
+        if flags.contains(Format::NoFraction) {
+            value = value.trunc();
+        }
+
         let mut value_part = if flags.contains(Format::ForceFraction) || value.fract() != 0.0 {
             format!("{:.1$}", value, precision)
         } else {
