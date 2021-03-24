@@ -1,4 +1,4 @@
-use super::{sizes, Int, ParseError, Unit};
+use super::{sizes, Float, Int, ParseError, Unit};
 use std::fmt;
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -144,15 +144,15 @@ impl ByteSize {
     }
 
     #[rustfmt::skip]
-    fn prep_value(&self, mode: Mode) -> f64 {
-        let value = self.0 as f64;
+    fn prep_value(&self, mode: Mode) -> Float {
+        let value = f!(self.0);
         let wants_bits = mode.contains(Mode::Bits);
         if {
             #[cfg(feature = "bits")] {!wants_bits}
             #[cfg(not(feature = "bits"))] {wants_bits}
         } {
-            #[cfg(feature = "bits")] {value / 8.0}
-            #[cfg(not(feature = "bits"))] {value * 8.0}
+            #[cfg(feature = "bits")] {value / f!(8)}
+            #[cfg(not(feature = "bits"))] {value * f!(8)}
         } else { value }
     }
 
@@ -162,7 +162,7 @@ impl ByteSize {
         let no_prefix = mode.contains(Mode::NoPrefix);
         let as_decimal = mode.contains(Mode::Decimal);
         let mut value = self.prep_value(mode);
-        let divisor = if as_decimal { 1000f64 } else { 1024f64 };
+        let divisor = if as_decimal { f!(1000) } else { f!(1024) };
         let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
         let max_index = if no_prefix { 0 } else { unit_stack.len() - 1 };
         let mut prefix_index = 0;
@@ -177,7 +177,7 @@ impl ByteSize {
     pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
         let unit = unit.into();
         ByteSizeRepr::of(
-            self.prep_value(unit.mode()) / unit.effective_value() as f64 * 8.0,
+            self.prep_value(unit.mode()) / f!(unit.effective_value()) * f!(8),
             unit,
         )
     }
@@ -190,10 +190,10 @@ impl fmt::Display for ByteSize {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct ByteSizeRepr(f64, Unit, ReprFormat);
+pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
 impl ByteSizeRepr {
-    const fn of(value: f64, unit: Unit) -> Self {
+    const fn of(value: Float, unit: Unit) -> Self {
         Self(value, unit, ReprFormat::default())
     }
 
@@ -248,7 +248,8 @@ impl fmt::Display for ByteSizeRepr {
             value = value.trunc();
         }
 
-        let mut value_part = if flags.contains(Format::ForceFraction) || value.fract() != 0.0 {
+        let mut value_part = if flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract())
+        {
             format!("{:.1$}", value, precision)
         } else {
             format!("{}", value)

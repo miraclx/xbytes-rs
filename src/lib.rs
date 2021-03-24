@@ -9,6 +9,33 @@ macro_rules! bitflags_const_or {
     }
 }
 
+#[cfg(not(feature = "lossless"))]
+pub type Float = f64;
+#[cfg(all(feature = "lossless", not(feature = "u128")))]
+pub type Float = fraction::Fraction;
+#[cfg(all(feature = "lossless", feature = "u128"))]
+pub type Float = fraction::GenericFraction<u128>;
+
+macro_rules! f {
+    ($value:expr) => {{
+        #[cfg(feature = "lossless")]
+        let val = Float::from($value);
+        #[cfg(not(feature = "lossless"))]
+        let val = $value as Float;
+        val
+    }};
+}
+
+macro_rules! f_is_zero {
+    ($value:expr) => {{
+        #[cfg(feature = "lossless")]
+        let res = fraction::Zero::is_zero(&$value);
+        #[cfg(not(feature = "lossless"))]
+        let res = $value == 0.0;
+        res
+    }};
+}
+
 mod bytesize;
 mod prefix;
 mod unit;
