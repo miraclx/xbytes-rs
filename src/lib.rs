@@ -1,20 +1,14 @@
 use std::fmt;
 
-macro_rules! bitflags_const_or {
-    ($flag:ident::{$($variant:ident)|+}) => {
-        bitflags_const_or!($flag::{$($flag::$variant),+})
-    };
-    ($flag:ident::{$($variant:expr),+}) => {
-        $flag::from_bits_truncate($($variant.bits())|+)
-    }
-}
+#[cfg(feature = "u128")]
+pub type Int = u128;
+#[cfg(not(feature = "u128"))]
+pub type Int = u64;
 
 #[cfg(not(feature = "lossless"))]
 pub type Float = f64;
-#[cfg(all(feature = "lossless", not(feature = "u128")))]
-pub type Float = fraction::Fraction;
-#[cfg(all(feature = "lossless", feature = "u128"))]
-pub type Float = fraction::GenericFraction<u128>;
+#[cfg(feature = "lossless")]
+pub type Float = fraction::GenericFraction<Int>;
 
 macro_rules! f {
     ($value:expr) => {{
@@ -36,6 +30,15 @@ macro_rules! f_is_zero {
     }};
 }
 
+macro_rules! bitflags_const_or {
+    ($flag:ident::{$($variant:ident)|+}) => {
+        bitflags_const_or!($flag::{$($flag::$variant),+})
+    };
+    ($flag:ident::{$($variant:expr),+}) => {
+        $flag::from_bits_truncate($($variant.bits())|+)
+    }
+}
+
 mod bytesize;
 mod prefix;
 mod unit;
@@ -55,11 +58,6 @@ pub use {
     prefix::UnitPrefix,
     unit::{sizes, SizeVariant, Unit},
 };
-
-#[cfg(feature = "u128")]
-pub type Int = u128;
-#[cfg(not(feature = "u128"))]
-pub type Int = u64;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
