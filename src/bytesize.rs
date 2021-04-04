@@ -365,4 +365,30 @@ mod tests {
             RFMT.with_format(Format::ForcePlural)
         );
     }
+
+    #[test]
+    fn byte_size_repr_eq() {
+        let l = ByteSizeRepr::of(f!(104.5), TEBI_BYTE);
+        let r = ByteSizeRepr::of(f!(104.5), TEBI_BYTE);
+
+        assert_eq!(l, r); // 104.50 TiB == 104.50 TiB
+        assert_ne!(l.with_precision(4), r); // 104.5000 TiB != 104.50 TiB
+        assert_ne!(l.with(Format::Long), r); // 104.5 TebiBytes != 104.50 TiB
+        assert_eq!(l.with(Format::NoMultiCaps), r.with(Format::NoMultiCaps)); // 104.5 Tebibytes == 104.50 Tebibytes
+    }
+
+    #[test]
+    fn byte_size_repr_cmp() {
+        let l = ByteSizeRepr::of(f!(1), MEBI_BYTE);
+        let r = ByteSizeRepr::of(f!(1), MEGA_BYTE);
+        println!("{}", l < r); // 1 MiB < 1 MB
+
+        let l = ByteSizeRepr::of(f!(1), KILO_BYTE);
+        let r = ByteSizeRepr::of(f!(1), KILO_BIT);
+        println!("{}", l > r); // 1 kB > 1 kb
+
+        let l = ByteSizeRepr::of(f!(1), GIGA_BYTE);
+        let r = ByteSizeRepr::of(f!(1), PEBI_BYTE);
+        println!("{}", l < r); // 1 GB < 1 PiB
+    }
 }
