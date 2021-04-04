@@ -50,11 +50,9 @@ impl Default for ReprFormat {
 }
 
 impl ReprFormat {
-    const FLAGS: Format = Format::empty();
-
     const fn default() -> Self {
         Self {
-            flags: Self::FLAGS,
+            flags: Format::Default,
             precision: 2,
         }
     }
@@ -73,7 +71,7 @@ impl ReprFormat {
 
     pub const fn reset_flags(&self) -> Self {
         let mut new = *self;
-        new.flags = Self::FLAGS;
+        new.flags = Format::Default;
         new
     }
 }
@@ -196,7 +194,7 @@ impl ByteSize {
 
 impl fmt::Display for ByteSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.repr(Mode::empty()), f)
+        fmt::Display::fmt(&self.repr(Mode::Default), f)
     }
 }
 

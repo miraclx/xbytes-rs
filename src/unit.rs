@@ -240,7 +240,7 @@ impl SizeVariant {
         if let Bit = self {
             return Mode::Bits;
         }
-        Mode::empty()
+        Mode::Default
     }
 
     pub const fn symbol(&self) -> &'static str {
@@ -410,7 +410,7 @@ impl Unit {
 
     pub const fn mode(&self) -> Mode {
         match (self.is_decimal(), self.is_bit()) {
-            (false, false) => Mode::empty(),
+            (false, false) => Mode::Default,
             (true, false) => Mode::Decimal,
             (false, true) => Mode::Bits,
             (true, true) => bitflags_const_or!(Mode::{Decimal | Bits}),
