@@ -8,15 +8,17 @@ mod flags {
     bitflags! {
         #[derive(Default)]
         pub struct Mode: u8 {
-            const Bits     = 0b001;
-            const Decimal  = 0b010;
-            const NoPrefix = 0b100;
+            const Default  = 0 << 0;
+            const Bits     = 1 << 0;
+            const Decimal  = 1 << 1;
+            const NoPrefix = 1 << 2;
         }
     }
 
     bitflags! {
         #[derive(Default)]
         pub struct Format: u16 {
+            const Default            = 0 << 0;
             const Initials           = 1 << 0;
             const Condensed          = 1 << 1;
             const Long               = 1 << 2;
