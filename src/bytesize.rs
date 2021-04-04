@@ -37,7 +37,7 @@ mod flags {
 
 pub use flags::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ReprFormat {
     flags: Format,
     precision: usize,
@@ -87,7 +87,7 @@ macro_rules! ok_or {
     };
 }
 
-#[derive(Debug)]
+#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSize(Int);
 
 impl ByteSize {
@@ -200,7 +200,7 @@ impl fmt::Display for ByteSize {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
 impl ByteSizeRepr {
