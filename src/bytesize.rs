@@ -41,6 +41,7 @@ pub use flags::*;
 pub struct ReprFormat {
     flags: Format,
     precision: usize,
+    thousands_separator: &'static str,
 }
 
 impl Default for ReprFormat {
@@ -54,6 +55,7 @@ impl ReprFormat {
         Self {
             flags: Format::Default,
             precision: 2,
+            thousands_separator: ",",
         }
     }
 
@@ -66,6 +68,12 @@ impl ReprFormat {
     pub const fn with_precision(&self, precision: usize) -> Self {
         let mut new = *self;
         new.precision = precision;
+        new
+    }
+
+    pub const fn with_separator(&self, sep: &'static str) -> Self {
+        let mut new = *self;
+        new.thousands_separator = sep;
         new
     }
 
@@ -265,7 +273,8 @@ impl fmt::Display for ByteSizeRepr {
         let condensed = (f.sign_minus() && f.alternate()) || flags.contains(Format::Condensed);
         let initials = f.sign_minus() && !f.alternate() || flags.contains(Format::Initials);
         let precision = self.2.precision;
-        let value = self.0;
+        let thousands_separator = self.2.thousands_separator;
+        let mut value = self.0;
 
         if flags.contains(Format::NoFraction) {
             value = value.trunc();
@@ -285,7 +294,7 @@ impl fmt::Display for ByteSizeRepr {
             let (len, holes, parts) = thsep(whole);
             let mut whole = Vec::with_capacity(len + holes);
             whole.extend(parts);
-            value_part = format!("{}{}", whole.join(","), fract);
+            value_part = format!("{}{}", whole.join(thousands_separator), fract);
         }
 
         #[rustfmt::skip]
@@ -345,7 +354,8 @@ mod tests {
         assert_eq!(
             ReprFormat {
                 flags: Format::Default,
-                precision: 2
+                precision: 2,
+                thousands_separator: ","
             },
             ReprFormat::default()
         )
