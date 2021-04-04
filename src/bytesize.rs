@@ -300,4 +300,19 @@ mod tests {
 
         assert_eq!("1 MiB", format!("{}", size));
     }
+
+    #[test]
+    fn bytesize_from_cmp() {
+        let left = exec! {
+            bits { ByteSize::from_bits(8388608) },
+            nobits { ByteSize::from_bytes(1048576) }
+        };
+
+        let right = exec! {
+            bits { ByteSize::from_bytes(1048576).unwrap() },
+            nobits { ByteSize::from_bits(8388608).unwrap() }
+        };
+
+        assert_eq!(left, right);
+    }
 }
