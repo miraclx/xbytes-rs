@@ -37,7 +37,7 @@ mod flags {
 
 pub use flags::*;
 
-#[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ReprFormat {
     flags: Format,
     precision: usize,
@@ -335,5 +335,20 @@ mod tests {
             },
             ReprFormat::default()
         )
+    }
+
+    #[test]
+    fn repr_format_eq() {
+        const RFMT: ReprFormat = ReprFormat::default();
+
+        assert_eq!(
+            RFMT.with_format(Format::Initials),
+            RFMT.with_format(Format::Initials)
+        );
+
+        assert_ne!(
+            RFMT.with_format(Format::Initials),
+            RFMT.with_format(Format::ForcePlural)
+        );
     }
 }
