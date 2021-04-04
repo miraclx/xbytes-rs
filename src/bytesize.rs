@@ -152,7 +152,10 @@ impl ByteSize {
             #[cfg(not(feature = "bits"))] {wants_bits}
         } {
             #[cfg(feature = "bits")] {value / f!(8)}
-            #[cfg(not(feature = "bits"))] {value * f!(8)}
+            #[cfg(not(feature = "bits"))] exec! {
+                unsafe { value * f!(8) },
+                safely { saturate!(value.checked_mul(&{ f!(8) })) }
+            }
         } else { value }
     }
 
@@ -176,10 +179,14 @@ impl ByteSize {
 
     pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
         let unit = unit.into();
-        ByteSizeRepr::of(
-            self.prep_value(unit.mode()) / f!(unit.effective_value()) * f!(8),
-            unit,
-        )
+
+        let value = self.prep_value(unit.mode()) / f!(unit.effective_value());
+        let value = exec! {
+            unsafe { value * f!(8) },
+            safely { saturate!(value.checked_mul(&{ f!(8) })) }
+        };
+
+        ByteSizeRepr::of(value, unit)
     }
 }
 

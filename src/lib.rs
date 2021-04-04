@@ -30,6 +30,38 @@ macro_rules! f_is_zero {
     }};
 }
 
+#[inline]
+#[cfg(feature = "lossless")]
+fn get_max_saturate<T: fraction::Bounded>(_value: Option<T>) -> T {
+    T::max_value()
+}
+
+#[cfg(feature = "lossless")]
+macro_rules! saturate {
+    ($value:expr) => {
+        match $value {
+            Some(value) => value,
+            None => $crate::get_max_saturate(None),
+        }
+    };
+}
+
+macro_rules! exec {
+    (@ safely $expr:block) => {
+        #[cfg(all(feature = "no-panic", feature = "lossless"))] {
+            #[allow(unused_imports)] use fraction::{CheckedDiv, CheckedMul};
+            break $expr
+        }
+    };
+    (@ unsafe $expr:block) => {
+        #[cfg(any(not(feature = "no-panic"), not(feature = "lossless")))]
+        break $expr
+    };
+    ($($term:tt { $expr:expr }),+) => {
+        loop { $( exec!(@ $term { $expr }); )+ }
+    };
+}
+
 macro_rules! bitflags_const_or {
     ($flag:ident::{$($variant:ident)|+}) => {
         bitflags_const_or!($flag::{$($flag::$variant),+})
