@@ -198,8 +198,22 @@ impl fmt::Display for ByteSize {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
+
+impl Ord for ByteSizeRepr {
+    #[inline]
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl PartialOrd for ByteSizeRepr {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        (self.1, self.0).partial_cmp(&(other.1, other.0))
+    }
+}
 
 impl ByteSizeRepr {
     const fn of(value: Float, unit: Unit) -> Self {
