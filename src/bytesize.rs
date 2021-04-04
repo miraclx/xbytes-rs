@@ -315,4 +315,25 @@ mod tests {
 
         assert_eq!(left, right);
     }
+
+    #[test]
+    fn mode_default() {
+        assert_eq!(Mode::default(), Mode::Default);
+    }
+
+    #[test]
+    fn format_default() {
+        assert_eq!(Format::default(), Format::Default);
+    }
+
+    #[test]
+    fn repr_format_default() {
+        assert_eq!(
+            ReprFormat {
+                flags: Format::Default,
+                precision: 2
+            },
+            ReprFormat::default()
+        )
+    }
 }
