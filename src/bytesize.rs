@@ -286,3 +286,20 @@ impl fmt::Display for ByteSizeRepr {
         write!(f, "{}{}", value_part, unit_part)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bytesize() {
+        let bytes = 1048576;
+
+        let size = exec! {
+            bits { ByteSize::from_bits(bytes * 8) },
+            nobits { ByteSize::from_bytes(bytes) }
+        };
+
+        assert_eq!("1 MiB", format!("{}", size));
+    }
+}
