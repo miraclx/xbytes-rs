@@ -57,6 +57,12 @@ macro_rules! exec {
         #[cfg(any(not(feature = "no-panic"), not(feature = "lossless")))]
         break $expr
     };
+    (@ bits $expr:block) => {
+        #[cfg(feature = "bits")] break $expr
+    };
+    (@ nobits $expr:block) => {
+        #[cfg(not(feature = "bits"))] break $expr
+    };
     ($($term:tt { $expr:expr }),+) => {
         loop { $( exec!(@ $term { $expr }); )+ }
     };

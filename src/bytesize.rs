@@ -147,14 +147,16 @@ impl ByteSize {
     fn prep_value(&self, mode: Mode) -> Float {
         let value = f!(self.0);
         let wants_bits = mode.contains(Mode::Bits);
-        if {
-            #[cfg(feature = "bits")] {!wants_bits}
-            #[cfg(not(feature = "bits"))] {wants_bits}
+        if exec! {
+            bits { !wants_bits },
+            nobits { wants_bits }
         } {
-            #[cfg(feature = "bits")] {value / f!(8)}
-            #[cfg(not(feature = "bits"))] exec! {
-                unsafe { value * f!(8) },
-                safely { saturate!(value.checked_mul(&{ f!(8) })) }
+            exec! {
+                bits { value / f!(8) },
+                nobits { exec! {
+                    unsafe { value * f!(8) },
+                    safely { saturate!(value.checked_mul(&{ f!(8) })) }
+                } }
             }
         } else { value }
     }
