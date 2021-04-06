@@ -60,27 +60,31 @@ impl ReprFormat {
     }
 
     pub const fn with_format(&self, format: Format) -> Self {
-        let mut new = *self;
-        new.flags = bitflags_const_or!(Format::{new.flags, format});
-        new
+        Self {
+            flags: bitflags_const_or!(Format::{self.flags, format}),
+            ..*self
+        }
     }
 
     pub const fn with_precision(&self, precision: usize) -> Self {
-        let mut new = *self;
-        new.precision = precision;
-        new
+        Self {
+            precision: precision,
+            ..*self
+        }
     }
 
     pub const fn with_separator(&self, sep: &'static str) -> Self {
-        let mut new = *self;
-        new.thousands_separator = sep;
-        new
+        Self {
+            thousands_separator: sep,
+            ..*self
+        }
     }
 
     pub const fn reset_flags(&self) -> Self {
-        let mut new = *self;
-        new.flags = Format::Default;
-        new
+        Self {
+            flags: Format::Default,
+            ..*self
+        }
     }
 }
 
@@ -255,9 +259,10 @@ impl ByteSizeRepr {
     }
 
     pub fn with(&self, format: impl ReprConfig) -> Self {
-        let mut new = *self;
-        new.2 = format.apply(&self.2);
-        new
+        Self {
+            2: format.apply(&self.2),
+            ..*self
+        }
     }
 }
 
