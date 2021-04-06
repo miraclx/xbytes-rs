@@ -366,9 +366,12 @@ mod tests {
 
         assert_eq!(l, r); // 104.50 TiB == 104.50 TiB
         assert_ne!(l.with(Precision(4)), r); // 104.5000 TiB != 104.50 TiB
-        assert_ne!(l.with(Format::Long), r); // 104.5 TebiBytes != 104.50 TiB
-        assert_eq!(l.with(Format::NoMultiCaps), r.with(Format::NoMultiCaps)); // 104.50 Tebibytes == 104.50 Tebibytes
-        assert_eq!(
+        assert_ne!(l.with(Format::Long), r); // 104.50 TebiBytes != 104.50 TiB
+        assert_ne!(
+            l.with(Format::Long | Format::NoMultiCaps),
+            r.with(Format::Long)
+        ); // 104.50 Tebibytes != 104.50 TebiBytes
+        assert_ne!(
             l.with(Format::Initials | Format::NoFraction),
             r.with(Format::Condensed | Format::NoSpace)
         ); // 104 TB != 104.50T
