@@ -40,6 +40,7 @@ pub use flags::*;
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ReprFormat {
     flags: Format,
+    n_spaces: usize,
     precision: usize,
     thousands_separator: &'static str,
 }
@@ -48,6 +49,7 @@ impl ReprFormat {
     const fn default() -> Self {
         Self {
             flags: Format::Default,
+            n_spaces: 1,
             precision: 2,
             thousands_separator: ",",
         }
@@ -209,6 +211,7 @@ impl ReprConfig for Format {
 pub enum ReprConfigVariant {
     Separator(&'static str),
     Precision(usize),
+    Spaces(usize),
 }
 
 use ReprConfigVariant::*;
@@ -217,8 +220,9 @@ impl ReprConfig for ReprConfigVariant {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         let mut new = *r_fmt;
         match *self {
-            Precision(precision) => new.precision = precision,
             Separator(sep) => new.thousands_separator = sep,
+            Precision(precision) => new.precision = precision,
+            Spaces(n_spaces) => new.n_spaces = n_spaces,
         }
         new
     }
@@ -268,6 +272,7 @@ impl fmt::Display for ByteSizeRepr {
             || !flags.contains(Format::NoPlural);
         let condensed = (f.sign_minus() && f.alternate()) || flags.contains(Format::Condensed);
         let initials = f.sign_minus() && !f.alternate() || flags.contains(Format::Initials);
+        let n_spaces = self.2.n_spaces;
         let precision = self.2.precision;
         let thousands_separator = self.2.thousands_separator;
         let mut value = self.0;
@@ -295,14 +300,15 @@ impl fmt::Display for ByteSizeRepr {
             value_part = format!("{}{}", whole, fract);
         }
 
-        #[rustfmt::skip]
-        let unit_part = format!(
-            "{}{}",
-            if !flags.contains(Format::NoSpace) { " " } else { "" },
-            self.1
-        );
+        let spaces = if !flags.contains(Format::NoSpace) {
+            " ".repeat(n_spaces)
+        } else {
+            "".to_string()
+        };
 
-        write!(f, "{}{}", value_part, unit_part)
+        let unit_part = self.1;
+
+        write!(f, "{}{}{}", value_part, spaces, unit_part)
     }
 }
 
@@ -352,6 +358,7 @@ mod tests {
         assert_eq!(
             ReprFormat {
                 flags: Format::Default,
+                n_spaces: 1,
                 precision: 2,
                 thousands_separator: ","
             },
