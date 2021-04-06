@@ -267,9 +267,9 @@ impl ByteSizeRepr {
 }
 
 // thousands separator
-// thsep("503") -> ['503']
-// thsep("405503") -> ['405', '503']
-// thsep("1234567") -> ['1', '234', '567']
+// thsep("503") -> (3, 0, ['503'])
+// thsep("405503") -> (6, 1, ['405', '503'])
+// thsep("1234567") -> (7, 2, ['1', '234', '567'])
 fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
     let chars = digits.as_bytes();
     let len = chars.len();
