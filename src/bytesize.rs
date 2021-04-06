@@ -44,46 +44,12 @@ pub struct ReprFormat {
     thousands_separator: &'static str,
 }
 
-impl Default for ReprFormat {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl ReprFormat {
     const fn default() -> Self {
         Self {
             flags: Format::Default,
             precision: 2,
             thousands_separator: ",",
-        }
-    }
-
-    pub const fn with_format(&self, format: Format) -> Self {
-        Self {
-            flags: bitflags_const_or!(Format::{self.flags, format}),
-            ..*self
-        }
-    }
-
-    pub const fn with_precision(&self, precision: usize) -> Self {
-        Self {
-            precision: precision,
-            ..*self
-        }
-    }
-
-    pub const fn with_separator(&self, sep: &'static str) -> Self {
-        Self {
-            thousands_separator: sep,
-            ..*self
-        }
-    }
-
-    pub const fn reset_flags(&self) -> Self {
-        Self {
-            flags: Format::Default,
-            ..*self
         }
     }
 }
@@ -227,13 +193,16 @@ impl PartialOrd for ByteSizeRepr {
     }
 }
 
-pub trait ReprConfig: Sized {
+pub trait ReprConfig {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
 }
 
 impl ReprConfig for Format {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        r_fmt.with_format(*self)
+        ReprFormat {
+            flags: bitflags_const_or!(Format::{r_fmt.flags, self}),
+            ..*r_fmt
+        }
     }
 }
 
@@ -246,10 +215,12 @@ use ReprConfigVariant::*;
 
 impl ReprConfig for ReprConfigVariant {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        let mut new = *r_fmt;
         match *self {
-            Separator(sep) => r_fmt.with_separator(sep),
-            Precision(precision) => r_fmt.with_precision(precision),
+            Precision(precision) => new.precision = precision,
+            Separator(sep) => new.thousands_separator = sep,
         }
+        new
     }
 }
 
@@ -258,9 +229,9 @@ impl ByteSizeRepr {
         Self(value, unit, ReprFormat::default())
     }
 
-    pub fn with(&self, format: impl ReprConfig) -> Self {
+    pub fn with(&self, conf: impl ReprConfig) -> Self {
         Self {
-            2: format.apply(&self.2),
+            2: conf.apply(&self.2),
             ..*self
         }
     }
@@ -389,21 +360,6 @@ mod tests {
     }
 
     #[test]
-    fn repr_format_eq() {
-        const RFMT: ReprFormat = ReprFormat::default();
-
-        assert_eq!(
-            RFMT.with_format(Format::Initials),
-            RFMT.with_format(Format::Initials)
-        );
-
-        assert_ne!(
-            RFMT.with_format(Format::Initials),
-            RFMT.with_format(Format::ForcePlural)
-        );
-    }
-
-    #[test]
     fn byte_size_repr_eq() {
         let l = ByteSizeRepr::of(f!(104.5), TEBI_BYTE);
         let r = ByteSizeRepr::of(f!(104.5), TEBI_BYTE);
@@ -411,7 +367,11 @@ mod tests {
         assert_eq!(l, r); // 104.50 TiB == 104.50 TiB
         assert_ne!(l.with(Precision(4)), r); // 104.5000 TiB != 104.50 TiB
         assert_ne!(l.with(Format::Long), r); // 104.5 TebiBytes != 104.50 TiB
-        assert_eq!(l.with(Format::NoMultiCaps), r.with(Format::NoMultiCaps)); // 104.5 Tebibytes == 104.50 Tebibytes
+        assert_eq!(l.with(Format::NoMultiCaps), r.with(Format::NoMultiCaps)); // 104.50 Tebibytes == 104.50 Tebibytes
+        assert_eq!(
+            l.with(Format::Initials | Format::NoFraction),
+            r.with(Format::Condensed | Format::NoSpace)
+        ); // 104 TB != 104.50T
     }
 
     #[test]
