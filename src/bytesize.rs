@@ -316,10 +316,12 @@ impl fmt::Display for ByteSizeRepr {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            let (len, holes, parts) = thsep(whole);
-            let mut whole = Vec::with_capacity(len + holes);
-            whole.extend(parts);
-            value_part = format!("{}{}", whole.join(thousands_separator), fract);
+            let (len, holes, mut parts) = thsep(whole);
+            let mut whole = String::with_capacity(len + holes);
+            whole.extend(parts.next().into_iter().chain(
+                parts.flat_map(|s| std::iter::once(thousands_separator).chain(std::iter::once(s))),
+            ));
+            value_part = format!("{}{}", whole, fract);
         }
 
         #[rustfmt::skip]
