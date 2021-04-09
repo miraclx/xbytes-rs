@@ -209,7 +209,7 @@ impl ReprConfig for Format {
 }
 
 pub enum ReprConfigVariant {
-    Separator(&'static str),
+    ThousandsSeparator(&'static str),
     Precision(usize),
     Spaces(usize),
 }
@@ -220,7 +220,7 @@ impl ReprConfig for ReprConfigVariant {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         let mut new = *r_fmt;
         match *self {
-            Separator(sep) => new.thousands_separator = sep,
+            ThousandsSeparator(sep) => new.thousands_separator = sep,
             Precision(precision) => new.precision = precision,
             Spaces(n_spaces) => new.n_spaces = n_spaces,
         }
