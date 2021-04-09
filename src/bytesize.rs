@@ -54,6 +54,10 @@ impl ReprFormat {
             thousands_separator: ",",
         }
     }
+
+    pub fn with(&self, conf: impl ReprConfig) -> Self {
+        conf.apply(self)
+    }
 }
 
 macro_rules! ok_or {
@@ -236,6 +240,12 @@ impl ReprConfig for ReprConfigVariant {
     }
 }
 
+impl ReprConfig for ReprFormat {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        r_fmt.flags.apply(self)
+    }
+}
+
 impl ByteSizeRepr {
     const fn of(value: Float, unit: Unit) -> Self {
         Self(value, unit, ReprFormat::default())
@@ -380,6 +390,15 @@ mod tests {
             l.with(Format::Initials | Format::NoFraction),
             r.with(Format::Condensed | Format::NoSpace)
         ); // 104 TB != 104.50T
+
+        let format = ReprFormat::default()
+            .with(Spaces(2))
+            .with(Precision(2))
+            .with(ThousandsSeparator("_"))
+            .with(Format::Long)
+            .with(Format::ShowThousandsSeparator);
+
+        assert_eq!(l.with(format), r.with(format));
     }
 
     #[test]
