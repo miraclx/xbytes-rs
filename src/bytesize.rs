@@ -201,6 +201,12 @@ pub trait ReprConfig {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
 }
 
+impl<T: ReprConfig> ReprConfig for &T {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        (*self).apply(r_fmt)
+    }
+}
+
 impl ReprConfig for Format {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         ReprFormat {
