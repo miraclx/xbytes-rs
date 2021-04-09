@@ -242,25 +242,15 @@ impl ByteSizeRepr {
 }
 
 // thousands separator
-// thsep("503") -> (3, 0, ['503'])
-// thsep("405503") -> (6, 1, ['405', '503'])
-// thsep("1234567") -> (7, 2, ['1', '234', '567'])
-fn thsep(digits: &str) -> (usize, usize, impl Iterator<Item = &str>) {
-    let chars = digits.as_bytes();
-    let len = chars.len();
-    let part = len / 3;
-    let tip = len - (part * 3);
-    let tip_chars = &chars[..tip];
-    (
-        len,
-        (tip_chars.is_empty()).then(|| part - 1).unwrap_or(part),
-        std::iter::from_fn(move || (!tip_chars.is_empty()).then(|| tip_chars))
-            .take(1)
-            .chain(chars[tip..].chunks(3))
-            .map(|digits| {
-                std::str::from_utf8(digits).expect("where did the non-utf8 character come from?")
-            }),
-    )
+// thsep("503") -> ['503']
+// thsep("405503") -> ['405', '503']
+// thsep("1234567") -> ['1', '234', '567']
+fn thsep(digits: &str) -> impl Iterator<Item = &str> {
+    let (chars, tip) = (digits.as_bytes(), digits.len() % 3);
+    if tip != 0 { Some(&chars[..tip]) } else { None }
+        .into_iter()
+        .chain(chars[tip..].chunks(3))
+        .map(|digits| std::str::from_utf8(digits).expect("unexpected non-utf8 char encountered"))
 }
 
 impl fmt::Display for ByteSizeRepr {
@@ -292,8 +282,8 @@ impl fmt::Display for ByteSizeRepr {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            let (len, holes, mut parts) = thsep(whole);
-            let mut whole = String::with_capacity(len + holes);
+            let mut parts = thsep(whole);
+            let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
             whole.extend(parts.next().into_iter().chain(
                 parts.flat_map(|s| std::iter::once(thousands_separator).chain(std::iter::once(s))),
             ));
