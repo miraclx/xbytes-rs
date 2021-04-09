@@ -178,9 +178,11 @@ impl fmt::Display for ByteSize {
     }
 }
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "lossless", derive(Eq))]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
+#[cfg(feature = "lossless")]
 impl Ord for ByteSizeRepr {
     #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
