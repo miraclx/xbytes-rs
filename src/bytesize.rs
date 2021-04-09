@@ -60,6 +60,51 @@ impl ReprFormat {
     }
 }
 
+pub trait ReprConfig {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
+}
+
+impl<T: ReprConfig> ReprConfig for &T {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        (*self).apply(r_fmt)
+    }
+}
+
+impl ReprConfig for Format {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        ReprFormat {
+            flags: bitflags_const_or!(Format::{r_fmt.flags, self}),
+            ..*r_fmt
+        }
+    }
+}
+
+pub enum ReprConfigVariant {
+    ThousandsSeparator(&'static str),
+    Precision(usize),
+    Spaces(usize),
+}
+
+use ReprConfigVariant::*;
+
+impl ReprConfig for ReprConfigVariant {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        let mut new = *r_fmt;
+        match *self {
+            ThousandsSeparator(sep) => new.thousands_separator = sep,
+            Precision(precision) => new.precision = precision,
+            Spaces(n_spaces) => new.n_spaces = n_spaces,
+        }
+        new
+    }
+}
+
+impl ReprConfig for ReprFormat {
+    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
+        r_fmt.flags.apply(self)
+    }
+}
+
 macro_rules! ok_or {
     ($value:expr, $err:expr) => {
         match ($value, $err) {
@@ -198,51 +243,6 @@ impl PartialOrd for ByteSizeRepr {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         (self.1, self.0).partial_cmp(&(other.1, other.0))
-    }
-}
-
-pub trait ReprConfig {
-    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
-}
-
-impl<T: ReprConfig> ReprConfig for &T {
-    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        (*self).apply(r_fmt)
-    }
-}
-
-impl ReprConfig for Format {
-    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        ReprFormat {
-            flags: bitflags_const_or!(Format::{r_fmt.flags, self}),
-            ..*r_fmt
-        }
-    }
-}
-
-pub enum ReprConfigVariant {
-    ThousandsSeparator(&'static str),
-    Precision(usize),
-    Spaces(usize),
-}
-
-use ReprConfigVariant::*;
-
-impl ReprConfig for ReprConfigVariant {
-    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        let mut new = *r_fmt;
-        match *self {
-            ThousandsSeparator(sep) => new.thousands_separator = sep,
-            Precision(precision) => new.precision = precision,
-            Spaces(n_spaces) => new.n_spaces = n_spaces,
-        }
-        new
-    }
-}
-
-impl ReprConfig for ReprFormat {
-    fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        r_fmt.flags.apply(self)
     }
 }
 
