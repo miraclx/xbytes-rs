@@ -18,19 +18,19 @@ mod flags {
     bitflags! {
         #[derive(Default)]
         pub struct Format: u16 {
-            const Default            = 0 << 0;
-            const Initials           = 1 << 0;
-            const Condensed          = 1 << 1;
-            const Long               = 1 << 2;
-            const NoPlural           = 1 << 3;
-            const ForcePlural        = 1 << 4;
-            const NoMultiCaps        = 1 << 5;
-            const LowerCaps          = 1 << 6;
-            const UpperCaps          = 1 << 7;
-            const NoFraction         = 1 << 8;
-            const ForceFraction      = 1 << 9;
-            const ThousandsSeparator = 1 << 10;
-            const NoSpace            = 1 << 11;
+            const Default                = 0 << 0;
+            const Initials               = 1 << 0;
+            const Condensed              = 1 << 1;
+            const Long                   = 1 << 2;
+            const NoPlural               = 1 << 3;
+            const ForcePlural            = 1 << 4;
+            const NoMultiCaps            = 1 << 5;
+            const LowerCaps              = 1 << 6;
+            const UpperCaps              = 1 << 7;
+            const NoFraction             = 1 << 8;
+            const ForceFraction          = 1 << 9;
+            const ShowThousandsSeparator = 1 << 10;
+            const NoSpace                = 1 << 11;
         }
     }
 }
@@ -288,7 +288,7 @@ impl fmt::Display for ByteSizeRepr {
             format!("{}", value)
         };
 
-        if flags.contains(Format::ThousandsSeparator) {
+        if flags.contains(Format::ShowThousandsSeparator) {
             let (whole, fract) = value_part
                 .find('.')
                 .map_or((&value_part[..], ""), |index| value_part.split_at(index));
