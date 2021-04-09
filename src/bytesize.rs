@@ -388,4 +388,34 @@ mod tests {
         let r = ByteSizeRepr::of(f!(1), PEBI_BYTE);
         println!("{}", l < r); // 1 GB < 1 PiB
     }
+
+    #[test]
+    fn byte_size_repr_to_string() {
+        let repr = ByteSizeRepr::of(f!(58375.284), EXBI_BYTE);
+
+        assert_eq!("58375.28 EiB", repr.to_string());
+        assert_eq!(
+            "58,375.28 EiB",
+            repr.with(Format::ShowThousandsSeparator).to_string()
+        );
+        assert_eq!(
+            "58375.28 EiB",
+            repr.with(ThousandsSeparator("_")).to_string()
+        );
+        assert_eq!("58375.28EiB", repr.with(Format::NoSpace).to_string());
+        assert_eq!(
+            "58_375.28    EiB",
+            repr.with(Spaces(4))
+                .with(ThousandsSeparator("_"))
+                .with(Format::ShowThousandsSeparator)
+                .to_string()
+        );
+        assert_eq!(
+            "58,375.2840  EiB",
+            repr.with(Spaces(2))
+                .with(Precision(4))
+                .with(Format::ShowThousandsSeparator)
+                .to_string()
+        );
+    }
 }
