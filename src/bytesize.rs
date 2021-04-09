@@ -314,7 +314,7 @@ impl fmt::Display for ByteSizeRepr {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{sizes::*, *};
 
     #[test]
     fn bytesize() {
