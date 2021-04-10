@@ -290,9 +290,8 @@ macro_rules! impl_ops {
     };
 }
 
-impl_ops!(Add::add Sub::sub Mul::mul Div::div);
+impl_ops!(Add::add Sub::sub);
 impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
-impl_ops!(mut MulAssign::mul_assign DivAssign::div_assign);
 
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
