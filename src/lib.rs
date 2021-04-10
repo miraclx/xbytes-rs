@@ -24,7 +24,7 @@ macro_rules! i {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
         let val = if let fraction::GenericFraction::Rational(fraction::Sign::Plus, r) = $value {
-            *r.numer()
+            r.numer() / r.denom()
         } else {
             unreachable!()
         };
