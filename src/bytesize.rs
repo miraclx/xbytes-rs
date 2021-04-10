@@ -1,5 +1,8 @@
 use super::{sizes, Float, Int, ParseError, Unit};
-use std::fmt;
+use std::{
+    convert::{Infallible, TryInto},
+    fmt,
+};
 mod flags {
     #![allow(non_upper_case_globals)]
 
@@ -234,6 +237,45 @@ impl fmt::Display for ByteSize {
         fmt::Display::fmt(&self.repr(Mode::Default), f)
     }
 }
+
+impl TryInto<Int> for ByteSize {
+    type Error = Infallible;
+    fn try_into(self) -> Result<Int, Self::Error> {
+        Ok(self.0)
+    }
+}
+
+macro_rules! impl_ops {
+    ($($class:ident::$method:ident)+) => {
+        $(
+            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+                type Output = ByteSize;
+                fn $method(self, rhs: T) -> Self::Output {
+                    ByteSize(
+                        rhs.try_into()
+                            .map_or(self.0, |rhs| std::ops::$class::$method(self.0, rhs)),
+                    )
+                }
+            }
+        )+
+    };
+
+    (mut $($class:ident::$method:ident)+) => {
+        $(
+            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+                fn $method(&mut self, rhs: T) {
+                    if let Ok(rhs) = rhs.try_into() {
+                        std::ops::$class::$method(&mut self.0, rhs)
+                    }
+                }
+            }
+        )+
+    };
+}
+
+impl_ops!(Add::add Sub::sub Mul::mul Div::div);
+impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
+impl_ops!(mut MulAssign::mul_assign DivAssign::div_assign);
 
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
