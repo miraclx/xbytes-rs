@@ -326,6 +326,12 @@ impl ByteSizeRepr {
     }
 }
 
+impl From<ByteSizeRepr> for ByteSize {
+    fn from(repr: ByteSizeRepr) -> Self {
+        ByteSize::of(repr.0, repr.1)
+    }
+}
+
 // thousands separator
 // thsep("503") -> ['503']
 // thsep("405503") -> ['405', '503']
