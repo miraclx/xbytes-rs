@@ -129,6 +129,23 @@ macro_rules! ok_or {
 pub struct ByteSize(Int);
 
 impl ByteSize {
+    pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
+        let u_value = exec! {
+            bits { unit.effective_value() },
+            nobits { match unit.effective_value().checked_div(8) {
+                Some(value) => value,
+                None => 0,
+            } }
+        };
+
+        let value = exec! {
+            unsafe { value.into() * f!(u_value) },
+            safely { saturate!(value.into().checked_mul(&{ f!(u_value) })) }
+        };
+
+        ByteSize(i!(value))
+    }
+
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn from_bits(value: Int) -> Self {
@@ -493,6 +510,59 @@ mod tests {
                 .with(Precision(4))
                 .with(Format::ShowThousandsSeparator)
                 .to_string()
+        );
+    }
+
+    #[test]
+    fn bytesize_of() {
+        assert_eq!(
+            exec! {
+                bits { ByteSize(8) },
+                nobits { ByteSize(1) }
+            },
+            ByteSize::of(1, BYTE)
+        );
+
+        assert_eq!(
+            exec! {
+                bits { ByteSize(1) },
+                nobits { ByteSize(0) } // 0.125 (saturated)
+            },
+            ByteSize::of(1, BIT)
+        );
+
+        assert_eq!(
+            exec! {
+                bits { ByteSize(8388608) },
+                nobits { ByteSize(1048576) }
+            },
+            ByteSize::of(1, MEBI_BYTE)
+        );
+
+        assert_eq!(
+            exec! {
+                bits { ByteSize(1048576) },
+                nobits { ByteSize(131072) }
+            },
+            ByteSize::of(1, MEBI_BIT)
+        );
+
+        #[cfg(feature = "u128")]
+        assert_eq!(
+            exec! {
+                bits { ByteSize(9671406556917033397649408) },
+                nobits { ByteSize(1208925819614629174706176) }
+            },
+            ByteSize::of(1, YOBI_BYTE)
+        );
+
+        #[cfg(feature = "u128")]
+        assert_eq!(
+            exec! {
+                bits { ByteSize(1208925819614629174706176) },
+                nobits { ByteSize(151115727451828646838272) }
+            },
+            ByteSize::of(1, YOBI_BIT)
         );
     }
 }

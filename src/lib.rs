@@ -20,6 +20,20 @@ macro_rules! f {
     }};
 }
 
+macro_rules! i {
+    ($value:expr) => {{
+        #[cfg(feature = "lossless")]
+        let val = if let fraction::GenericFraction::Rational(fraction::Sign::Plus, r) = $value {
+            *r.numer()
+        } else {
+            unreachable!()
+        };
+        #[cfg(not(feature = "lossless"))]
+        let val = $value as Int;
+        val
+    }};
+}
+
 macro_rules! f_is_zero {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
