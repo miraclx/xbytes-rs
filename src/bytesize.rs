@@ -354,7 +354,7 @@ impl fmt::Display for ByteSizeRepr {
         let condensed = (f.sign_minus() && f.alternate()) || flags.contains(Format::Condensed);
         let initials = f.sign_minus() && !f.alternate() || flags.contains(Format::Initials);
         let n_spaces = self.2.n_spaces;
-        let precision = self.2.precision;
+        let precision = f.precision().unwrap_or(self.2.precision);
         let thousands_separator = self.2.thousands_separator;
         let mut value = self.0;
 
