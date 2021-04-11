@@ -270,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn const_sorted() {
+    fn const_prefix_sorted() {
         fn is_sorted(prefix: &mut [UnitPrefix]) -> bool {
             let a = prefix.windows(2).all(|lr| lr[0] < lr[1]);
             prefix.reverse();

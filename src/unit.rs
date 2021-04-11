@@ -696,7 +696,7 @@ mod tests {
     }
 
     #[test]
-    fn size_variant_const_sorted() {
+    fn const_sizes_sorted() {
         fn is_sorted(prefix: &mut [Unit]) -> bool {
             let a = prefix.windows(2).all(|lr| lr[0] < lr[1]);
             prefix.reverse();
