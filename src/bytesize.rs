@@ -1,8 +1,6 @@
 use super::{sizes, Float, Int, ParseError, Unit};
-use std::{
-    convert::{Infallible, TryInto},
-    fmt,
-};
+use std::{convert::TryInto, fmt};
+
 mod flags {
     #![allow(non_upper_case_globals)]
 
@@ -255,29 +253,43 @@ impl fmt::Display for ByteSize {
     }
 }
 
-impl TryInto<Int> for ByteSize {
-    type Error = Infallible;
-    fn try_into(self) -> Result<Int, Self::Error> {
-        Ok(self.0)
-    }
-}
-
 macro_rules! impl_ops {
     ($($class:ident::$method:ident)+) => {
+        $(
+            impl std::ops::$class<Self> for ByteSize {
+                type Output = ByteSize;
+                fn $method(self, rhs: Self) -> Self::Output {
+                    ByteSize(std::ops::$class::$method(self.0, rhs.0))
+                }
+            }
+        )+
+    };
+    (@ { $($class:ident::$method:ident)+ }) => {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 type Output = ByteSize;
                 fn $method(self, rhs: T) -> Self::Output {
+                    let me = f!(self.0);
                     ByteSize(
-                        rhs.try_into()
-                            .map_or(self.0, |rhs| std::ops::$class::$method(self.0, rhs)),
+                        i!(
+                            rhs.try_into()
+                                .map_or(me, |rhs| std::ops::$class::$method(me, f!(rhs)))
+                        ),
                     )
                 }
             }
         )+
     };
-
     (mut $($class:ident::$method:ident)+) => {
+        $(
+            impl std::ops::$class<Self> for ByteSize {
+                fn $method(&mut self, rhs: Self) {
+                    std::ops::$class::$method(&mut self.0, rhs.0)
+                }
+            }
+        )+
+    };
+    (@ mut { $($class:ident::$method:ident)+ }) => {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 fn $method(&mut self, rhs: T) {
@@ -291,7 +303,9 @@ macro_rules! impl_ops {
 }
 
 impl_ops!(Add::add Sub::sub);
+impl_ops!(@ { Mul::mul Div::div });
 impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
+impl_ops!(@ mut { MulAssign::mul_assign DivAssign::div_assign });
 
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
