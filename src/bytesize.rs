@@ -624,4 +624,17 @@ mod tests {
         size /= 8;
         assert_eq!(ByteSize::of(1, TERA_BIT), size);
     }
+
+    #[test]
+    fn byte_size_mode() {
+        let size = ByteSize::of(1.50, MEBI_BYTE);
+
+        assert_eq!("1.5 MiB", size.to_string());
+        assert_eq!("12 Mib", size.repr(Mode::Bits).to_string());
+        assert_eq!("1.57 MB", size.repr(Mode::Decimal).to_string());
+        assert_eq!(
+            "12.58 Mb",
+            size.repr(Mode::Decimal | Mode::Bits).to_string()
+        );
+    }
 }
