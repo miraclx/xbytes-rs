@@ -26,7 +26,7 @@ macro_rules! i {
         let val = if let fraction::GenericFraction::Rational(fraction::Sign::Plus, r) = $value {
             r.numer() / r.denom()
         } else {
-            unreachable!()
+            panic!("conversion to Int failed: expected unsigned rational float")
         };
         #[cfg(not(feature = "lossless"))]
         let val = $value as Int;
