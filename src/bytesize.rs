@@ -584,4 +584,44 @@ mod tests {
             ByteSize::of(1, YOBI_BIT)
         );
     }
+
+    #[test]
+    fn ops() {
+        let a = ByteSize::of(1, MEGA_BYTE);
+        let b = ByteSize::of(2, MEGA_BYTE);
+        let sum = a + b;
+        assert_eq!(ByteSize::of(3, MEGA_BYTE), sum);
+
+        let a = ByteSize::of(4, GIGA_BYTE);
+        let b = ByteSize::of(2, GIBI_BYTE);
+        let sub = a - b;
+        assert_eq!(ByteSize::of(1.7252902985, GIBI_BYTE), sub);
+
+        let size = ByteSize::of(5, MEGA_BYTE);
+        let size_x5 = size * 5;
+        assert_eq!(ByteSize::of(25, MEGA_BYTE), size_x5);
+
+        let size = ByteSize::of(1, GIBI_BYTE);
+        let size_by_1024 = size / 1024;
+        assert_eq!(ByteSize::of(1, MEBI_BYTE), size_by_1024);
+    }
+
+    #[test]
+    fn ops_assign() {
+        let mut size = ByteSize::of(5, GIBI_BYTE);
+        size += ByteSize::of(5.5, GIBI_BYTE);
+        assert_eq!(ByteSize::of(10.5, GIBI_BYTE), size);
+
+        let mut size = ByteSize::of(50, GIBI_BYTE);
+        size -= ByteSize::of(10, GIBI_BYTE);
+        assert_eq!(ByteSize::of(40, GIBI_BYTE), size);
+
+        let mut size = ByteSize::of(1, GIBI_BYTE);
+        size *= 512;
+        assert_eq!(ByteSize::of(512, GIBI_BYTE), size);
+
+        let mut size = ByteSize::of(1, TERA_BYTE);
+        size /= 8;
+        assert_eq!(ByteSize::of(1, TERA_BIT), size);
+    }
 }
