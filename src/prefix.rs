@@ -53,6 +53,7 @@ impl UnitPrefix {
     ];
 
     pub const MIN: UnitPrefix = Kilo;
+
     #[rustfmt::skip]
     pub const MAX: UnitPrefix = {
         #[cfg(feature = "u128")]      { Yobi }
