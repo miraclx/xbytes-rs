@@ -360,47 +360,65 @@ fn thsep(digits: &str) -> impl Iterator<Item = &str> {
 impl fmt::Display for ByteSizeRepr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let flags = self.2.flags;
-        let long = f.sign_plus() || flags.contains(Format::Long);
-        let plural = flags.contains(Format::ForcePlural)
-            || (f.sign_plus() && f.alternate())
-            || !flags.contains(Format::NoPlural);
-        let condensed = (f.sign_minus() && f.alternate()) || flags.contains(Format::Condensed);
-        let initials = f.sign_minus() && !f.alternate() || flags.contains(Format::Initials);
-        let n_spaces = self.2.n_spaces;
-        let precision = f.precision().unwrap_or(self.2.precision);
-        let thousands_separator = self.2.thousands_separator;
-        let mut value = self.0;
 
-        if flags.contains(Format::NoFraction) {
-            value = value.trunc();
-        }
-
-        let mut value_part = if flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract())
-        {
-            format!("{:.1$}", value, precision)
-        } else {
-            format!("{}", value)
+        let value_part = {
+            let mut value = self.0;
+            if flags.contains(Format::NoFraction) {
+                value = value.trunc();
+            }
+            let mut value_part =
+                if flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract()) {
+                    format!("{:.1$}", value, f.precision().unwrap_or(self.2.precision))
+                } else {
+                    format!("{}", value)
+                };
+            if flags.contains(Format::ShowThousandsSeparator) {
+                let (whole, fract) = value_part
+                    .find('.')
+                    .map_or((&value_part[..], ""), |index| value_part.split_at(index));
+                let mut parts = thsep(whole);
+                let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
+                whole.extend(parts.next().into_iter().chain(parts.flat_map(|s| {
+                    std::iter::once(self.2.thousands_separator).chain(std::iter::once(s))
+                })));
+                value_part = format!("{}{}", whole, fract);
+            }
+            value_part
         };
 
-        if flags.contains(Format::ShowThousandsSeparator) {
-            let (whole, fract) = value_part
-                .find('.')
-                .map_or((&value_part[..], ""), |index| value_part.split_at(index));
-            let mut parts = thsep(whole);
-            let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
-            whole.extend(parts.next().into_iter().chain(
-                parts.flat_map(|s| std::iter::once(thousands_separator).chain(std::iter::once(s))),
-            ));
-            value_part = format!("{}{}", whole, fract);
-        }
-
-        let spaces = if !flags.contains(Format::NoSpace) {
-            " ".repeat(n_spaces)
-        } else {
-            "".to_string()
+        let spaces = {
+            if !flags.contains(Format::NoSpace) {
+                " ".repeat(self.2.n_spaces)
+            } else {
+                "".to_string()
+            }
         };
 
-        let unit_part = self.1;
+        let unit_part = {
+            let (sign_minus, alternate, sign_plus) = (f.sign_minus(), f.alternate(), f.sign_plus());
+            let long = sign_plus || flags.contains(Format::Long);
+            let plural = !flags.contains(Format::NoPlural)
+                && ((sign_plus && alternate) || flags.contains(Format::ForcePlural));
+            let condensed = (sign_minus && alternate) || flags.contains(Format::Condensed);
+            let initials = (sign_minus && !alternate) || flags.contains(Format::Initials);
+            let multi_caps = !flags.contains(Format::NoMultiCaps);
+
+            let mut unit = if long {
+                self.1.symbol_long(plural, multi_caps)
+            } else if condensed {
+                self.1.symbol_condensed().to_string()
+            } else if initials {
+                self.1.symbol_initials()
+            } else {
+                self.1.symbol()
+            };
+            if flags.contains(Format::UpperCaps) {
+                unit = unit.to_uppercase()
+            } else if flags.contains(Format::LowerCaps) {
+                unit = unit.to_lowercase()
+            }
+            unit
+        };
 
         write!(f, "{}{}{}", value_part, spaces, unit_part)
     }
