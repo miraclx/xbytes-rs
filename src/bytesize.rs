@@ -396,15 +396,26 @@ impl fmt::Display for ByteSizeRepr {
 
         let unit_part = {
             let (sign_minus, alternate, sign_plus) = (f.sign_minus(), f.alternate(), f.sign_plus());
-            let long = sign_plus || flags.contains(Format::Long);
-            let plural = !flags.contains(Format::NoPlural)
-                && ((sign_plus && alternate) || flags.contains(Format::ForcePlural));
-            let condensed = (sign_minus && alternate) || flags.contains(Format::Condensed);
-            let initials = (sign_minus && !alternate) || flags.contains(Format::Initials);
-            let multi_caps = !flags.contains(Format::NoMultiCaps);
+
+            let (initials, condensed, long, plural) = if sign_minus || alternate || sign_plus {
+                (
+                    (sign_minus && !alternate),
+                    (sign_minus && alternate),
+                    sign_plus,
+                    (sign_plus && alternate),
+                )
+            } else {
+                (
+                    flags.contains(Format::Initials),
+                    flags.contains(Format::Condensed),
+                    flags.contains(Format::Long),
+                    !flags.contains(Format::NoPlural) && flags.contains(Format::ForcePlural),
+                )
+            };
 
             let mut unit = if long {
-                self.1.symbol_long(plural, multi_caps)
+                self.1
+                    .symbol_long(plural, !flags.contains(Format::NoMultiCaps))
             } else if condensed {
                 self.1.symbol_condensed().to_string()
             } else if initials {
