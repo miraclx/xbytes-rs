@@ -359,6 +359,7 @@ fn thsep(digits: &str) -> impl Iterator<Item = &str> {
 
 impl fmt::Display for ByteSizeRepr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (is_plural, has_fract);
         let flags = self.2.flags;
 
         let value_part = {
@@ -366,12 +367,13 @@ impl fmt::Display for ByteSizeRepr {
             if flags.contains(Format::NoFraction) {
                 value = value.trunc();
             }
-            let mut value_part =
-                if flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract()) {
-                    format!("{:.1$}", value, f.precision().unwrap_or(self.2.precision))
-                } else {
-                    format!("{}", value)
-                };
+            is_plural = !f_is_one!(value);
+            has_fract = flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract());
+            let mut value_part = if has_fract {
+                format!("{:.1$}", value, f.precision().unwrap_or(self.2.precision))
+            } else {
+                format!("{}", value)
+            };
             if flags.contains(Format::ShowThousandsSeparator) {
                 let (whole, fract) = value_part
                     .find('.')
@@ -397,25 +399,26 @@ impl fmt::Display for ByteSizeRepr {
         let unit_part = {
             let (sign_minus, alternate, sign_plus) = (f.sign_minus(), f.alternate(), f.sign_plus());
 
-            let (initials, condensed, long, plural) = if sign_minus || alternate || sign_plus {
+            let (initials, condensed, long) = if sign_minus || alternate || sign_plus {
                 (
                     (sign_minus && !alternate),
                     (sign_minus && alternate),
                     sign_plus,
-                    (sign_plus && alternate),
                 )
             } else {
                 (
                     flags.contains(Format::Initials),
                     flags.contains(Format::Condensed),
                     flags.contains(Format::Long),
-                    !flags.contains(Format::NoPlural) && flags.contains(Format::ForcePlural),
                 )
             };
 
             let mut unit = if long {
-                self.1
-                    .symbol_long(plural, !flags.contains(Format::NoMultiCaps))
+                self.1.symbol_long(
+                    (flags.contains(Format::ForcePlural) || (sign_plus && alternate))
+                        || (!flags.contains(Format::NoPlural) && (is_plural || has_fract)),
+                    !flags.contains(Format::NoMultiCaps),
+                )
             } else if condensed {
                 self.1.symbol_condensed().to_string()
             } else if initials {
@@ -699,6 +702,52 @@ mod tests {
         assert_eq!(
             "12.58 Mb",
             size.repr(Mode::Decimal | Mode::Bits).to_string()
+        );
+    }
+
+    #[test]
+    fn format_plurality() {
+        let repr_1 = ByteSize::of(1, MEGA_BYTE).repr(Mode::Decimal);
+        let repr_2 = ByteSize::of(2, MEGA_BYTE).repr(Mode::Decimal);
+
+        assert_eq!("1 MegaByte", format!("{:+}", repr_1));
+        assert_eq!("2 MegaBytes", format!("{:+}", repr_2));
+    }
+
+    #[test]
+    fn format_repr() {
+        // format specs take higher precedence over repr config
+        let repr = ByteSize::of(1.59, MEGA_BYTE).repr(Mode::Decimal);
+
+        assert_eq!("1.59 MegaBytes", format!("{:+}", repr));
+
+        assert_eq!("1 MegaByte", format!("{:+}", repr.with(Format::NoFraction)));
+
+        assert_eq!(
+            "1 MegaBytes",
+            format!("{:+#}", repr.with(Format::NoFraction))
+        );
+
+        assert_eq!(
+            "1.59 MegaByte",
+            format!("{:+}", repr.with(Format::NoPlural))
+        );
+
+        // the format spec's `plural (+#)` took precedence over repr config's `NoPlural`
+        assert_eq!(
+            "1.59 MegaBytes",
+            format!("{:+#}", repr.with(Format::NoPlural))
+        );
+
+        assert_eq!(
+            "1 MegaBytes",
+            format!("{:+}", repr.with(Format::NoFraction | Format::ForcePlural))
+        );
+
+        // the format spec's `condensed (-#)` took precedence over repr config's `Long`
+        assert_eq!(
+            "1.59M",
+            format!("{:-#}", repr.with(Format::Long | Format::NoSpace))
         );
     }
 }
