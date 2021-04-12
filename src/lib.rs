@@ -114,6 +114,9 @@ pub use {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
     EmptyInput,
+    MissingUnit,
+    InvalidValue,
+    MissingValue,
     InvalidPrefix,
     ValueOverflow,
     InvalidSizeVariant,
@@ -127,6 +130,9 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad(match self {
             ParseError::EmptyInput => "empty input",
+            ParseError::MissingUnit => "missing unit",
+            ParseError::InvalidValue => "invalid value",
+            ParseError::MissingValue => "missing value",
             ParseError::InvalidPrefix => "invalid prefix",
             ParseError::InvalidSizeVariant => "invalid size variant",
             ParseError::ValueOverflow => "value overflow",

@@ -1,5 +1,5 @@
 use super::{sizes, Float, Int, ParseError, Unit};
-use std::{convert::TryInto, fmt};
+use std::{convert::TryInto, fmt, str::FromStr};
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -432,6 +432,41 @@ impl fmt::Display for ByteSizeRepr {
         };
 
         write!(f, "{}{}{}", value_part, spaces, unit_part)
+    }
+}
+
+impl FromStr for ByteSize {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            Err(ParseError::EmptyInput)
+        } else {
+            let (mut commas, mut past_fraction) = (0, false);
+            let index = s
+                .find(|c| {
+                    past_fraction |= matches!(c, '.');
+                    if !past_fraction && matches!(c, ',') {
+                        commas += 1
+                    };
+                    c.is_alphabetic() || c.is_whitespace()
+                })
+                .ok_or(ParseError::MissingUnit)?;
+            if matches!(index, 0) {
+                Err(ParseError::MissingValue)?
+            }
+            let (value, unit) = s.split_at(index);
+            let value: f64 = if !matches!(commas, 0) {
+                value.replacen(',', "", commas).parse()
+            } else {
+                value.parse()
+            }
+            .map_err(|_| ParseError::InvalidValue)?;
+            let unit = unit
+                .trim_start_matches(|c: char| c.is_whitespace())
+                .parse()?;
+            Ok(ByteSize::of(value, unit))
+        }
     }
 }
 
