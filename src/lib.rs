@@ -106,20 +106,13 @@ mod prefix;
 mod unit;
 
 pub mod prelude {
-    pub use super::bytesize::{ByteSize, ByteSizeFormatter, ByteSizeOptions, Format, Mode};
-    pub use super::prefix::UnitPrefix;
-    pub use super::unit::{
-        sizes::{self, binary::*, decimal::*},
-        SizeVariant, Unit,
-    };
-    pub use super::ParseError;
+    pub use super::sizes::all::*;
+    pub use super::*;
 }
 
-pub use {
-    bytesize::{ByteSize, ByteSizeOptions, Format, Mode},
-    prefix::UnitPrefix,
-    unit::{sizes, SizeVariant, Unit},
-};
+pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, ReprFormat};
+pub use prefix::UnitPrefix;
+pub use unit::{sizes, SizeVariant, Unit};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParseError {
