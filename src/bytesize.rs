@@ -742,6 +742,57 @@ mod tests {
     }
 
     #[test]
+    fn format_fractions() {
+        let repr_1 = ByteSize::of(1, MEGA_BYTE).repr(Mode::Decimal);
+        let repr_1_2 = ByteSize::of(1.2, MEGA_BYTE).repr(Mode::Decimal);
+        let repr_2 = ByteSize::of(2, MEGA_BYTE).repr(Mode::Decimal);
+        let repr_2_7 = ByteSize::of(2.7234258, MEGA_BYTE).repr(Mode::Decimal);
+
+        assert_eq!("1 MB", format!("{}", repr_1));
+        assert_eq!("1.20 MB", format!("{}", repr_1_2));
+        assert_eq!("2 MB", format!("{}", repr_2));
+        assert_eq!("2.72 MB", format!("{}", repr_2_7));
+        // --
+        assert_eq!("1.0000 MB", format!("{:.4}", repr_1));
+        assert_eq!("1.2000 MB", format!("{:.4}", repr_1_2));
+        assert_eq!("2.0000 MB", format!("{:.4}", repr_2));
+        assert_eq!("2.7234 MB", format!("{:.4}", repr_2_7));
+        // --
+        let force_fraction = Format::ForceFraction;
+        assert_eq!("1.00 MB", format!("{}", repr_1.with(force_fraction)));
+        assert_eq!("1.20 MB", format!("{}", repr_1_2.with(force_fraction)));
+        assert_eq!("2.00 MB", format!("{}", repr_2.with(force_fraction)));
+        assert_eq!("2.72 MB", format!("{}", repr_2_7.with(force_fraction)));
+        // --
+        let no_fraction = Format::NoFraction;
+        assert_eq!("1 MB", format!("{}", repr_1.with(no_fraction)));
+        assert_eq!("1 MB", format!("{}", repr_1_2.with(no_fraction)));
+        assert_eq!("2 MB", format!("{}", repr_2.with(no_fraction)));
+        assert_eq!("2 MB", format!("{}", repr_2_7.with(no_fraction)));
+        // --
+        // the format spec's `precision (.4)` took precedence over repr config's `NoFraction`
+        // and forced the representation to use fractions
+        assert_eq!("1.0000 MB", format!("{:.4}", repr_1.with(no_fraction)));
+        assert_eq!("1.2000 MB", format!("{:.4}", repr_1_2.with(no_fraction)));
+        assert_eq!("2.0000 MB", format!("{:.4}", repr_2.with(no_fraction)));
+        assert_eq!("2.7234 MB", format!("{:.4}", repr_2_7.with(no_fraction)));
+        // --
+        let precision = ReprFormat::default()
+            .with(Precision(4))
+            .with(Format::ForceFraction);
+        assert_eq!("1.0000 MB", format!("{}", repr_1.with(precision)));
+        assert_eq!("1.2000 MB", format!("{}", repr_1_2.with(precision)));
+        assert_eq!("2.0000 MB", format!("{}", repr_2.with(precision)));
+        assert_eq!("2.7234 MB", format!("{}", repr_2_7.with(precision)));
+        // --
+        // the format spec's `precision (.2)` took precedence over repr config's `Precision(4)`
+        assert_eq!("1.00 MB", format!("{:.2}", repr_1.with(precision)));
+        assert_eq!("1.20 MB", format!("{:.2}", repr_1_2.with(precision)));
+        assert_eq!("2.00 MB", format!("{:.2}", repr_2.with(precision)));
+        assert_eq!("2.72 MB", format!("{:.2}", repr_2_7.with(precision)));
+    }
+
+    #[test]
     fn format_repr() {
         // format specs take higher precedence over repr config
         let repr = ByteSize::of(1.59, MEGA_BYTE).repr(Mode::Decimal);
