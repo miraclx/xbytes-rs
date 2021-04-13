@@ -393,7 +393,15 @@ impl fmt::Display for ByteSizeRepr {
                     );
                     value_part.split_at(index)
                 }
-                None => (&value_part[..], ""),
+                None => {
+                    #[cfg(feature = "lossless")]
+                    if force_fraction {
+                        value_part.extend(
+                            std::iter::once('.').chain(std::iter::repeat('0').take(precision)),
+                        );
+                    }
+                    (&value_part[..], "")
+                }
             };
 
             if flags.contains(Format::ShowThousandsSeparator) {
