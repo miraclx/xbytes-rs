@@ -107,7 +107,7 @@ mod unit;
 
 pub mod prelude {
     pub use super::sizes::all::*;
-    pub use super::*;
+    pub use super::{ByteSize, Format, Mode, ReprConfigVariant::*, ReprFormat};
 }
 
 pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, ReprFormat};
