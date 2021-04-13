@@ -364,12 +364,22 @@ impl fmt::Display for ByteSizeRepr {
         let flags = self.2.flags;
 
         let value_part = {
-            let (mut value, precision) = (self.0, f.precision().unwrap_or(self.2.precision));
-            if flags.contains(Format::NoFraction) {
+            let (mut force_fraction, no_fraction) = (
+                flags.contains(Format::ForceFraction),
+                flags.contains(Format::NoFraction),
+            );
+            let (mut value, precision) = (
+                self.0,
+                f.precision().map_or(self.2.precision, |precision| {
+                    force_fraction = true;
+                    precision
+                }),
+            );
+            if !force_fraction && no_fraction {
                 value = value.trunc();
             }
             is_plural = !f_is_one!(value);
-            has_fract = flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract());
+            has_fract = force_fraction || !(no_fraction || f_is_zero!(value.fract()));
             let mut value_part = if has_fract {
                 format!("{:.1$}", value, precision)
             } else {
@@ -378,7 +388,7 @@ impl fmt::Display for ByteSizeRepr {
             let (whole, fract) = match value_part.find('.') {
                 Some(index) => {
                     #[cfg(feature = "lossless")]
-                    let _ = value_part.extend(
+                    value_part.extend(
                         std::iter::repeat('0').take(precision - (value_part.len() - index - 1)),
                     );
                     value_part.split_at(index)
