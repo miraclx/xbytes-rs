@@ -88,6 +88,7 @@ impl ReprConfig for Format {
     }
 }
 
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum ReprConfigVariant {
     ThousandsSeparator(&'static str),
     Precision(usize),
