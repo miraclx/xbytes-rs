@@ -44,6 +44,16 @@ macro_rules! f_is_zero {
     }};
 }
 
+macro_rules! f_is_one {
+    ($value:expr) => {{
+        #[cfg(feature = "lossless")]
+        let res = fraction::One::is_one(&$value);
+        #[cfg(not(feature = "lossless"))]
+        let res = $value == 1.0;
+        res
+    }};
+}
+
 #[inline]
 #[cfg(feature = "lossless")]
 fn get_max_saturate<T: fraction::Bounded>(_value: Option<T>) -> T {
