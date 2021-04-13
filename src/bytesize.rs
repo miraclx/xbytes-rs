@@ -363,21 +363,29 @@ impl fmt::Display for ByteSizeRepr {
         let flags = self.2.flags;
 
         let value_part = {
-            let mut value = self.0;
+            let (mut value, precision) = (self.0, f.precision().unwrap_or(self.2.precision));
             if flags.contains(Format::NoFraction) {
                 value = value.trunc();
             }
             is_plural = !f_is_one!(value);
             has_fract = flags.contains(Format::ForceFraction) || !f_is_zero!(value.fract());
             let mut value_part = if has_fract {
-                format!("{:.1$}", value, f.precision().unwrap_or(self.2.precision))
+                format!("{:.1$}", value, precision)
             } else {
                 format!("{}", value)
             };
+            let (whole, fract) = match value_part.find('.') {
+                Some(index) => {
+                    #[cfg(feature = "lossless")]
+                    let _ = value_part.extend(
+                        std::iter::repeat('0').take(precision - (value_part.len() - index - 1)),
+                    );
+                    value_part.split_at(index)
+                }
+                None => (&value_part[..], ""),
+            };
+
             if flags.contains(Format::ShowThousandsSeparator) {
-                let (whole, fract) = value_part
-                    .find('.')
-                    .map_or((&value_part[..], ""), |index| value_part.split_at(index));
                 let mut parts = thsep(whole);
                 let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
                 whole.extend(parts.next().into_iter().chain(parts.flat_map(|s| {
@@ -696,7 +704,7 @@ mod tests {
     fn byte_size_mode() {
         let size = ByteSize::of(1.50, MEBI_BYTE);
 
-        assert_eq!("1.5 MiB", size.to_string());
+        assert_eq!("1.50 MiB", size.to_string());
         assert_eq!("12 Mib", size.repr(Mode::Bits).to_string());
         assert_eq!("1.57 MB", size.repr(Mode::Decimal).to_string());
         assert_eq!(
