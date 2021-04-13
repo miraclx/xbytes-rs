@@ -128,6 +128,18 @@ macro_rules! ok_or {
 pub struct ByteSize(Int);
 
 impl ByteSize {
+    /// Create a ByteSize from a value and unit
+    ///
+    /// ```
+    /// use xbytes_rs::prelude::*;
+    ///
+    /// let size = ByteSize::of(10, MEBI_BYTE);
+    /// assert_eq!(size.to_string(), "10 MiB");
+    ///
+    /// let a = ByteSize::of(1.2, GIGA_BYTE);
+    /// let b = ByteSize::of(1.3, GIGA_BYTE);
+    /// assert_eq!((a + b).repr(Mode::Decimal).to_string(), "2.50 GB");
+    /// ```
     pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
         let u_value = exec! {
             bits { unit.effective_value() },
