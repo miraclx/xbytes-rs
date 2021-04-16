@@ -21,8 +21,8 @@ mod flags {
         pub struct Format: u16 {
             const Default                = 0 << 0; // 1 B, 2.13 KB, 1024.43 MiB
 
-            const Initials               = 1 << 0; // 1 B, 2.13 K, 1024.43 M
-            const Condensed              = 1 << 1; // 1 B, 2.13 KB, 1024.43 MB
+            const Initials               = 1 << 0; // 1 B, 2.13 KB, 1024.43 MB
+            const Condensed              = 1 << 1; // 1 B, 2.13 K, 1024.43 M
             const Long                   = 1 << 2; // 1 Byte, 2.13 KiloBytes, 1024.43 MebiBytes
 
             // (requires Long)
