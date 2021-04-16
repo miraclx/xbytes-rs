@@ -468,13 +468,15 @@ impl FromStr for ByteSize {
         if s.is_empty() {
             Err(ParseError::EmptyInput)
         } else {
-            let (mut commas, mut past_fraction) = (0, false);
+            let (mut commas, mut cursor, mut frac_pos) = (0, 0, None);
             let index = s
                 .find(|c| {
-                    past_fraction |= matches!(c, '.');
-                    if !past_fraction && matches!(c, ',') {
-                        commas += 1
+                    #[rustfmt::skip]
+                    if frac_pos.is_none() {
+                        if matches!(c, '.') { frac_pos = Some(cursor) };
+                        if matches!(c, ',') { commas += 1 };
                     };
+                    cursor += 1;
                     c.is_alphabetic() || c.is_whitespace()
                 })
                 .ok_or(ParseError::MissingUnit)?;
@@ -483,6 +485,19 @@ impl FromStr for ByteSize {
             }
             let (value, unit) = s.split_at(index);
             let value: f64 = if !matches!(commas, 0) {
+                {
+                    // ensure proper comma alignment
+                    //  • valid   : '1,203.34' '10,293,344'
+                    //  • invalid : '1,23,45' '1,2,3,4.342'
+                    let value = &value[..frac_pos.unwrap_or(value.len())];
+                    let mut parts = value.split(',');
+                    #[rustfmt::skip]
+                    if !({
+                        if !matches!((value.len() - commas) % 3, 0) { parts.next() } else { None }
+                            .map_or(true, |tip| tip.len() < 3)
+                    } && parts.all(|part| part.len() == 3))
+                    { Err(ParseError::InvalidThousandsFormat)? };
+                }
                 value.replacen(',', "", commas).parse()
             } else {
                 value.parse()
@@ -822,6 +837,34 @@ mod tests {
         assert_eq!(
             "1.59M",
             format!("{:-#}", repr.with(Format::Long | Format::NoSpace))
+        );
+    }
+
+    #[test]
+    fn parse_thousands_separator() {
+        assert_eq!(
+            Ok(ByteSize::of(1_024, MEBI_BYTE)),
+            "1,024 MiB".parse::<ByteSize>()
+        );
+
+        assert_eq!(
+            Ok(ByteSize::of(268_435_456, KIBI_BYTE)),
+            "268,435,456 KiB".parse::<ByteSize>()
+        );
+
+        assert_eq!(
+            Ok(ByteSize::of(43_456.2466, KIBI_BYTE)),
+            "43,456.2466 KiB".parse::<ByteSize>()
+        );
+
+        assert_eq!(
+            Err(ParseError::InvalidThousandsFormat),
+            "434,56.53 KiB".parse::<ByteSize>()
+        );
+
+        assert_eq!(
+            Err(ParseError::InvalidThousandsFormat),
+            "2,68,43,54,56 KiB".parse::<ByteSize>()
         );
     }
 }

@@ -123,6 +123,7 @@ pub enum ParseError {
     InvalidPrefix,
     ValueOverflow,
     InvalidSizeVariant,
+    InvalidThousandsFormat,
     #[cfg(not(feature = "case-insensitive"))]
     InvalidUnitCaseFormat,
     #[cfg(not(feature = "case-insensitive"))]
@@ -138,6 +139,7 @@ impl fmt::Display for ParseError {
             ParseError::MissingValue => "missing value",
             ParseError::InvalidPrefix => "invalid prefix",
             ParseError::InvalidSizeVariant => "invalid size variant",
+            ParseError::InvalidThousandsFormat => "invalid thousands format",
             ParseError::ValueOverflow => "value overflow",
             #[cfg(not(feature = "case-insensitive"))]
             ParseError::InvalidUnitCaseFormat => {
