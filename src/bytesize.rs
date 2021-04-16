@@ -461,6 +461,16 @@ impl fmt::Display for ByteSizeRepr {
     }
 }
 
+macro_rules! parse_value {
+    ($value:expr) => {{
+        #[cfg(feature = "lossless")]
+        let val = Float::from_decimal_str(&$value);
+        #[cfg(not(feature = "lossless"))]
+        let val = <f64 as FromStr>::from_str($value);
+        val
+    }};
+}
+
 impl FromStr for ByteSize {
     type Err = ParseError;
 
@@ -484,7 +494,7 @@ impl FromStr for ByteSize {
                 Err(ParseError::MissingValue)?
             }
             let (value, unit) = s.split_at(index);
-            let value: f64 = if !matches!(commas, 0) {
+            let value = if !matches!(commas, 0) {
                 {
                     // ensure proper comma alignment
                     //  • valid   : '1,203.34' '10,293,344'
@@ -498,9 +508,9 @@ impl FromStr for ByteSize {
                     } && parts.all(|part| part.len() == 3))
                     { Err(ParseError::InvalidThousandsFormat)? };
                 }
-                value.replacen(',', "", commas).parse()
+                parse_value!(value.replacen(',', "", commas))
             } else {
-                value.parse()
+                parse_value!(value)
             }
             .map_err(|_| ParseError::InvalidValue)?;
             let unit = unit
