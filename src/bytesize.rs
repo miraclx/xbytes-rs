@@ -393,30 +393,14 @@ impl fmt::Display for ByteSizeRepr {
             is_plural = !f_is_one!(value);
             has_fract = force_fraction || !(no_fraction || f_is_zero!(value.fract()));
             let mut value_part = if has_fract {
-                format!("{:.1$}", value, precision)
+                format!("{:#.1$}", value, precision)
             } else {
                 format!("{}", value)
             };
-            let (whole, fract) = match value_part.find('.') {
-                Some(index) => {
-                    #[cfg(feature = "lossless")]
-                    value_part.extend(
-                        std::iter::repeat('0').take(precision - (value_part.len() - index - 1)),
-                    );
-                    value_part.split_at(index)
-                }
-                None => {
-                    #[cfg(feature = "lossless")]
-                    if force_fraction {
-                        value_part.extend(
-                            std::iter::once('.').chain(std::iter::repeat('0').take(precision)),
-                        );
-                    }
-                    (&value_part[..], "")
-                }
-            };
-
             if flags.contains(Format::ShowThousandsSeparator) {
+                let (whole, fract) = value_part
+                    .find('.')
+                    .map_or((&value_part[..], ""), |index| value_part.split_at(index));
                 let mut parts = thsep(whole);
                 let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
                 whole.extend(parts.next().into_iter().chain(parts.flat_map(|s| {
