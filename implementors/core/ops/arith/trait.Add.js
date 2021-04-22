@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["xbytes_rs"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html\" title=\"trait core::ops::arith::Add\">Add</a>&lt;<a class=\"struct\" href=\"xbytes_rs/prelude/struct.ByteSize.html\" title=\"struct xbytes_rs::prelude::ByteSize\">ByteSize</a>&gt; for <a class=\"struct\" href=\"xbytes_rs/prelude/struct.ByteSize.html\" title=\"struct xbytes_rs::prelude::ByteSize\">ByteSize</a>","synthetic":false,"types":["xbytes_rs::bytesize::ByteSize"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
