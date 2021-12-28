@@ -19,6 +19,7 @@ impl fmt::Display for ParseError {
 }
 
 #[derive(Eq, Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum ParseErrorKind {
     EmptyInput,
     MissingUnit,
