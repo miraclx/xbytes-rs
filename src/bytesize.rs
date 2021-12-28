@@ -82,7 +82,7 @@ impl<T: ReprConfig> ReprConfig for &T {
 impl ReprConfig for Format {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         ReprFormat {
-            flags: bitflags_const_or!(Format::{r_fmt.flags, self}),
+            flags: r_fmt.flags | *self,
             ..*r_fmt
         }
     }

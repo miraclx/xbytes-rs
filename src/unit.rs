@@ -413,7 +413,7 @@ impl Unit {
             (false, false) => Mode::Default,
             (true, false) => Mode::Decimal,
             (false, true) => Mode::Bits,
-            (true, true) => bitflags_const_or!(Mode::{Decimal | Bits}),
+            (true, true) => Mode::from_bits_truncate(Mode::Decimal.bits() | Mode::Bits.bits()),
         }
     }
 
