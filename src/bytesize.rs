@@ -552,7 +552,7 @@ impl FromStr for ByteSize {
 
 #[cfg(test)]
 mod tests {
-    use super::{sizes::*, *};
+    use super::{sizes::all::*, *};
 
     #[test]
     fn bytesize() {
