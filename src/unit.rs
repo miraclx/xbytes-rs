@@ -1,12 +1,8 @@
-use super::{
-    Int, Mode, ParseError,
-    UnitPrefix::{self, *},
-};
-use std::{
-    cmp::{Ord, Ordering},
-    fmt,
-    str::FromStr,
-};
+use std::cmp::{Ord, Ordering};
+use std::fmt;
+use std::str::FromStr;
+
+use super::{Int, Mode, ParseError, UnitPrefix};
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
@@ -23,7 +19,7 @@ use SizeVariant::*;
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
 pub mod sizes {
-    use super::*;
+    use super::{UnitPrefix::*, *};
 
     #[rustfmt::skip]
     pub mod noprefix {
@@ -540,7 +536,7 @@ impl FromStr for Unit {
 
 #[cfg(test)]
 mod tests {
-    use super::{sizes::*, *};
+    use super::{sizes::*, UnitPrefix::*, *};
 
     #[test]
     fn size_variant() {

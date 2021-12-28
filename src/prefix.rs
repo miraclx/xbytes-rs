@@ -1,5 +1,6 @@
-use super::{Int, ParseError};
 use std::{fmt, str::FromStr};
+
+use super::{Int, ParseError};
 
 #[rustfmt::skip]
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]

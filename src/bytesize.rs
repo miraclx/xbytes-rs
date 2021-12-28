@@ -1,5 +1,6 @@
-use super::{sizes, Float, Int, ParseError, Unit};
 use std::{convert::TryInto, fmt, str::FromStr};
+
+use super::{sizes, Float, Int, ParseError, Unit};
 
 mod flags {
     #![allow(non_upper_case_globals)]
