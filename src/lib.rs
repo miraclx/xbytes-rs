@@ -10,6 +10,7 @@ pub type Float = f64;
 #[cfg(feature = "lossless")]
 pub type Float = fraction::GenericFraction<Int>;
 
+/// converts a value to a potentially lossless float
 macro_rules! f {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -20,6 +21,7 @@ macro_rules! f {
     }};
 }
 
+/// converts a value to the appropriate unsigned integer
 macro_rules! i {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -34,6 +36,7 @@ macro_rules! i {
     }};
 }
 
+/// checks if the potentially lossless float value is equal to zero
 macro_rules! f_is_zero {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -44,6 +47,7 @@ macro_rules! f_is_zero {
     }};
 }
 
+/// checks if the potentially lossless float value is equal to one
 macro_rules! f_is_one {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -70,6 +74,28 @@ macro_rules! saturate {
     };
 }
 
+/// Allows the provision of alternate execution paths for the same logic.
+///
+/// ### `bits` / `nobits`
+///
+/// The `bits` and `nobits` variants are used to provide alternate execution paths depending on whether
+/// the "bits" feature flag is set.
+///
+/// ### `safely` / `unsafe`
+///
+/// Provides an alternative "safe" implementation for an otherwise potentially panickable execution.
+///
+/// Set the `no-panic` feature flag to use the "safely" variant.
+///
+/// For example, arithmetic overflows that could simply just saturate the result to the maximum value
+///
+/// This takes in two branches, that should always return the same result except in the case of where
+/// one panics and the other implements a fallback.
+///
+///  - Without "no-panic", the "unsafe" branch is executed, meaning there's a possibility of panicing
+///    naturally we only expect to panic from arithmetic over/underflows
+///  - With "no-panic", the "safely" branch is executed, meaning the contained code must not panic on
+///    the same conditions but implements a fallback, like saturating or returning `Default` if applicable.
 macro_rules! exec {
     (@ safely $expr:block) => {
         #[cfg(all(feature = "no-panic", feature = "lossless"))] {
