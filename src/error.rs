@@ -37,7 +37,7 @@ pub enum ParseErrorKind {
 
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.pad(match self {
+        let msg = match self {
             ParseErrorKind::EmptyInput => "empty input",
             ParseErrorKind::MissingUnit => "missing unit",
             ParseErrorKind::InvalidValue => "invalid value",
@@ -54,6 +54,7 @@ impl fmt::Display for ParseErrorKind {
             ParseErrorKind::InvalidPrefixCaseFormat => {
                 "invalid case: expected format like 'k', 'K', 'Ki', 'M', 'Mi'"
             }
-        })
+        };
+        f.pad(msg)
     }
 }
