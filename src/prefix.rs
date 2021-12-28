@@ -1,6 +1,6 @@
 use std::{fmt, str::FromStr};
 
-use super::{Int, ParseError};
+use super::{Int, ParseError, ParseErrorKind};
 
 #[rustfmt::skip]
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -180,7 +180,7 @@ impl FromStr for UnitPrefix {
                 }
             }
         }[..] {
-            "" => return Err(ParseError::EmptyInput),
+            "" => return Err(ParseError { kind: ParseErrorKind::EmptyInput }),
             // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
             "k" | "K"  => Kilo,   "Ki"  => Kibi,
             "M"        => Mega,   "Mi"  => Mebi,
@@ -197,7 +197,7 @@ impl FromStr for UnitPrefix {
                 matches!(s,
                     "m" | "g" | "t" | "p" | "e" | "ki" | "mi" | "gi" | "ti" | "pi" | "ei"
                 ) || (cfg!(feature = "u128") && matches!(s, "z" | "y" | "zi" | "yi"))
-            ) => return Err(ParseError::InvalidPrefixCaseFormat),
+            ) => return Err(ParseError { kind: ParseErrorKind::InvalidPrefixCaseFormat }),
             s => match s.to_lowercase().as_str() {
                 "kilo" => Kilo,   "kibi" => Kibi,
                 "mega" => Mega,   "mebi" => Mebi,
@@ -209,7 +209,7 @@ impl FromStr for UnitPrefix {
                 #[cfg(feature = "u128")] "yotta" => Yotta,
                 #[cfg(feature = "u128")] "zebi"  => Zebi ,
                 #[cfg(feature = "u128")] "yobi"  => Yobi ,
-                _ => return Err(ParseError::InvalidPrefix),
+                _ => return Err(ParseError { kind: ParseErrorKind::InvalidPrefix }),
             }
         };
         Ok(unit)
@@ -537,7 +537,12 @@ mod tests {
             #[cfg(feature = "case-insensitive")] #[cfg(feature = "u128")] ("YI", Ok(Yobi)),
         ];
 
-        assert_eq!(Err(ParseError::EmptyInput), "".parse::<UnitPrefix>());
+        assert_eq!(
+            Err(ParseError {
+                kind: ParseErrorKind::EmptyInput
+            }),
+            "".parse::<UnitPrefix>()
+        );
 
         for (value, unit) in map.iter() {
             assert_eq!(*unit, value.parse::<UnitPrefix>());

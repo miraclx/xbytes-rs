@@ -1,6 +1,6 @@
 use std::{convert::TryInto, fmt, str::FromStr};
 
-use super::{sizes, Float, Int, ParseError, Unit};
+use super::{sizes, Float, Int, ParseError, ParseErrorKind, Unit};
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -116,15 +116,6 @@ impl ReprConfig for ReprFormat {
     }
 }
 
-macro_rules! ok_or {
-    ($value:expr, $err:expr) => {
-        match ($value, $err) {
-            (Some(value), _) => Ok(value),
-            (_, err) => Err(err),
-        }
-    };
-}
-
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSize(Int);
 
@@ -172,10 +163,12 @@ impl ByteSize {
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn from_bytes(value: Int) -> Result<Self, ParseError> {
-        match ok_or!(value.checked_mul(8), ParseError::ValueOverflow) {
-            Ok(value) => Ok(Self(value)),
-            Err(err) => Err(err),
+        if let Some(value) = value.checked_mul(8) {
+            return Ok(Self(value));
         }
+        Err(ParseError {
+            kind: ParseErrorKind::ValueOverflow,
+        })
     }
 
     #[inline]
@@ -187,10 +180,12 @@ impl ByteSize {
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
-        match ok_or!(value.checked_div(8), ParseError::ValueOverflow) {
-            Ok(value) => Ok(Self(value)),
-            Err(err) => Err(err),
+        if let Some(value) = value.checked_div(8) {
+            return Ok(Self(value));
         }
+        Err(ParseError {
+            kind: ParseErrorKind::ValueOverflow,
+        })
     }
 
     #[inline]
@@ -202,7 +197,12 @@ impl ByteSize {
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn bytes(&self) -> Result<Int, ParseError> {
-        ok_or!(self.0.checked_div(8), ParseError::ValueOverflow)
+        if let Some(value) = self.0.checked_div(8) {
+            return Ok(value);
+        }
+        Err(ParseError {
+            kind: ParseErrorKind::ValueOverflow,
+        })
     }
 
     #[inline]
@@ -214,7 +214,12 @@ impl ByteSize {
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn bits(&self) -> Result<Int, ParseError> {
-        ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
+        if let Some(value) = self.0.checked_mul(8) {
+            return Ok(value);
+        }
+        Err(ParseError {
+            kind: ParseErrorKind::ValueOverflow,
+        })
     }
 
     #[rustfmt::skip]
@@ -490,48 +495,58 @@ impl FromStr for ByteSize {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            Err(ParseError::EmptyInput)
-        } else {
-            let (mut commas, mut cursor, mut frac_pos) = (0, 0, None);
-            let index = s
-                .find(|c| {
-                    #[rustfmt::skip]
+            return Err(ParseError {
+                kind: ParseErrorKind::EmptyInput,
+            });
+        }
+        let (mut commas, mut cursor, mut frac_pos) = (0, 0, None);
+        let index = s
+            .find(|c| {
+                #[rustfmt::skip]
                     if frac_pos.is_none() {
                         if matches!(c, '.') { frac_pos = Some(cursor) };
                         if matches!(c, ',') { commas += 1 };
                     };
-                    cursor += 1;
-                    c.is_alphabetic() || c.is_whitespace()
-                })
-                .ok_or(ParseError::MissingUnit)?;
-            if matches!(index, 0) {
-                Err(ParseError::MissingValue)?
-            }
-            let (value, unit) = s.split_at(index);
-            let value = if !matches!(commas, 0) {
-                {
-                    // ensure proper comma alignment
-                    //  • valid   : '1,203.34' '10,293,344'
-                    //  • invalid : '1,23,45' '1,2,3,4.342'
-                    let value = &value[..frac_pos.unwrap_or(value.len())];
-                    let mut parts = value.split(',');
-                    #[rustfmt::skip]
-                    if !({
-                        if !matches!((value.len() - commas) % 3, 0) { parts.next() } else { None }
-                            .map_or(true, |tip| tip.len() < 3)
-                    } && parts.all(|part| part.len() == 3))
-                    { Err(ParseError::InvalidThousandsFormat)? };
-                }
-                parse_value!(value.replacen(',', "", commas))
-            } else {
-                parse_value!(value)
-            }
-            .map_err(|_| ParseError::InvalidValue)?;
-            let unit = unit
-                .trim_start_matches(|c: char| c.is_whitespace())
-                .parse()?;
-            Ok(ByteSize::of(value, unit))
+                cursor += 1;
+                c.is_alphabetic() || c.is_whitespace()
+            })
+            .ok_or(ParseError {
+                kind: ParseErrorKind::MissingUnit,
+            })?;
+        if matches!(index, 0) {
+            return Err(ParseError {
+                kind: ParseErrorKind::MissingValue,
+            });
         }
+        let (value, unit) = s.split_at(index);
+        let value = if !matches!(commas, 0) {
+            {
+                // ensure proper comma alignment
+                //  • valid   : '1,203.34' '10,293,344'
+                //  • invalid : '1,23,45' '1,2,3,4.342'
+                let value = &value[..frac_pos.unwrap_or(value.len())];
+                let mut parts = value.split(',');
+                #[rustfmt::skip]
+                if !({
+                    if !matches!((value.len() - commas) % 3, 0) { parts.next() } else { None }
+                        .map_or(true, |tip| tip.len() < 3)
+                } && parts.all(|part| part.len() == 3)) {
+                    return Err(ParseError {
+                        kind: ParseErrorKind::InvalidThousandsFormat,
+                    });
+                };
+            }
+            parse_value!(&value.replacen(',', "", commas))
+        } else {
+            parse_value!(value)
+        }
+        .map_err(|_| ParseError {
+            kind: ParseErrorKind::InvalidValue,
+        })?;
+        let unit = unit
+            .trim_start_matches(|c: char| c.is_whitespace())
+            .parse()?;
+        Ok(ByteSize::of(value, unit))
     }
 }
 

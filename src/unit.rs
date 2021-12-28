@@ -2,7 +2,7 @@ use std::cmp::{Ord, Ordering};
 use std::fmt;
 use std::str::FromStr;
 
-use super::{Int, Mode, ParseError, UnitPrefix};
+use super::{Int, Mode, ParseError, ParseErrorKind, UnitPrefix};
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
@@ -287,13 +287,17 @@ impl FromStr for SizeVariant {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError::EmptyInput),
+            "" => Err(ParseError {
+                kind: ParseErrorKind::EmptyInput,
+            }),
             "b" => Ok(Bit),
             "B" => Ok(Byte),
             s => match s.to_lowercase().as_str() {
                 "bit" | "bits" => Ok(Bit),
                 "byte" | "bytes" => Ok(Byte),
-                _ => Err(ParseError::InvalidSizeVariant),
+                _ => Err(ParseError {
+                    kind: ParseErrorKind::InvalidSizeVariant,
+                }),
             },
         }
     }
@@ -508,7 +512,9 @@ impl FromStr for Unit {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            Err(ParseError::EmptyInput)
+            Err(ParseError {
+                kind: ParseErrorKind::EmptyInput,
+            })
         } else {
             let index = s.rfind(|c| matches!(c, 'b' | 'B')).unwrap_or(0);
             let (prefix, size_variant) = s.split_at(index);
@@ -521,9 +527,11 @@ impl FromStr for Unit {
                     #[cfg(not(feature = "case-insensitive"))]
                     {
                         prefix.map_err(|err| match err {
-                            ParseError::InvalidPrefixCaseFormat => {
-                                ParseError::InvalidUnitCaseFormat
-                            }
+                            ParseError {
+                                kind: ParseErrorKind::InvalidPrefixCaseFormat
+                            } => ParseError {
+                                kind: ParseErrorKind::InvalidUnitCaseFormat,
+                            },
                             err => err,
                         })
                     }
@@ -639,17 +647,28 @@ mod tests {
         assert_eq!(Ok(Byte), "bytes".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "Byte".parse::<SizeVariant>());
         assert_eq!(Ok(Byte), "Bytes".parse::<SizeVariant>());
-        assert_eq!(Err(ParseError::EmptyInput), "".parse::<SizeVariant>());
         assert_eq!(
-            Err(ParseError::InvalidSizeVariant),
+            Err(ParseError {
+                kind: ParseErrorKind::EmptyInput
+            }),
+            "".parse::<SizeVariant>()
+        );
+        assert_eq!(
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidSizeVariant
+            }),
             " b ".parse::<SizeVariant>()
         );
         assert_eq!(
-            Err(ParseError::InvalidSizeVariant),
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidSizeVariant
+            }),
             "B ".parse::<SizeVariant>()
         );
         assert_eq!(
-            Err(ParseError::InvalidSizeVariant),
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidSizeVariant
+            }),
             " Bytes".parse::<SizeVariant>()
         );
     }
@@ -1191,8 +1210,23 @@ mod tests {
         assert_eq!(Ok(MEGA_BYTE), "MegaByte".parse::<Unit>());
         assert_eq!(Ok(GIGA_BIT), "gigabit".parse::<Unit>()); // it is case insensitive in the long form
         assert_eq!(Ok(GIGA_BYTE), "gigabyte".parse::<Unit>());
-        assert_eq!(Err(ParseError::EmptyInput), "".parse::<Unit>());
-        assert_eq!(Err(ParseError::InvalidSizeVariant), "m".parse::<Unit>());
-        assert_eq!(Err(ParseError::InvalidPrefix), "m b".parse::<Unit>());
+        assert_eq!(
+            Err(ParseError {
+                kind: ParseErrorKind::EmptyInput
+            }),
+            "".parse::<Unit>()
+        );
+        assert_eq!(
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidSizeVariant
+            }),
+            "m".parse::<Unit>()
+        );
+        assert_eq!(
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidPrefix
+            }),
+            "m b".parse::<Unit>()
+        );
     }
 }
