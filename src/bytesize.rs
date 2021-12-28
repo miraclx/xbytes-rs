@@ -151,7 +151,12 @@ impl ByteSize {
 
         let value = exec! {
             unsafe { value.into() * f!(u_value) },
-            safely { saturate!(value.into().checked_mul(&{ f!(u_value) })) }
+            safely {
+                value
+                    .into()
+                    .checked_mul(&{ f!(u_value) })
+                    .unwrap_or_else(fraction::Bounded::max_value)
+            }
         };
 
         ByteSize(i!(value))
@@ -223,7 +228,11 @@ impl ByteSize {
                 bits { value / f!(8) },
                 nobits { exec! {
                     unsafe { value * f!(8) },
-                    safely { saturate!(value.checked_mul(&{ f!(8) })) }
+                    safely {
+                        value
+                            .checked_mul(&{ f!(8) })
+                            .unwrap_or_else(fraction::Bounded::max_value)
+                    }
                 } }
             }
         } else { value }
@@ -253,7 +262,11 @@ impl ByteSize {
         let value = self.prep_value(unit.mode()) / f!(unit.effective_value());
         let value = exec! {
             unsafe { value * f!(8) },
-            safely { saturate!(value.checked_mul(&{ f!(8) })) }
+            safely {
+                value
+                    .checked_mul(&{ f!(8) })
+                    .unwrap_or_else(fraction::Bounded::max_value)
+            }
         };
 
         ByteSizeRepr::of(value, unit)

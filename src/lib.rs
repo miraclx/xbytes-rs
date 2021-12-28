@@ -58,22 +58,6 @@ macro_rules! f_is_one {
     }};
 }
 
-#[inline]
-#[cfg(feature = "lossless")]
-fn get_max_saturate<T: fraction::Bounded>(_value: Option<T>) -> T {
-    T::max_value()
-}
-
-#[cfg(feature = "lossless")]
-macro_rules! saturate {
-    ($value:expr) => {
-        match $value {
-            Some(value) => value,
-            None => $crate::get_max_saturate(None),
-        }
-    };
-}
-
 /// Allows the provision of alternate execution paths for the same logic.
 ///
 /// ### `bits` / `nobits`
