@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use super::{Int, Mode, ParseError, ParseErrorKind, UnitPrefix};
 
-#[derive(Eq, Copy, Hash, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Ord, Copy, Hash, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
     Bit,
     Byte,
