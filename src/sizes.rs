@@ -5,7 +5,7 @@ pub use inner::*;
 mod inner {
     use super::{SizeVariant::*, Unit, UnitPrefix::*};
 
-    pub mod noprefix {
+    pub mod unprefixed {
         use super::*;
         pub const BIT: Unit = Unit(None, Bit);
         pub const BYTE: Unit = Unit(None, Byte);
@@ -52,7 +52,7 @@ mod inner {
     }
 
     pub mod bits {
-        pub use super::noprefix::BIT;
+        pub use super::unprefixed::BIT;
         pub use super::binary::{KIBI_BIT, MEBI_BIT, GIBI_BIT, TEBI_BIT, PEBI_BIT, EXBI_BIT};
         pub use super::decimal::{KILO_BIT, MEGA_BIT, GIGA_BIT, TERA_BIT, PETA_BIT, EXA_BIT};
 
@@ -63,7 +63,7 @@ mod inner {
     }
 
     pub mod bytes {
-        pub use super::noprefix::BYTE;
+        pub use super::unprefixed::BYTE;
         pub use super::binary::{KIBI_BYTE, MEBI_BYTE, GIBI_BYTE, TEBI_BYTE, PEBI_BYTE, EXBI_BYTE};
         pub use super::decimal::{KILO_BYTE, MEGA_BYTE, GIGA_BYTE, TERA_BYTE, PETA_BYTE, EXA_BYTE};
 
@@ -79,14 +79,14 @@ mod inner {
     }
 
     pub mod all {
-        pub use super::noprefix::*;
+        pub use super::unprefixed::*;
         pub use super::bits::*;
         pub use super::bytes::*;
     }
 
     use all::*;
 
-    pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
+    pub const UNPREFIXED: [Unit; 2] = [BIT, BYTE];
 
     pub const DECIMAL: [Unit; {
         #[cfg(feature = "u128")] { 16 }
