@@ -2,7 +2,7 @@ use std::cmp::{Ord, Ordering};
 use std::fmt;
 use std::str::FromStr;
 
-use super::{Int, Mode, ParseError, ParseErrorKind, UnitPrefix};
+use super::{sizes::all::*, Int, Mode, ParseError, ParseErrorKind, UnitPrefix};
 
 #[derive(Eq, Ord, Copy, Hash, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
@@ -119,6 +119,97 @@ impl From<UnitPrefix> for Unit {
 impl Unit {
     pub const MIN: Unit = Unit(None, Bit);
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
+
+    pub const UNPREFIXED: [Unit; 2] = [BIT, BYTE];
+
+    #[rustfmt::skip]
+    pub const DECIMAL: [Unit; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
+        KILO_BIT, KILO_BYTE, MEGA_BIT, MEGA_BYTE, GIGA_BIT, GIGA_BYTE,
+        TERA_BIT, TERA_BYTE, PETA_BIT, PETA_BYTE, EXA_BIT, EXA_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+    ];
+
+    #[rustfmt::skip]
+    pub const BINARY: [Unit; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
+        KIBI_BIT, KIBI_BYTE, MEBI_BIT, MEBI_BYTE, GIBI_BIT, GIBI_BYTE,
+        TEBI_BIT, TEBI_BYTE, PEBI_BIT, PEBI_BYTE, EXBI_BIT, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
+
+    #[rustfmt::skip]
+    pub const BITS: [Unit; {
+        #[cfg(feature = "u128")] { 17 }
+        #[cfg(not(feature = "u128"))] { 13 }
+    }] = [
+        BIT, KILO_BIT, KIBI_BIT, MEGA_BIT, MEBI_BIT, GIGA_BIT, GIBI_BIT,
+        TERA_BIT, TEBI_BIT, PETA_BIT, PEBI_BIT, EXA_BIT, EXBI_BIT,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+    ];
+
+    #[rustfmt::skip]
+    pub const BYTES: [Unit; {
+        #[cfg(feature = "u128")] { 17 }
+        #[cfg(not(feature = "u128"))] { 13 }
+    }] = [
+        BYTE, KILO_BYTE, KIBI_BYTE, MEGA_BYTE, MEBI_BYTE, GIGA_BYTE, GIBI_BYTE,
+        TERA_BYTE, TEBI_BYTE, PETA_BYTE, PEBI_BYTE, EXA_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
+
+    #[rustfmt::skip]
+    pub const PREFIXED: [Unit; {
+        #[cfg(feature = "u128")] { 32 }
+        #[cfg(not(feature = "u128"))] { 24 }
+    }] = [
+        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
+
+    #[rustfmt::skip]
+    pub const ALL: [Unit; {
+        #[cfg(feature = "u128")] { 34 }
+        #[cfg(not(feature = "u128"))] { 26 }
+    }] = [
+        BIT, BYTE,
+        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
 
     #[inline(always)]
     pub const fn prefix(&self) -> Option<UnitPrefix> {
@@ -340,7 +431,6 @@ impl FromStr for Unit {
 #[cfg(test)]
 mod tests {
     use super::{UnitPrefix::*, *};
-    use crate::sizes::{self, all::*};
 
     #[test]
     fn size_variant() {
@@ -515,13 +605,13 @@ mod tests {
             a && b
         }
 
-        assert!(is_sorted(&mut { sizes::NOPREFIX }));
-        assert!(is_sorted(&mut { sizes::DECIMAL }));
-        assert!(is_sorted(&mut { sizes::BINARY }));
-        assert!(is_sorted(&mut { sizes::BITS }));
-        assert!(is_sorted(&mut { sizes::BYTES }));
-        assert!(is_sorted(&mut { sizes::PREFIXED }));
-        assert!(is_sorted(&mut { sizes::ALL }));
+        assert!(is_sorted(&mut { Unit::UNPREFIXED }));
+        assert!(is_sorted(&mut { Unit::DECIMAL }));
+        assert!(is_sorted(&mut { Unit::BINARY }));
+        assert!(is_sorted(&mut { Unit::BITS }));
+        assert!(is_sorted(&mut { Unit::BYTES }));
+        assert!(is_sorted(&mut { Unit::PREFIXED }));
+        assert!(is_sorted(&mut { Unit::ALL }));
     }
 
     #[test]
@@ -736,10 +826,10 @@ mod tests {
     fn unit_is_decimal() {
         assert!(!BIT.is_decimal());
         assert!(!BYTE.is_decimal());
-        for unit in sizes::DECIMAL.iter() {
+        for unit in Unit::DECIMAL.iter() {
             assert!(unit.is_decimal())
         }
-        for unit in sizes::BINARY.iter() {
+        for unit in Unit::BINARY.iter() {
             assert!(!unit.is_decimal())
         }
     }
@@ -748,40 +838,40 @@ mod tests {
     fn unit_is_binary() {
         assert!(!BIT.is_binary());
         assert!(!BYTE.is_binary());
-        for unit in sizes::BINARY.iter() {
+        for unit in Unit::BINARY.iter() {
             assert!(unit.is_binary())
         }
-        for unit in sizes::DECIMAL.iter() {
+        for unit in Unit::DECIMAL.iter() {
             assert!(!unit.is_binary())
         }
     }
 
     #[test]
     fn unit_is_bit() {
-        for unit in sizes::BITS.iter() {
+        for unit in Unit::BITS.iter() {
             assert!(unit.is_bit())
         }
-        for unit in sizes::BYTES.iter() {
+        for unit in Unit::BYTES.iter() {
             assert!(!unit.is_bit())
         }
     }
 
     #[test]
     fn unit_is_byte() {
-        for unit in sizes::BYTES.iter() {
+        for unit in Unit::BYTES.iter() {
             assert!(unit.is_byte())
         }
-        for unit in sizes::BITS.iter() {
+        for unit in Unit::BITS.iter() {
             assert!(!unit.is_byte())
         }
     }
 
     #[test]
     fn unit_is_prefixed() {
-        for unit in sizes::NOPREFIX.iter() {
+        for unit in Unit::UNPREFIXED.iter() {
             assert!(!unit.is_prefixed())
         }
-        for unit in sizes::PREFIXED.iter() {
+        for unit in Unit::PREFIXED.iter() {
             assert!(unit.is_prefixed())
         }
     }

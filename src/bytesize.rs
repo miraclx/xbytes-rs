@@ -1,6 +1,6 @@
 use std::{convert::TryInto, fmt, str::FromStr};
 
-use super::{sizes, Float, Int, ParseError, ParseErrorKind, Unit};
+use super::{Float, Int, ParseError, ParseErrorKind, Unit};
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -251,7 +251,7 @@ impl ByteSize {
         let as_decimal = mode.contains(Mode::Decimal);
         let mut value = self.prep_value(mode);
         let divisor = if as_decimal { f!(1000) } else { f!(1024) };
-        let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
+        let unit_stack = if as_bits { Unit::BITS } else { Unit::BYTES };
         let max_index = if no_prefix { 0 } else { unit_stack.len() - 1 };
         let mut prefix_index = 0;
         while prefix_index < max_index && value >= divisor {
@@ -552,7 +552,8 @@ impl FromStr for ByteSize {
 
 #[cfg(test)]
 mod tests {
-    use super::{sizes::all::*, *};
+    use super::*;
+    use crate::sizes::all::*;
 
     #[test]
     fn bytesize() {
