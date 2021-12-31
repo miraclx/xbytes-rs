@@ -20,6 +20,27 @@ pub enum UnitPrefix {
 use UnitPrefix::*;
 
 impl UnitPrefix {
+    pub const MIN: UnitPrefix = Kilo;
+
+    #[rustfmt::skip]
+    pub const MAX: UnitPrefix = {
+        #[cfg(feature = "u128")]      { Yobi }
+        #[cfg(not(feature = "u128"))] { Exbi }
+    };
+
+    #[rustfmt::skip]
+    pub const ALL: [UnitPrefix; {
+        #[cfg(feature = "u128")] { 16 }
+        #[cfg(not(feature = "u128"))] { 12 }
+    }] = [
+        Kilo, Kibi, Mega, Mebi, Giga, Gibi,
+        Tera, Tebi, Peta, Pebi, Exa, Exbi,
+        #[cfg(feature = "u128")] Zetta,
+        #[cfg(feature = "u128")] Zebi,
+        #[cfg(feature = "u128")] Yotta,
+        #[cfg(feature = "u128")] Yobi,
+    ];
+
     #[rustfmt::skip]
     pub const DECIMAL: [UnitPrefix; {
         #[cfg(feature = "u128")] { 8 }
@@ -39,27 +60,6 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] Zebi,
         #[cfg(feature = "u128")] Yobi,
     ];
-
-    #[rustfmt::skip]
-    pub const ALL: [UnitPrefix; {
-        #[cfg(feature = "u128")] { 16 }
-        #[cfg(not(feature = "u128"))] { 12 }
-    }] = [
-        Kilo, Kibi, Mega, Mebi, Giga, Gibi,
-        Tera, Tebi, Peta, Pebi, Exa, Exbi,
-        #[cfg(feature = "u128")] Zetta,
-        #[cfg(feature = "u128")] Zebi,
-        #[cfg(feature = "u128")] Yotta,
-        #[cfg(feature = "u128")] Yobi,
-    ];
-
-    pub const MIN: UnitPrefix = Kilo;
-
-    #[rustfmt::skip]
-    pub const MAX: UnitPrefix = {
-        #[cfg(feature = "u128")]      { Yobi }
-        #[cfg(not(feature = "u128"))] { Exbi }
-    };
 
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0

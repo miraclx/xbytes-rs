@@ -120,7 +120,24 @@ impl Unit {
     pub const MIN: Unit = Unit(None, Bit);
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
 
-    pub const UNPREFIXED: [Unit; 2] = [BIT, BYTE];
+    #[rustfmt::skip]
+    pub const ALL: [Unit; {
+        #[cfg(feature = "u128")] { 34 }
+        #[cfg(not(feature = "u128"))] { 26 }
+    }] = [
+        BIT, BYTE,
+        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
+        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
+        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
+        #[cfg(feature = "u128")] ZETTA_BIT,
+        #[cfg(feature = "u128")] ZEBI_BIT,
+        #[cfg(feature = "u128")] ZETTA_BYTE,
+        #[cfg(feature = "u128")] ZEBI_BYTE,
+        #[cfg(feature = "u128")] YOTTA_BIT,
+        #[cfg(feature = "u128")] YOBI_BIT,
+        #[cfg(feature = "u128")] YOTTA_BYTE,
+        #[cfg(feature = "u128")] YOBI_BYTE,
+    ];
 
     #[rustfmt::skip]
     pub const DECIMAL: [Unit; {
@@ -174,30 +191,13 @@ impl Unit {
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
+    pub const UNPREFIXED: [Unit; 2] = [BIT, BYTE];
+
     #[rustfmt::skip]
     pub const PREFIXED: [Unit; {
         #[cfg(feature = "u128")] { 32 }
         #[cfg(not(feature = "u128"))] { 24 }
     }] = [
-        KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
-        GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
-        PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
-        #[cfg(feature = "u128")] ZETTA_BIT,
-        #[cfg(feature = "u128")] ZEBI_BIT,
-        #[cfg(feature = "u128")] ZETTA_BYTE,
-        #[cfg(feature = "u128")] ZEBI_BYTE,
-        #[cfg(feature = "u128")] YOTTA_BIT,
-        #[cfg(feature = "u128")] YOBI_BIT,
-        #[cfg(feature = "u128")] YOTTA_BYTE,
-        #[cfg(feature = "u128")] YOBI_BYTE,
-    ];
-
-    #[rustfmt::skip]
-    pub const ALL: [Unit; {
-        #[cfg(feature = "u128")] { 34 }
-        #[cfg(not(feature = "u128"))] { 26 }
-    }] = [
-        BIT, BYTE,
         KILO_BIT, KIBI_BIT, KILO_BYTE, KIBI_BYTE, MEGA_BIT, MEBI_BIT, MEGA_BYTE, MEBI_BYTE,
         GIGA_BIT, GIBI_BIT, GIGA_BYTE, GIBI_BYTE, TERA_BIT, TEBI_BIT, TERA_BYTE, TEBI_BYTE,
         PETA_BIT, PEBI_BIT, PETA_BYTE, PEBI_BYTE, EXA_BIT, EXBI_BIT, EXA_BYTE, EXBI_BYTE,
