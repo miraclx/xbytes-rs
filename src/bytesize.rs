@@ -1,4 +1,5 @@
-use std::{convert::TryInto, fmt, str::FromStr};
+use std::fmt;
+use std::str::FromStr;
 
 use super::{Float, Format, Int, Mode, ParseError, ParseErrorKind, Unit};
 
