@@ -253,17 +253,17 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn cmp() {
-        assert!(Kilo < Kibi && Kibi > Kilo);
-        assert!(Kibi < Mega && Mega > Kibi);
-        assert!(Mega < Mebi && Mebi > Mega);
-        assert!(Mebi < Giga && Giga > Mebi);
-        assert!(Giga < Gibi && Gibi > Giga);
-        assert!(Gibi < Tera && Tera > Gibi);
-        assert!(Tera < Tebi && Tebi > Tera);
-        assert!(Tebi < Peta && Peta > Tebi);
-        assert!(Peta < Pebi && Pebi > Peta);
-        assert!(Pebi < Exa  && Exa  > Pebi);
-        assert!(Exa  < Exbi && Exbi > Exa );
+        assert!( Kilo < Kibi && Kibi > Kilo );
+        assert!( Kibi < Mega && Mega > Kibi );
+        assert!( Mega < Mebi && Mebi > Mega );
+        assert!( Mebi < Giga && Giga > Mebi );
+        assert!( Giga < Gibi && Gibi > Giga );
+        assert!( Gibi < Tera && Tera > Gibi );
+        assert!( Tera < Tebi && Tebi > Tera );
+        assert!( Tebi < Peta && Peta > Tebi );
+        assert!( Peta < Pebi && Pebi > Peta );
+        assert!( Pebi < Exa  &&  Exa > Pebi );
+        assert!(  Exa < Exbi && Exbi > Exa  );
 
         #[cfg(feature = "u128")] assert!(Exbi  < Zetta && Zetta > Exbi );
         #[cfg(feature = "u128")] assert!(Zetta < Zebi  && Zebi  > Zetta);
