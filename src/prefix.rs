@@ -105,7 +105,7 @@ impl UnitPrefix {
     }
 
     #[rustfmt::skip]
-    pub const fn symbol(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Kilo => "K",   Kibi => "Ki",
             Mega => "M",   Mebi => "Mi",
@@ -121,7 +121,7 @@ impl UnitPrefix {
     }
 
     #[rustfmt::skip]
-    pub const fn symbol_long(&self) -> &'static str {
+    pub const fn as_long_str(&self) -> &'static str {
         match self {
             Kilo => "Kilo",   Kibi => "Kibi",
             Mega => "Mega",   Mebi => "Mebi",
@@ -137,7 +137,7 @@ impl UnitPrefix {
     }
 
     #[rustfmt::skip]
-    pub const fn symbol_initials(&self) -> &'static str {
+    pub const fn as_initial_str(&self) -> &'static str {
         match self {
             Kilo | Kibi => "K",
             Mega | Mebi => "M",
@@ -154,11 +154,11 @@ impl UnitPrefix {
 impl fmt::Display for UnitPrefix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit = if f.sign_minus() {
-            self.symbol_initials()
+            self.as_initial_str()
         } else if f.sign_plus() {
-            self.symbol_long()
+            self.as_long_str()
         } else {
-            self.symbol()
+            self.as_str()
         };
         f.write_str(unit)
     }
@@ -405,7 +405,7 @@ mod tests {
         for (unit, repr) in map.iter() {
             assert_eq!(
                 *repr,
-                unit.symbol(),
+                unit.as_str(),
                 "expected [{:?}] to be represented as {}",
                 unit,
                 repr
@@ -439,7 +439,7 @@ mod tests {
         for (unit, repr) in map.iter() {
             assert_eq!(
                 *repr,
-                unit.symbol_long(),
+                unit.as_long_str(),
                 "expected [{:?}] to be represented in long form as {}",
                 unit,
                 repr
@@ -473,7 +473,7 @@ mod tests {
         for (unit, repr) in map.iter() {
             assert_eq!(
                 *repr,
-                unit.symbol_initials(),
+                unit.as_initial_str(),
                 "expected [{:?}] to be represented in short form as {}",
                 unit,
                 repr

@@ -306,7 +306,7 @@ impl Unit {
     pub const fn symbols(&self) -> (&'static str, &'static str) {
         (
             match self.0 {
-                Some(prefix) => prefix.symbol(),
+                Some(prefix) => prefix.as_str(),
                 None => "",
             },
             self.1.symbol(),
@@ -325,7 +325,7 @@ impl Unit {
     ) -> (&'static str, &'static str) {
         (
             match self.0 {
-                Some(prefix) => prefix.symbol_long(),
+                Some(prefix) => prefix.as_long_str(),
                 None => "",
             },
             self.1
@@ -341,7 +341,7 @@ impl Unit {
     // 'b', 'B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
     pub const fn symbol_condensed(&self) -> &'static str {
         match self.0 {
-            Some(prefix) => prefix.symbol_initials(),
+            Some(prefix) => prefix.as_initial_str(),
             None => self.1.symbol(),
         }
     }
@@ -349,7 +349,7 @@ impl Unit {
     pub const fn symbols_initials(&self) -> (&'static str, &'static str) {
         (
             match self.0 {
-                Some(prefix) => prefix.symbol_initials(),
+                Some(prefix) => prefix.as_initial_str(),
                 None => "",
             },
             self.1.symbol(),
