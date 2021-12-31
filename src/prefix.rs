@@ -73,14 +73,14 @@ impl UnitPrefix {
         (*self as usize) / 2
     }
 
-    pub const fn decimal(&self) -> Self {
+    pub const fn as_decimal(&self) -> Self {
         if self.is_binary() {
             return Self::DECIMAL[self.index()];
         }
         *self
     }
 
-    pub const fn binary(&self) -> Self {
+    pub const fn as_binary(&self) -> Self {
         if self.is_decimal() {
             return Self::BINARY[self.index()];
         }
@@ -89,7 +89,7 @@ impl UnitPrefix {
 
     #[rustfmt::skip]
     #[inline(always)]
-    pub const fn effective_value(&self) -> Int {
+    pub const fn as_bytes(&self) -> Int {
         match self {
             Kibi => 1 << 10,   Kilo => 1000,
             Mebi => 1 << 20,   Mega => 1000000,
@@ -351,7 +351,7 @@ mod tests {
         for (unit, expected) in map.iter() {
             assert_eq!(
                 *expected,
-                unit.decimal(),
+                unit.as_decimal(),
                 "expected [{:?}] to be represented as [{:?}] in decimal",
                 unit,
                 expected
@@ -378,7 +378,7 @@ mod tests {
         for (unit, expected) in map.iter() {
             assert_eq!(
                 *expected,
-                unit.binary(),
+                unit.as_binary(),
                 "expected [{:?}] to be represented as [{:?}] in binary",
                 unit,
                 expected
@@ -591,7 +591,7 @@ mod tests {
     }
 
     #[test]
-    fn effective_value() {
+    fn as_bytes() {
         #[rustfmt::skip]
         let map = [
             (Kilo, 1000),                 (Kibi, 1024),
@@ -609,7 +609,7 @@ mod tests {
         for (prefix, value) in map.iter() {
             assert_eq!(
                 *value,
-                prefix.effective_value(),
+                prefix.as_bytes(),
                 "expected [{:?}] to have the value [{}]",
                 prefix,
                 value

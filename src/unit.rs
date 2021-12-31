@@ -262,7 +262,7 @@ impl Unit {
     pub const fn decimal(&self) -> Self {
         Self(
             match self.0 {
-                Some(prefix) => Some(prefix.decimal()),
+                Some(prefix) => Some(prefix.as_decimal()),
                 None => None,
             },
             self.1,
@@ -272,7 +272,7 @@ impl Unit {
     pub const fn binary(&self) -> Self {
         Self(
             match self.0 {
-                Some(prefix) => Some(prefix.binary()),
+                Some(prefix) => Some(prefix.as_binary()),
                 None => None,
             },
             self.1,
@@ -289,7 +289,7 @@ impl Unit {
 
     pub const fn effective_value(&self) -> Int {
         (match self.0 {
-            Some(prefix) => prefix.effective_value(),
+            Some(prefix) => prefix.as_bytes(),
             None => 1,
         } * self.1.effective_value() as Int)
     }
