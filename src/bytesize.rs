@@ -897,12 +897,16 @@ mod tests {
         );
 
         assert_eq!(
-            Err(ParseError::InvalidThousandsFormat),
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidThousandsFormat
+            }),
             "434,56.53 KiB".parse::<ByteSize>()
         );
 
         assert_eq!(
-            Err(ParseError::InvalidThousandsFormat),
+            Err(ParseError {
+                kind: ParseErrorKind::InvalidThousandsFormat
+            }),
             "2,68,43,54,56 KiB".parse::<ByteSize>()
         );
     }

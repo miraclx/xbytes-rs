@@ -562,7 +562,9 @@ mod tests {
 
             for value in invalid_formats.iter() {
                 assert_eq!(
-                    Err(ParseError::InvalidPrefixCaseFormat),
+                    Err(ParseError {
+                        kind: ParseErrorKind::InvalidPrefixCaseFormat
+                    }),
                     value.parse::<UnitPrefix>()
                 );
             }
@@ -578,7 +580,12 @@ mod tests {
             ];
 
             for value in invalid_prefixes.iter() {
-                assert_eq!(Err(ParseError::InvalidPrefix), value.parse::<UnitPrefix>());
+                assert_eq!(
+                    Err(ParseError {
+                        kind: ParseErrorKind::InvalidPrefix
+                    }),
+                    value.parse::<UnitPrefix>()
+                );
             }
         }
     }

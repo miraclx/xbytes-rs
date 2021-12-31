@@ -1147,7 +1147,7 @@ mod tests {
         assert_eq!(
             {
                 #[cfg(not(feature = "case-insensitive"))]
-                { Err(ParseError::InvalidUnitCaseFormat) }
+                { Err(ParseError { kind: ParseErrorKind::InvalidUnitCaseFormat }) }
                 #[cfg(feature = "case-insensitive")]
                 { Ok(KIBI_BIT) }
             },
@@ -1157,7 +1157,7 @@ mod tests {
         assert_eq!(
             {
                 #[cfg(not(feature = "case-insensitive"))]
-                { Err(ParseError::InvalidUnitCaseFormat) }
+                { Err(ParseError { kind: ParseErrorKind::InvalidUnitCaseFormat }) }
                 #[cfg(feature = "case-insensitive")]
                 { Ok(MEGA_BIT) }
             },
@@ -1178,7 +1178,7 @@ mod tests {
         assert_eq!(
             {
                 #[cfg(not(feature = "case-insensitive"))]
-                { Err(ParseError::InvalidUnitCaseFormat) }
+                { Err(ParseError { kind: ParseErrorKind::InvalidUnitCaseFormat }) }
                 #[cfg(feature = "case-insensitive")]
                 { Ok(MEBI_BIT) }
             },
