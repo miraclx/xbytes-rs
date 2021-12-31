@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use super::{Int, Mode, ParseError, ParseErrorKind, UnitPrefix};
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Eq, Copy, Hash, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
     Bit,
     Byte,
@@ -15,7 +15,7 @@ use SizeVariant::*;
 // MAX 64-bit value => 2 EiB
 // MAX 128-bit value => 35184372088832 YiB
 
-#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+#[derive(Eq, Copy, Hash, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
 pub mod sizes {
