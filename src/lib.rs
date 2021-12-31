@@ -2,12 +2,14 @@
 mod macros;
 mod bytesize;
 mod error;
+mod flags;
 mod prefix;
 pub mod sizes;
 mod unit;
 
-pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, ReprFormat};
+pub use bytesize::{ByteSize, ByteSizeRepr, ReprConfigVariant, ReprFormat};
 pub use error::{ParseError, ParseErrorKind};
+pub use flags::{Format, Mode};
 pub use prefix::UnitPrefix;
 pub use unit::{SizeVariant, Unit};
 
