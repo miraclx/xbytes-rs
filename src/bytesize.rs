@@ -82,7 +82,7 @@ impl ByteSize {
     /// Create a ByteSize from a value and unit
     ///
     /// ```
-    /// use xbytes_rs::prelude::*;
+    /// use xbytes::{sizes::bytes::*, ByteSize, Mode};
     ///
     /// let size = ByteSize::of(10, MEBI_BYTE);
     /// assert_eq!(size.to_string(), "10 MiB");

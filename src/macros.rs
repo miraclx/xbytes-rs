@@ -1,4 +1,4 @@
-/// converts a value to a potentially lossless float
+/// Converts a value to a potentially lossless float
 macro_rules! f {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -9,7 +9,7 @@ macro_rules! f {
     }};
 }
 
-/// converts a value to the appropriate unsigned integer
+/// Converts a value to the appropriate unsigned integer
 macro_rules! i {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -24,7 +24,7 @@ macro_rules! i {
     }};
 }
 
-/// checks if the potentially lossless float value is equal to zero
+/// Checks if the potentially lossless float value is equal to zero
 macro_rules! f_is_zero {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
@@ -35,7 +35,7 @@ macro_rules! f_is_zero {
     }};
 }
 
-/// checks if the potentially lossless float value is equal to one
+/// Checks if the potentially lossless float value is equal to one
 macro_rules! f_is_one {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
