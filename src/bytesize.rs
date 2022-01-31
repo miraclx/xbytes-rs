@@ -263,58 +263,51 @@ impl fmt::Display for ByteSize {
 }
 
 macro_rules! impl_ops {
-    ($($class:ident::$method:ident)+) => {
-        $(
-            impl std::ops::$class<Self> for ByteSize {
-                type Output = ByteSize;
-                fn $method(self, rhs: Self) -> Self::Output {
-                    ByteSize(std::ops::$class::$method(self.0, rhs.0))
-                }
+    ($class:ident::$method:ident) => {
+        impl std::ops::$class<Self> for ByteSize {
+            type Output = ByteSize;
+            fn $method(self, rhs: Self) -> Self::Output {
+                ByteSize(std::ops::$class::$method(self.0, rhs.0))
             }
-        )+
+        }
     };
-    (@ { $($class:ident::$method:ident)+ }) => {
-        $(
-            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
-                type Output = ByteSize;
-                fn $method(self, rhs: T) -> Self::Output {
-                    let me = f!(self.0);
-                    ByteSize(
-                        i!(
-                            rhs.try_into()
-                                .map_or(me, |rhs| std::ops::$class::$method(me, f!(rhs)))
-                        ),
-                    )
-                }
+    (try $class:ident::$method:ident) => {
+        impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+            type Output = ByteSize;
+            fn $method(self, rhs: T) -> Self::Output {
+                let me = f!(self.0);
+                ByteSize(i!(rhs
+                    .try_into()
+                    .map_or(me, |rhs| std::ops::$class::$method(me, f!(rhs)))))
             }
-        )+
+        }
     };
-    (mut $($class:ident::$method:ident)+) => {
-        $(
-            impl std::ops::$class<Self> for ByteSize {
-                fn $method(&mut self, rhs: Self) {
-                    std::ops::$class::$method(&mut self.0, rhs.0)
-                }
+    (mut $class:ident::$method:ident) => {
+        impl std::ops::$class<Self> for ByteSize {
+            fn $method(&mut self, rhs: Self) {
+                std::ops::$class::$method(&mut self.0, rhs.0)
             }
-        )+
+        }
     };
-    (@ mut { $($class:ident::$method:ident)+ }) => {
-        $(
-            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
-                fn $method(&mut self, rhs: T) {
-                    if let Ok(rhs) = rhs.try_into() {
-                        std::ops::$class::$method(&mut self.0, rhs)
-                    }
+    (try mut $class:ident::$method:ident) => {
+        impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+            fn $method(&mut self, rhs: T) {
+                if let Ok(rhs) = rhs.try_into() {
+                    std::ops::$class::$method(&mut self.0, rhs)
                 }
             }
-        )+
+        }
     };
 }
 
-impl_ops!(Add::add Sub::sub);
-impl_ops!(@ { Mul::mul Div::div });
-impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
-impl_ops!(@ mut { MulAssign::mul_assign DivAssign::div_assign });
+impl_ops!(Add::add);
+impl_ops!(Sub::sub);
+impl_ops!(try Mul::mul);
+impl_ops!(try Div::div);
+impl_ops!(mut AddAssign::add_assign);
+impl_ops!(mut SubAssign::sub_assign);
+impl_ops!(try mut MulAssign::mul_assign);
+impl_ops!(try mut DivAssign::div_assign);
 
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
