@@ -247,52 +247,121 @@ impl fmt::Display for ByteSize {
     }
 }
 
-macro_rules! impl_ops {
-    ($class:ident::$method:ident) => {
-        impl std::ops::$class<Self> for ByteSize {
-            type Output = ByteSize;
-            fn $method(self, rhs: Self) -> Self::Output {
-                ByteSize(std::ops::$class::$method(self.0, rhs.0))
-            }
-        }
-    };
-    (try $class:ident::$method:ident) => {
-        impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
-            type Output = ByteSize;
-            fn $method(self, rhs: T) -> Self::Output {
-                let me = f!(self.0);
-                ByteSize(i!(rhs
-                    .try_into()
-                    .map_or(me, |rhs| std::ops::$class::$method(me, f!(rhs)))))
-            }
-        }
-    };
-    (mut $class:ident::$method:ident) => {
-        impl std::ops::$class<Self> for ByteSize {
-            fn $method(&mut self, rhs: Self) {
-                std::ops::$class::$method(&mut self.0, rhs.0)
-            }
-        }
-    };
-    (try mut $class:ident::$method:ident) => {
-        impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
-            fn $method(&mut self, rhs: T) {
-                if let Ok(rhs) = rhs.try_into() {
-                    std::ops::$class::$method(&mut self.0, rhs)
-                }
-            }
-        }
-    };
+// ByteSize + ByteSize: ByteSize
+impl std::ops::Add<ByteSize> for ByteSize {
+    type Output = ByteSize;
+    fn add(self, rhs: Self) -> Self::Output {
+        ByteSize(self.0 + rhs.0)
+    }
 }
 
-impl_ops!(Add::add);
-impl_ops!(Sub::sub);
-impl_ops!(try Mul::mul);
-impl_ops!(try Div::div);
-impl_ops!(mut AddAssign::add_assign);
-impl_ops!(mut SubAssign::sub_assign);
-impl_ops!(try mut MulAssign::mul_assign);
-impl_ops!(try mut DivAssign::div_assign);
+// ByteSize += ByteSize: ByteSize
+impl std::ops::AddAssign<ByteSize> for ByteSize {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
+    }
+}
+
+// ByteSize - ByteSize: ByteSize
+impl std::ops::Sub<ByteSize> for ByteSize {
+    type Output = ByteSize;
+    fn sub(self, rhs: Self) -> Self::Output {
+        ByteSize(self.0 - rhs.0)
+    }
+}
+
+// ByteSize -= ByteSize: ByteSize
+impl std::ops::SubAssign<ByteSize> for ByteSize {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.0 -= rhs.0
+    }
+}
+
+// ByteSize * ByteSize: illogical
+// impl std::ops::Mul<ByteSize> for ByteSize {}
+
+// ByteSize / ByteSize: Int
+// hint: 10mb/5mb = 2 not 2mb
+impl std::ops::Div<ByteSize> for ByteSize {
+    type Output = Int;
+    fn div(self, rhs: ByteSize) -> Self::Output {
+        self.0 / rhs.0
+    }
+}
+
+// ByteSize [arith op] Int assumes Int in bytes
+
+// ByteSize + Int: ByteSize
+impl<T: TryInto<Int>> std::ops::Add<T> for ByteSize {
+    type Output = ByteSize;
+    fn add(self, rhs: T) -> Self::Output {
+        rhs.try_into()
+            .map_or(self, |rhs| self + ByteSize::from_bytes(rhs))
+    }
+}
+
+// ByteSize += Int: ByteSize
+impl<T: TryInto<Int>> std::ops::AddAssign<T> for ByteSize {
+    fn add_assign(&mut self, rhs: T) {
+        if let Ok(rhs) = rhs.try_into() {
+            self.0 = ByteSize::from_bytes(rhs).0;
+        }
+    }
+}
+
+// ByteSize - Int: ByteSize
+impl<T: TryInto<Int>> std::ops::Sub<T> for ByteSize {
+    type Output = ByteSize;
+    fn sub(self, rhs: T) -> Self::Output {
+        rhs.try_into()
+            .map_or(self, |rhs| self + ByteSize::from_bytes(rhs))
+    }
+}
+
+// ByteSize -= Int: ByteSize
+impl<T: TryInto<Int>> std::ops::SubAssign<T> for ByteSize {
+    fn sub_assign(&mut self, rhs: T) {
+        if let Ok(rhs) = rhs.try_into() {
+            self.0 += ByteSize::from_bytes(rhs).0;
+        }
+    }
+}
+
+// ByteSize * Int: ByteSize
+// hint: 10MB * 2 = 20MB
+impl<T: TryInto<Int>> std::ops::Mul<T> for ByteSize {
+    type Output = ByteSize;
+    fn mul(self, rhs: T) -> Self::Output {
+        rhs.try_into().map_or(self, |rhs| ByteSize(self.0 * rhs))
+    }
+}
+
+// ByteSize *= Int: ByteSize
+impl<T: TryInto<Int>> std::ops::MulAssign<T> for ByteSize {
+    fn mul_assign(&mut self, rhs: T) {
+        if let Ok(rhs) = rhs.try_into() {
+            std::ops::MulAssign::mul_assign(&mut self.0, rhs)
+        }
+    }
+}
+
+// ByteSize / Int: ByteSize
+// hint: 10MB / 2 = 5MB
+impl<T: TryInto<Int>> std::ops::Div<T> for ByteSize {
+    type Output = ByteSize;
+    fn div(self, rhs: T) -> Self::Output {
+        rhs.try_into().map_or(self, |rhs| ByteSize(self.0 / rhs))
+    }
+}
+
+// ByteSize /= Int: ByteSize
+impl<T: TryInto<Int>> std::ops::DivAssign<T> for ByteSize {
+    fn div_assign(&mut self, rhs: T) {
+        if let Ok(rhs) = rhs.try_into() {
+            std::ops::DivAssign::div_assign(&mut self.0, rhs)
+        }
+    }
+}
 
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
