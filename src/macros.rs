@@ -46,46 +46,26 @@ macro_rules! f_is_one {
     }};
 }
 
-/// Allows the provision of alternate execution paths for the same logic.
-///
-/// ### `bits` / `nobits`
-///
-/// The `bits` and `nobits` variants are used to provide alternate execution paths depending on whether
-/// the "bits" feature flag is set.
-///
-/// ### `safely` / `unsafe`
-///
-/// Provides an alternative "safe" implementation for an otherwise potentially panickable execution.
-///
-/// Set the `no-panic` feature flag to use the "safely" variant.
-///
-/// For example, arithmetic overflows that could simply just saturate the result to the maximum value
-///
-/// This takes in two branches, that should always return the same result except in the case of where
-/// one panics and the other implements a fallback.
-///
-///  - Without "no-panic", the "unsafe" branch is executed, meaning there's a possibility of panicing
-///    naturally we only expect to panic from arithmetic over/underflows
-///  - With "no-panic", the "safely" branch is executed, meaning the contained code must not panic on
-///    the same conditions but implements a fallback, like saturating or returning `Default` if applicable.
-macro_rules! exec {
-    (@ safely $expr:block) => {
-        #[cfg(all(feature = "no-panic", feature = "lossless"))] {
-            #[allow(unused_imports)] use fraction::{CheckedDiv, CheckedMul};
-            break $expr
-        }
+/// Patch for the cfg! macro with support for conditional compilation with if-else syntax
+macro_rules! chk_feat {
+    (@[] if cfg!( $($cfg:tt)+ ) $body:block $($rest:tt)*) => {
+        #[cfg( $($cfg)+ )]
+        break $body;
+
+        chk_feat!(@[ $($cfg)+ ] $($rest)*)
     };
-    (@ unsafe $expr:block) => {
-        #[cfg(any(not(feature = "no-panic"), not(feature = "lossless")))]
-        break $expr
+    (@[$($pre_cfgs:tt)+] else if cfg!( $($cfg:tt)+ ) $body:block $($rest:tt)*) => {
+        #[cfg( all( not( $($pre_cfgs)+ ), $($cfg)+ ) )]
+        break $body;
+
+        chk_feat!(@[ any($($pre_cfgs)+, $($cfg)+) ] $($rest)*)
     };
-    (@ bits $expr:block) => {
-        #[cfg(feature = "bits")] break $expr
+    (@[$($pre_cfgs:tt)+] else $else_block:block) => {
+        #[cfg( not( $($pre_cfgs)+ ) )]
+        break $else_block;
     };
-    (@ nobits $expr:block) => {
-        #[cfg(not(feature = "bits"))] break $expr
-    };
-    ($($term:tt { $expr:expr }),+) => {
-        loop { $( exec!(@ $term { $expr }); )+ }
+    (@ $($junk:tt)+) => {};
+    ($($all:tt)+ ) => {
+        loop { chk_feat!(@[] $($all)+); }
     };
 }

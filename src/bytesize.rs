@@ -1,6 +1,9 @@
 use std::fmt;
 use std::str::FromStr;
 
+#[cfg(feature = "lossless")]
+use fraction::CheckedMul;
+
 use super::{Float, Format, Int, Mode, ParseError, ParseErrorKind, Unit};
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
@@ -89,21 +92,25 @@ impl ByteSize {
     /// assert_eq!((a + b).repr(Mode::Decimal).to_string(), "2.50 GB");
     /// ```
     pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
-        let u_value = exec! {
-            bits { unit.effective_value() },
-            nobits { match unit.effective_value().checked_div(8) {
-                Some(value) => value,
-                None => 0,
-            } }
+        let u_value = chk_feat! {
+            if cfg!(feature = "bits") {
+                unit.effective_value()
+            } else {
+                match unit.effective_value().checked_div(8) {
+                    Some(value) => value,
+                    None => 0,
+                }
+            }
         };
 
-        let value = exec! {
-            unsafe { value.into() * f!(u_value) },
-            safely {
+        let value = chk_feat! {
+            if cfg!(feature = "no-panic") {
                 value
                     .into()
                     .checked_mul(&{ f!(u_value) })
                     .unwrap_or_else(fraction::Bounded::max_value)
+            } else {
+                value.into() * f!(u_value)
             }
         };
 
@@ -178,29 +185,29 @@ impl ByteSize {
         })
     }
 
-    #[rustfmt::skip]
     fn prep_value(&self, mode: Mode) -> Float {
         let value = f!(self.0);
         let wants_bits = mode.contains(Mode::Bits);
-        if exec! {
-            bits { !wants_bits },
-            nobits { wants_bits }
-        } {
-            exec! {
-                bits { value / f!(8) },
-                nobits { exec! {
-                    unsafe { value * f!(8) },
-                    safely {
-                        value
-                            .checked_mul(&{ f!(8) })
-                            .unwrap_or_else(fraction::Bounded::max_value)
-                    }
-                } }
+
+        let has_bits = cfg!(feature = "bits");
+
+        if (has_bits && wants_bits) || (!has_bits && !wants_bits) {
+            return value;
+        }
+
+        chk_feat! {
+            if cfg!(feature = "bits") {
+                value / f!(8)
+            } else if cfg!(feature = "no-panic") {
+                value
+                    .checked_mul(&{ f!(8) })
+                    .unwrap_or_else(fraction::Bounded::max_value)
+            } else {
+                value * f!(8)
             }
-        } else { value }
+        }
     }
 
-    #[rustfmt::skip]
     pub fn repr(&self, mode: Mode) -> ByteSizeRepr {
         let as_bits = mode.contains(Mode::Bits);
         let no_prefix = mode.contains(Mode::NoPrefix);
@@ -214,7 +221,9 @@ impl ByteSize {
             value /= divisor;
             prefix_index += 2;
         }
-        if prefix_index > 0 && as_decimal { prefix_index -= 1 }
+        if prefix_index > 0 && as_decimal {
+            prefix_index -= 1
+        }
         ByteSizeRepr::of(value, unit_stack[prefix_index])
     }
 
@@ -222,12 +231,13 @@ impl ByteSize {
         let unit = unit.into();
 
         let value = self.prep_value(unit.mode()) / f!(unit.effective_value());
-        let value = exec! {
-            unsafe { value * f!(8) },
-            safely {
+        let value = chk_feat! {
+            if cfg!(feature = "no-panic") {
                 value
                     .checked_mul(&{ f!(8) })
                     .unwrap_or_else(fraction::Bounded::max_value)
+            } else {
+                value * f!(8)
             }
         };
 
@@ -515,9 +525,12 @@ mod tests {
     fn bytesize() {
         let bytes = 1048576;
 
-        let size = exec! {
-            bits { ByteSize::from_bits(bytes * 8) },
-            nobits { ByteSize::from_bytes(bytes) }
+        let size = chk_feat! {
+            if cfg!(feature = "bits") {
+                ByteSize::from_bits(bytes * 8)
+            } else {
+                ByteSize::from_bytes(bytes)
+            }
         };
 
         assert_eq!("1 MiB", format!("{}", size));
@@ -525,14 +538,20 @@ mod tests {
 
     #[test]
     fn bytesize_from_cmp() {
-        let left = exec! {
-            bits { ByteSize::from_bits(8388608) },
-            nobits { ByteSize::from_bytes(1048576) }
+        let left = chk_feat! {
+            if cfg!(feature = "bits") {
+                ByteSize::from_bits(8388608)
+            } else {
+                ByteSize::from_bytes(1048576)
+            }
         };
 
-        let right = exec! {
-            bits { ByteSize::from_bytes(1048576).unwrap() },
-            nobits { ByteSize::from_bits(8388608).unwrap() }
+        let right = chk_feat! {
+            if cfg!(feature = "bits") {
+                ByteSize::from_bytes(1048576).unwrap()
+            } else {
+                ByteSize::from_bits(8388608).unwrap()
+            }
         };
 
         assert_eq!(left, right);
@@ -636,51 +655,69 @@ mod tests {
     #[test]
     fn bytesize_of() {
         assert_eq!(
-            exec! {
-                bits { ByteSize(8) },
-                nobits { ByteSize(1) }
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(8)
+                } else {
+                    ByteSize(1)
+                }
             },
             ByteSize::of(1, BYTE)
         );
 
         assert_eq!(
-            exec! {
-                bits { ByteSize(1) },
-                nobits { ByteSize(0) } // 0.125 (saturated)
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(1)
+                } else {
+                    ByteSize(0) // 0.125 (saturated)
+                }
             },
             ByteSize::of(1, BIT)
         );
 
         assert_eq!(
-            exec! {
-                bits { ByteSize(8388608) },
-                nobits { ByteSize(1048576) }
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(8388608)
+                } else {
+                    ByteSize(1048576)
+                }
             },
             ByteSize::of(1, MEBI_BYTE)
         );
 
         assert_eq!(
-            exec! {
-                bits { ByteSize(1048576) },
-                nobits { ByteSize(131072) }
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(1048576)
+                } else {
+                    ByteSize(131072)
+                }
             },
             ByteSize::of(1, MEBI_BIT)
         );
 
         #[cfg(feature = "u128")]
         assert_eq!(
-            exec! {
-                bits { ByteSize(9671406556917033397649408) },
-                nobits { ByteSize(1208925819614629174706176) }
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(9671406556917033397649408)
+                } else {
+                    ByteSize(1208925819614629174706176)
+                }
             },
             ByteSize::of(1, YOBI_BYTE)
         );
 
         #[cfg(feature = "u128")]
         assert_eq!(
-            exec! {
-                bits { ByteSize(1208925819614629174706176) },
-                nobits { ByteSize(151115727451828646838272) }
+            chk_feat! {
+                if cfg!(feature = "bits") {
+                    ByteSize(1208925819614629174706176)
+                } else {
+                    ByteSize(151115727451828646838272)
+                }
             },
             ByteSize::of(1, YOBI_BIT)
         );
