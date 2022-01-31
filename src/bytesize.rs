@@ -29,16 +29,25 @@ impl ReprFormat {
     }
 }
 
-pub trait ReprConfig {
+mod private {
+    pub trait Sealed {}
+}
+
+pub trait ReprConfig: private::Sealed {
+    /// Apply the configuration to the given format, returning a new format.
+    ///
+    /// See the [`ReprFormat::with`] method for a more convenient way to apply a configuration.
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
 }
 
+impl<T> private::Sealed for &T {}
 impl<T: ReprConfig> ReprConfig for &T {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
-        (*self).apply(r_fmt)
+        T::apply(self, r_fmt)
     }
 }
 
+impl private::Sealed for Format {}
 impl ReprConfig for Format {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         ReprFormat {
@@ -57,6 +66,7 @@ pub enum ReprConfigVariant {
 
 use ReprConfigVariant::*;
 
+impl private::Sealed for ReprConfigVariant {}
 impl ReprConfig for ReprConfigVariant {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         let mut new = *r_fmt;
@@ -69,6 +79,7 @@ impl ReprConfig for ReprConfigVariant {
     }
 }
 
+impl private::Sealed for ReprFormat {}
 impl ReprConfig for ReprFormat {
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat {
         r_fmt.flags.apply(self)

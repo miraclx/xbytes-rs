@@ -7,7 +7,7 @@ mod prefix;
 pub mod sizes;
 mod unit;
 
-pub use bytesize::{ByteSize, ByteSizeRepr, ReprConfigVariant, ReprFormat};
+pub use bytesize::{ByteSize, ByteSizeRepr, ReprConfig, ReprConfigVariant, ReprFormat};
 pub use error::{ParseError, ParseErrorKind};
 pub use flags::{Format, Mode};
 pub use prefix::UnitPrefix;
