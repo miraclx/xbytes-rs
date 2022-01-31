@@ -90,6 +90,8 @@ impl ReprConfig for ReprFormat {
 pub struct ByteSize(Int);
 
 impl ByteSize {
+    pub const ZERO: ByteSize = ByteSize(0);
+
     /// Create a ByteSize from a value and unit
     ///
     /// ```
