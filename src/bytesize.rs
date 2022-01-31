@@ -129,71 +129,54 @@ impl ByteSize {
     }
 
     #[inline]
-    #[cfg(feature = "bits")]
     pub const fn from_bits(value: Int) -> Self {
-        Self(value)
-    }
-
-    #[inline]
-    #[cfg(feature = "bits")]
-    pub const fn from_bytes(value: Int) -> Result<Self, ParseError> {
-        if let Some(value) = value.checked_mul(8) {
-            return Ok(Self(value));
+        chk_feat! {
+            if cfg!(feature = "bits") {
+                Self(value)
+            } else {
+                Self(value / 8)
+            }
         }
-        Err(ParseError {
-            kind: ParseErrorKind::ValueOverflow,
-        })
     }
 
     #[inline]
-    #[cfg(not(feature = "bits"))]
     pub const fn from_bytes(value: Int) -> Self {
-        Self(value)
-    }
-
-    #[inline]
-    #[cfg(not(feature = "bits"))]
-    pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
-        if let Some(value) = value.checked_div(8) {
-            return Ok(Self(value));
+        chk_feat! {
+            if cfg!(feature = "bits") {
+                Self(value * 8)
+            } else {
+                Self(value)
+            }
         }
-        Err(ParseError {
-            kind: ParseErrorKind::ValueOverflow,
-        })
     }
 
+    /// warning: this method saturates on value overflow when making a conversion.
     #[inline]
-    #[cfg(feature = "bits")]
-    pub const fn bits(&self) -> Int {
-        self.0
-    }
-
-    #[inline]
-    #[cfg(feature = "bits")]
-    pub const fn bytes(&self) -> Result<Int, ParseError> {
-        if let Some(value) = self.0.checked_div(8) {
-            return Ok(value);
+    pub fn bits(&self) -> Int {
+        chk_feat! {
+            if cfg!(feature = "bits") {
+                self.0
+            } else if cfg!(feature = "no-panic") {
+                i!(
+                    f!(self.0)
+                        .checked_mul(&{ f!(8) })
+                        .unwrap_or_else(fraction::Bounded::max_value)
+                )
+            } else {
+                i!(f!(self.0) * f!(8))
+            }
         }
-        Err(ParseError {
-            kind: ParseErrorKind::ValueOverflow,
-        })
     }
 
     #[inline]
-    #[cfg(not(feature = "bits"))]
-    pub const fn bytes(&self) -> Int {
-        self.0
-    }
-
-    #[inline]
-    #[cfg(not(feature = "bits"))]
-    pub const fn bits(&self) -> Result<Int, ParseError> {
-        if let Some(value) = self.0.checked_mul(8) {
-            return Ok(value);
+    pub fn bytes(&self) -> Int {
+        chk_feat! {
+            if cfg!(feature = "bits") {
+                i!(f!(self.0) / f!(8))
+            } else {
+                self.0
+            }
         }
-        Err(ParseError {
-            kind: ParseErrorKind::ValueOverflow,
-        })
     }
 
     fn prep_value(&self, mode: Mode) -> Float {
@@ -552,9 +535,9 @@ mod tests {
 
         let right = chk_feat! {
             if cfg!(feature = "bits") {
-                ByteSize::from_bytes(1048576).unwrap()
+                ByteSize::from_bytes(1048576)
             } else {
-                ByteSize::from_bits(8388608).unwrap()
+                ByteSize::from_bits(8388608)
             }
         };
 
