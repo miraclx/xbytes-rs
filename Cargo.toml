@@ -1,5 +1,5 @@
 [package]
-name = "xbytes-rs"
+name = "xbytes"
 version = "0.1.0"
 authors = ["Miraclx <omiraculous@gmail.com>"]
 edition = "2018"

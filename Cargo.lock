@@ -108,7 +108,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "xbytes-rs"
+name = "xbytes"
 version = "0.1.0"
 dependencies = [
  "bitflags",
