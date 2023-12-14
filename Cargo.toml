@@ -1,10 +1,12 @@
 [package]
 name = "xbytes"
 version = "0.1.0"
-authors = ["Miraclx <omiraculous@gmail.com>"]
-edition = "2018"
-description = "convert byte sizes to human readable sizes"
-license = "Apache-2.0"
+authors = ["Miraculous Owonubi <omiraculous@gmail.com>"]
+edition = "2021"
+description = "Convert between raw byte sizes and human readable sizes"
+repository = "https://github.com/miraclx/xbytes-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["bytes", "human-readable", "size", "parsing", "formatting"]
 
 [dependencies]
 bitflags = "1.2.1"
