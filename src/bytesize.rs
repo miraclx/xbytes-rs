@@ -142,11 +142,13 @@ impl ByteSize {
     /// ```
     pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
         let u_value = exec! {
-            bits { unit.effective_value() },
-            nobits { match unit.effective_value().checked_div(8) {
-                Some(value) => value,
-                None => 0,
-            } }
+            bits { f!(unit.effective_value()) },
+            nobits {
+                exec! {
+                    unsafe { f!(unit.effective_value()) / f!(8) },
+                    safely { saturate!(f!(unit.effective_value()).checked_div(&{ f!(8) })) }
+                }
+            }
         };
 
         let value = exec! {
