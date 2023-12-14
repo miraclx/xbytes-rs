@@ -9,8 +9,8 @@ license = "MIT OR Apache-2.0"
 keywords = ["bytes", "human-readable", "size", "parsing", "formatting"]
 
 [dependencies]
-bitflags = "1.2.1"
-fraction = { version = "0.8.0", optional = true }
+bitflags = "2.4.1"
+fraction = { version = "0.14.0", optional = true }
 
 [features]
 default = ["u128", "lossless", "no-panic"]

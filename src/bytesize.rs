@@ -7,7 +7,7 @@ mod flags {
     use bitflags::bitflags;
 
     bitflags! {
-        #[derive(Default)]
+        #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Mode: u8 {
             const Default  = 0 << 0;
             const Bits     = 1 << 0;
@@ -17,7 +17,7 @@ mod flags {
     }
 
     bitflags! {
-        #[derive(Default)]
+        #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Format: u16 {
             const Default                = 0 << 0; // 1 B, 2.13 KB, 1024.43 MiB
 
@@ -464,7 +464,7 @@ impl fmt::Display for ByteSizeRepr {
 macro_rules! parse_value {
     ($value:expr) => {{
         #[cfg(feature = "lossless")]
-        let val = Float::from_decimal_str(&$value);
+        let val = Float::from_str(&$value);
         #[cfg(not(feature = "lossless"))]
         let val = <f64 as FromStr>::from_str($value);
         val
