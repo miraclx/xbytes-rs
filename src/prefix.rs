@@ -1,5 +1,7 @@
+use std::fmt;
+use std::str::FromStr;
+
 use super::{Int, ParseError};
-use std::{fmt, str::FromStr};
 
 #[rustfmt::skip]
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -168,17 +170,19 @@ impl FromStr for UnitPrefix {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[rustfmt::skip]
-        let unit = match &{
-            #[cfg(not(feature = "case-insensitive"))] { s }
+        let normalized = {
+            #[cfg(not(feature = "case-insensitive"))] { s.to_string() }
             #[cfg(feature = "case-insensitive")] {
-                if !s.is_empty() {
+                if s.is_empty() {
+                    s.to_string()
+                } else {
                     let (first, rest) = s.split_at(1);
                     format!("{}{}", first.to_uppercase(), rest.to_lowercase())
-                } else {
-                    s.to_string()
                 }
             }
-        }[..] {
+        };
+        #[rustfmt::skip]
+        let unit = match normalized.as_str() {
             "" => return Err(ParseError::EmptyInput),
             // https://web.archive.org/web/20150324153922/https://pacoup.com/2009/05/26/kb-kb-kib-whats-up-with-that/
             "k" | "K"  => Kilo,   "Ki"  => Kibi,

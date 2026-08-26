@@ -55,12 +55,12 @@ macro_rules! f_is_one {
 }
 
 #[inline]
-#[cfg(feature = "lossless")]
+#[cfg(feature = "no-panic")]
 fn get_max_saturate<T: fraction::Bounded>(_value: Option<T>) -> T {
     T::max_value()
 }
 
-#[cfg(feature = "lossless")]
+#[cfg(feature = "no-panic")]
 macro_rules! saturate {
     ($value:expr) => {
         match $value {
@@ -107,7 +107,8 @@ mod unit;
 
 pub mod prelude {
     pub use super::sizes::all::*;
-    pub use super::{ByteSize, Format, Mode, ReprConfigVariant::*, ReprFormat};
+    pub use super::ReprConfigVariant::*;
+    pub use super::{ByteSize, Format, Mode, ReprFormat};
 }
 
 pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, ReprFormat};

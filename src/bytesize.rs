@@ -1,5 +1,8 @@
+use std::convert::TryInto;
+use std::fmt;
+use std::str::FromStr;
+
 use super::{sizes, Float, Int, ParseError, Unit};
-use std::{convert::TryInto, fmt, str::FromStr};
 
 mod flags {
     #![allow(non_upper_case_globals)]
@@ -9,7 +12,7 @@ mod flags {
     bitflags! {
         #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Mode: u8 {
-            const Default  = 0 << 0;
+            const Default  = 0;
             const Bits     = 1 << 0;
             const Decimal  = 1 << 1;
             const NoPrefix = 1 << 2;
@@ -19,7 +22,7 @@ mod flags {
     bitflags! {
         #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Format: u16 {
-            const Default                = 0 << 0; // 1 B, 2.13 KB, 1024.43 MiB
+            const Default                = 0; // 1 B, 2.13 KB, 1024.43 MiB
 
             const Initials               = 1 << 0; // 1 B, 2.13 KB, 1024.43 MB
             const Condensed              = 1 << 1; // 1 B, 2.13 K, 1024.43 M
@@ -283,6 +286,10 @@ macro_rules! impl_ops {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 type Output = ByteSize;
+                // The shared body reaches a `/` through the fraction-to-int
+                // conversion in `i!`, not through operator semantics, so the
+                // `Mul` expansion trips `suspicious_arithmetic_impl` falsely.
+                #[allow(clippy::suspicious_arithmetic_impl)]
                 fn $method(self, rhs: T) -> Self::Output {
                     let me = f!(self.0);
                     ByteSize(
@@ -326,18 +333,36 @@ impl_ops!(@ mut { MulAssign::mul_assign DivAssign::div_assign });
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
+// Ordered first by unit magnitude, then by scalar value, so `1 MiB` sorts
+// below `1 MB` and `1 kB` below a larger `1 kB`. The lossless backend
+// (`GenericFraction`) is totally ordered, so `Ord` is available and
+// `partial_cmp` defers to it (the canonical, non-panicking direction); the
+// `f64` backend is only `PartialOrd`, so no `Ord` impl exists there.
 #[cfg(feature = "lossless")]
 impl Ord for ByteSizeRepr {
     #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        let Self(value, unit, _) = self;
+        let Self(other_value, other_unit, _) = other;
+        (unit, value).cmp(&(other_unit, other_value))
     }
 }
 
+#[cfg(feature = "lossless")]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        (self.1, self.0).partial_cmp(&(other.1, other.0))
+        Some(self.cmp(other))
+    }
+}
+
+#[cfg(not(feature = "lossless"))]
+impl PartialOrd for ByteSizeRepr {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let Self(value, unit, _) = self;
+        let Self(other_value, other_unit, _) = other;
+        (unit, value).partial_cmp(&(other_unit, other_value))
     }
 }
 
@@ -507,7 +532,7 @@ impl FromStr for ByteSize {
                     #[rustfmt::skip]
                     if !({
                         if !matches!((value.len() - commas) % 3, 0) { parts.next() } else { None }
-                            .map_or(true, |tip| tip.len() < 3)
+                            .is_none_or(|tip| tip.len() < 3)
                     } && parts.all(|part| part.len() == 3))
                     { Err(ParseError::InvalidThousandsFormat)? };
                 }
@@ -526,7 +551,8 @@ impl FromStr for ByteSize {
 
 #[cfg(test)]
 mod tests {
-    use super::{sizes::*, *};
+    use super::sizes::*;
+    use super::*;
 
     #[test]
     fn bytesize() {
@@ -866,7 +892,7 @@ mod tests {
         );
 
         assert_eq!(
-            Ok(ByteSize::of(43_456.2466, KIBI_BYTE)),
+            Ok(ByteSize::of(43456.2466, KIBI_BYTE)),
             "43,456.2466 KiB".parse::<ByteSize>()
         );
 

@@ -1,12 +1,9 @@
-use super::{
-    Int, Mode, ParseError,
-    UnitPrefix::{self, *},
-};
-use std::{
-    cmp::{Ord, Ordering},
-    fmt,
-    str::FromStr,
-};
+use std::cmp::{Ord, Ordering};
+use std::fmt;
+use std::str::FromStr;
+
+use super::UnitPrefix::{self, *};
+use super::{Int, Mode, ParseError};
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
@@ -74,7 +71,9 @@ pub mod sizes {
         #[cfg(feature = "u128")] pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
-    pub use {binary::*, decimal::*, noprefix::*};
+    pub use binary::*;
+    pub use decimal::*;
+    pub use noprefix::*;
 
     #[rustfmt::skip]
     pub mod bits {
@@ -514,7 +513,7 @@ impl FromStr for Unit {
         if s.is_empty() {
             Err(ParseError::EmptyInput)
         } else {
-            let index = s.rfind(|c| matches!(c, 'b' | 'B')).unwrap_or(0);
+            let index = s.rfind(['b', 'B']).unwrap_or(0);
             let (prefix, size_variant) = s.split_at(index);
             let size_variant = size_variant.parse::<SizeVariant>()?;
             #[rustfmt::skip]
@@ -540,7 +539,8 @@ impl FromStr for Unit {
 
 #[cfg(test)]
 mod tests {
-    use super::{sizes::*, *};
+    use super::sizes::*;
+    use super::*;
 
     #[test]
     fn size_variant() {
