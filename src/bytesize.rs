@@ -45,27 +45,25 @@ mod flags {
 
             /// With [`Long`](Self::Long), never pluralize: `2.13 KiloByte`.
             const NoPlural               = 1 << 3;
-            /// With [`Long`](Self::Long), always pluralize: `1 Bytes`.
-            const ForcePlural            = 1 << 4;
 
             /// With [`Long`](Self::Long), capitalize only the first letter:
             /// `2.13 Kilobytes`.
-            const NoMultiCaps            = 1 << 5;
+            const NoMultiCaps            = 1 << 4;
 
             /// Lowercase the whole unit: `2.13 kb, 1024.43 mib`.
-            const LowerCaps              = 1 << 6;
+            const LowerCaps              = 1 << 5;
             /// Uppercase the whole unit: `2.13 KB, 1024.43 MIB`.
-            const UpperCaps              = 1 << 7;
+            const UpperCaps              = 1 << 6;
 
             /// Truncate the fractional part: `2 KB, 1024 MiB`.
-            const NoFraction             = 1 << 8;
+            const NoFraction             = 1 << 7;
             /// Always show a fractional part: `1.00 B, 2.13 KB`.
-            const ForceFraction          = 1 << 9;
+            const ForceFraction          = 1 << 8;
 
             /// Group the whole part in thousands: `1,024.43 MiB`.
-            const ShowThousandsSeparator = 1 << 10;
+            const ShowThousandsSeparator = 1 << 9;
             /// Omit the space between number and unit: `2.13KB`.
-            const NoSpace                = 1 << 11;
+            const NoSpace                = 1 << 10;
         }
     }
 }
@@ -629,26 +627,15 @@ impl fmt::Display for ByteSizeRepr {
         };
 
         let unit_part = {
-            let (sign_minus, alternate, sign_plus) = (f.sign_minus(), f.alternate(), f.sign_plus());
-
-            let (initials, condensed, long) = if sign_minus || alternate || sign_plus {
-                (
-                    (sign_minus && !alternate),
-                    (sign_minus && alternate),
-                    sign_plus,
-                )
-            } else {
-                (
-                    flags.contains(Format::Initials),
-                    flags.contains(Format::Condensed),
-                    flags.contains(Format::Long),
-                )
-            };
+            let (initials, condensed, long) = (
+                flags.contains(Format::Initials),
+                flags.contains(Format::Condensed),
+                flags.contains(Format::Long),
+            );
 
             let mut unit = if long {
                 size_unit.symbol_long(
-                    (flags.contains(Format::ForcePlural) || (sign_plus && alternate))
-                        || (!flags.contains(Format::NoPlural) && (is_plural || has_fract)),
+                    !flags.contains(Format::NoPlural) && (is_plural || has_fract),
                     !flags.contains(Format::NoMultiCaps),
                 )
             } else if condensed {
@@ -996,8 +983,14 @@ mod tests {
         let repr_1 = ByteSize::of(1, MEGA_BYTE).repr(Mode::Decimal);
         let repr_2 = ByteSize::of(2, MEGA_BYTE).repr(Mode::Decimal);
 
-        assert_eq!("1 MegaByte", format!("{:+}", repr_1));
-        assert_eq!("2 MegaBytes", format!("{:+}", repr_2));
+        assert_eq!("1 MegaByte", repr_1.with(Format::Long).to_string());
+        assert_eq!("2 MegaBytes", repr_2.with(Format::Long).to_string());
+
+        // NoPlural pins the singular even for a plural count.
+        assert_eq!(
+            "2 MegaByte",
+            repr_2.with(Format::Long | Format::NoPlural).to_string()
+        );
     }
 
     #[test]
@@ -1053,38 +1046,34 @@ mod tests {
 
     #[test]
     fn format_repr() {
-        // format specs take higher precedence over repr config
         let repr = ByteSize::of(1.59, MEGA_BYTE).repr(Mode::Decimal);
 
-        assert_eq!("1.59 MegaBytes", format!("{:+}", repr));
+        // a fractional value pluralizes the long unit
+        assert_eq!("1.59 MegaBytes", repr.with(Format::Long).to_string());
 
-        assert_eq!("1 MegaByte", format!("{:+}", repr.with(Format::NoFraction)));
-
+        // truncating the fraction drops back to a singular whole
         assert_eq!(
-            "1 MegaBytes",
-            format!("{:+#}", repr.with(Format::NoFraction))
+            "1 MegaByte",
+            repr.with(Format::Long | Format::NoFraction).to_string()
         );
 
+        // NoPlural holds the singular even with a fraction present
         assert_eq!(
             "1.59 MegaByte",
-            format!("{:+}", repr.with(Format::NoPlural))
+            repr.with(Format::Long | Format::NoPlural).to_string()
         );
 
-        // the format spec's `plural (+#)` took precedence over repr config's `NoPlural`
-        assert_eq!(
-            "1.59 MegaBytes",
-            format!("{:+#}", repr.with(Format::NoPlural))
-        );
-
-        assert_eq!(
-            "1 MegaBytes",
-            format!("{:+}", repr.with(Format::NoFraction | Format::ForcePlural))
-        );
-
-        // the format spec's `condensed (-#)` took precedence over repr config's `Long`
+        // Condensed alone leaves just the prefix initial
         assert_eq!(
             "1.59M",
-            format!("{:-#}", repr.with(Format::Long | Format::NoSpace))
+            repr.with(Format::Condensed | Format::NoSpace).to_string()
+        );
+
+        // Long wins when both Long and Condensed are set
+        assert_eq!(
+            "1.59MegaBytes",
+            repr.with(Format::Long | Format::Condensed | Format::NoSpace)
+                .to_string()
         );
     }
 

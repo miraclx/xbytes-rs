@@ -334,13 +334,10 @@ impl SizeVariant {
 }
 
 impl fmt::Display for SizeVariant {
+    /// Writes the canonical symbol (`b` or `B`). For the long name, call
+    /// [`symbol_long`](SizeVariant::symbol_long) directly.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let variant = if f.alternate() {
-            self.symbol_long(f.sign_plus(), true)
-        } else {
-            self.symbol()
-        };
-        f.write_str(variant)
+        f.write_str(self.symbol())
     }
 }
 
@@ -571,19 +568,14 @@ impl PartialOrd for Unit {
 }
 
 impl fmt::Display for Unit {
+    /// Writes the canonical symbol (`KiB`, `MB`, ...). For the long,
+    /// condensed, or initials spellings, call
+    /// [`symbol_long`](Unit::symbol_long),
+    /// [`symbol_condensed`](Unit::symbol_condensed), or
+    /// [`symbol_initials`](Unit::symbol_initials) directly, or render a whole
+    /// [`ByteSize`](crate::ByteSize) with the [`Format`](crate::Format) flags.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let unit = if f.sign_plus() {
-            self.symbol_long(!f.alternate(), true)
-        } else if f.sign_minus() {
-            if f.alternate() {
-                self.symbol_condensed().to_string()
-            } else {
-                self.symbol_initials()
-            }
-        } else {
-            self.symbol()
-        };
-        write!(f, "{}", unit)
+        f.write_str(&self.symbol())
     }
 }
 
@@ -683,16 +675,6 @@ mod tests {
                 "expected [{:?}] to be represented in its long single-caps form as [{}]",
                 unit,
                 repr
-            );
-            let value = if index % 2 == 0 {
-                format!("{:#}", unit)
-            } else {
-                format!("{:+#}", unit)
-            };
-            assert_eq!(
-                *repr, value,
-                "expected [{:?}] to be represented in long form as [{}]",
-                unit, repr
             );
         }
     }
@@ -1171,19 +1153,20 @@ mod tests {
         ) in map.iter()
         {
             assert_eq!(
-                (*condensed, *condensed),
-                (unit.symbol_condensed(), format!("{:-#}", unit).as_str()),
+                *condensed,
+                unit.symbol_condensed(),
                 "expected [{:?}] to be condensed as [{}]",
                 unit,
                 condensed
             );
             assert_eq!(
-                (initials.to_string(), initials.to_string()),
-                (unit.symbol_initials(), format!("{:-}", unit)),
+                initials.to_string(),
+                unit.symbol_initials(),
                 "expected [{:?}] to have initials [{}]",
                 unit,
                 initials
             );
+            // the plain Display now writes the canonical symbol only
             assert_eq!(
                 (normal.to_string(), normal.to_string()),
                 (unit.symbol(), format!("{}", unit)),
@@ -1192,8 +1175,8 @@ mod tests {
                 normal
             );
             assert_eq!(
-                (long.to_string(), long.to_string()),
-                (unit.symbol_long(false, true), format!("{:+#}", unit)),
+                long.to_string(),
+                unit.symbol_long(false, true),
                 "expected [{:?}] to be represented in long form as [{}]",
                 unit,
                 long
@@ -1206,8 +1189,8 @@ mod tests {
                 long
             );
             assert_eq!(
-                (long_extra.to_string(), long_extra.to_string()),
-                (unit.symbol_long(true, true), format!("{:+}", unit)),
+                long_extra.to_string(),
+                unit.symbol_long(true, true),
                 "expected [{:?}] to be represented in long, plural form as [{}]",
                 unit,
                 long_extra

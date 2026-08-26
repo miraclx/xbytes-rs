@@ -190,15 +190,11 @@ impl UnitPrefix {
 }
 
 impl fmt::Display for UnitPrefix {
+    /// Writes the canonical symbol (`Ki`, `M`, ...). For the long name or the
+    /// shared initial, call [`symbol_long`](UnitPrefix::symbol_long) or
+    /// [`symbol_initials`](UnitPrefix::symbol_initials) directly.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let unit = if f.sign_minus() {
-            self.symbol_initials()
-        } else if f.sign_plus() {
-            self.symbol_long()
-        } else {
-            self.symbol()
-        };
-        f.write_str(unit)
+        f.write_str(self.symbol())
     }
 }
 
@@ -484,13 +480,6 @@ mod tests {
                 unit,
                 repr
             );
-            assert_eq!(
-                *repr,
-                format!("{:+}", unit),
-                "expected [{:?}] to be represented in long form as {}",
-                unit,
-                repr
-            );
         }
     }
 
@@ -514,13 +503,6 @@ mod tests {
             assert_eq!(
                 *repr,
                 unit.symbol_initials(),
-                "expected [{:?}] to be represented in short form as {}",
-                unit,
-                repr
-            );
-            assert_eq!(
-                *repr,
-                format!("{:-}", unit),
                 "expected [{:?}] to be represented in short form as {}",
                 unit,
                 repr
