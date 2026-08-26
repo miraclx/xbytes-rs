@@ -1,5 +1,3 @@
-use std::fmt;
-
 #[cfg(feature = "u128")]
 pub type Int = u128;
 #[cfg(not(feature = "u128"))]
@@ -119,43 +117,50 @@ pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, Repr
 pub use prefix::UnitPrefix;
 pub use unit::{sizes, SizeVariant, Unit};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+/// The error raised when a string cannot be parsed into a [`ByteSize`],
+/// [`Unit`], [`UnitPrefix`], or [`SizeVariant`].
+///
+/// The variant set is stable across the feature matrix: the two case-format
+/// variants are only produced under the default (case-sensitive) parser, but
+/// they exist unconditionally so a downstream `match` compiles against every
+/// feature set.
+///
+/// ```
+/// use xbytes::{ByteSize, ParseError};
+///
+/// assert_eq!("".parse::<ByteSize>().unwrap_err(), ParseError::EmptyInput);
+/// assert_eq!("10".parse::<ByteSize>().unwrap_err(), ParseError::MissingUnit);
+/// ```
+#[derive(thiserror::Error, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ParseError {
+    /// the input was empty
+    #[error("empty input")]
     EmptyInput,
+    /// a value was given with no trailing unit
+    #[error("missing unit")]
     MissingUnit,
+    /// the value component was not a parseable number
+    #[error("invalid value")]
     InvalidValue,
+    /// a unit was given with no leading value
+    #[error("missing value")]
     MissingValue,
+    /// the prefix component did not name a known prefix
+    #[error("invalid prefix")]
     InvalidPrefix,
+    /// converting between bits and bytes overflowed the backing integer
+    #[error("value overflow")]
     ValueOverflow,
+    /// the size variant was neither a bit nor a byte
+    #[error("invalid size variant")]
     InvalidSizeVariant,
+    /// the thousands separators were not aligned on three-digit groups
+    #[error("invalid thousands format")]
     InvalidThousandsFormat,
-    #[cfg(not(feature = "case-insensitive"))]
+    /// the unit was spelled with a case the sensitive parser rejects
+    #[error("invalid case: expected format like 'kB', 'Kb', 'KiB', 'Mb', 'MiB'")]
     InvalidUnitCaseFormat,
-    #[cfg(not(feature = "case-insensitive"))]
+    /// the prefix was spelled with a case the sensitive parser rejects
+    #[error("invalid case: expected format like 'k', 'K', 'Ki', 'M', 'Mi'")]
     InvalidPrefixCaseFormat,
 }
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.pad(match self {
-            ParseError::EmptyInput => "empty input",
-            ParseError::MissingUnit => "missing unit",
-            ParseError::InvalidValue => "invalid value",
-            ParseError::MissingValue => "missing value",
-            ParseError::InvalidPrefix => "invalid prefix",
-            ParseError::InvalidSizeVariant => "invalid size variant",
-            ParseError::InvalidThousandsFormat => "invalid thousands format",
-            ParseError::ValueOverflow => "value overflow",
-            #[cfg(not(feature = "case-insensitive"))]
-            ParseError::InvalidUnitCaseFormat => {
-                "invalid case: expected format like 'kB', 'Kb', 'KiB', 'Mb', 'MiB'"
-            }
-            #[cfg(not(feature = "case-insensitive"))]
-            ParseError::InvalidPrefixCaseFormat => {
-                "invalid case: expected format like 'k', 'K', 'Ki', 'M', 'Mi'"
-            }
-        })
-    }
-}
-
-impl std::error::Error for ParseError {}
