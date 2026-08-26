@@ -1,21 +1,63 @@
-//! Convert between raw byte counts and human-readable sizes, both ways.
+//! The most complete and most correct byte-size formatter in Rust.
 //!
-//! Build a [`ByteSize`] from a number and a [`Unit`], then render it: either
-//! let [`repr`](ByteSize::repr) pick the largest fitting prefix, or pin an
-//! explicit unit with [`repr_as`](ByteSize::repr_as). Parsing runs the other
-//! direction through [`FromStr`](core::str::FromStr).
+//! xbytes turns a raw byte count into a human-readable size, and parses one
+//! back, with control no other crate in the ecosystem offers:
+//!
+//! - **Exact-fraction arithmetic.** Conversions run through exact rationals
+//!   rather than `f64` (with the default `lossless` feature), so repeated math
+//!   never drifts and high precision never surfaces float noise.
+//! - **A fully-typed [`Unit`].** Prefix (SI or IEC) and variant (bit or byte)
+//!   are enum-backed values, not stringly-typed guesses: `KiB` and `KB` are
+//!   distinct, comparable, round-trippable units.
+//! - **The widest formatting vocabulary anywhere:** thousands separators,
+//!   arbitrary precision, long unit words, pluralization and capitalization
+//!   control, bits or bytes, SI or IEC, all composable.
+//!
+//! # The fluent front door
+//!
+//! Build a [`ByteSize`] from a number and a [`Unit`], then reach for the fluent
+//! formatter. [`iec`](ByteSize::iec) / [`si`](ByteSize::si) /
+//! [`bits`](ByteSize::bits) choose the number system, and the refiners on the
+//! returned [`ByteSizeRepr`] ([`long`](ByteSizeRepr::long),
+//! [`precision`](ByteSizeRepr::precision),
+//! [`separator`](ByteSizeRepr::separator), ...) chain in any order:
 //!
 //! ```
 //! use xbytes::prelude::*;
 //!
-//! // number + unit -> size, auto-prefixed on the way out
 //! let size = ByteSize::of(1536, KIBI_BYTE);
-//! assert_eq!(size.to_string(), "1.50 MiB");
-//! assert_eq!(size.repr(Mode::Decimal).to_string(), "1.57 MB");
 //!
-//! // and back again
-//! let parsed: ByteSize = "1.5 MiB".parse().unwrap();
-//! assert_eq!(parsed, size);
+//! assert_eq!(size.to_string(), "1.50 MiB");         // Display default: IEC
+//! assert_eq!(size.si().to_string(), "1.57 MB");     // decimal, auto-prefixed
+//! assert_eq!(size.bits().to_string(), "12 Mib");    // denominated in bits
+//! assert_eq!(size.iec().long().precision(3).to_string(), "1.500 MebiBytes");
+//!
+//! // and back again, exactly
+//! let a: ByteSize = "1,024 MiB".parse().unwrap();
+//! let b: ByteSize = "1 GiB".parse().unwrap();
+//! assert_eq!(a, b);
+//! ```
+//!
+//! The [`Format`] bitflags and [`ReprConfigVariant`] knobs remain available via
+//! [`with`](ByteSizeRepr::with) for anything the refiners do not name; the
+//! refiners are the primary, documented path.
+//!
+//! # What only xbytes can render
+//!
+//! ```
+//! use xbytes::prelude::*;
+//!
+//! let size = ByteSize::of(58375, MEBI_BYTE);
+//!
+//! // pin a unit and group the thousands, with any separator
+//! assert_eq!(size.iec().pin(MEBI_BYTE).thousands().to_string(), "58,375 MiB");
+//! assert_eq!(size.iec().pin(MEBI_BYTE).separator("_").to_string(), "58_375 MiB");
+//!
+//! // arbitrary precision with no float noise, because the value is exact
+//! assert_eq!(
+//!     ByteSize::of(1536, KIBI_BYTE).iec().precision(20).to_string(),
+//!     "1.50000000000000000000 MiB",
+//! );
 //! ```
 //!
 //! # Feature flags
