@@ -465,10 +465,11 @@ impl fmt::Display for ByteSizeRepr {
 
 macro_rules! parse_value {
     ($value:expr) => {{
+        let value: &str = $value;
         #[cfg(feature = "lossless")]
-        let val = Float::from_str(&$value);
+        let val = Float::from_str(value);
         #[cfg(not(feature = "lossless"))]
-        let val = <f64 as FromStr>::from_str($value);
+        let val = <f64 as FromStr>::from_str(value);
         val
     }};
 }
@@ -510,7 +511,7 @@ impl FromStr for ByteSize {
                     } && parts.all(|part| part.len() == 3))
                     { Err(ParseError::InvalidThousandsFormat)? };
                 }
-                parse_value!(value.replacen(',', "", commas))
+                parse_value!(&value.replacen(',', "", commas))
             } else {
                 parse_value!(value)
             }
