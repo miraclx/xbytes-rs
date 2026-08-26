@@ -22,11 +22,15 @@ macro_rules! f {
 
 macro_rules! i {
     ($value:expr) => {{
+        // Collapse a Float back to a whole byte count. Non-finite or negative
+        // states (overflow to infinity, NaN, an underflowed subtraction) are
+        // saturated rather than panicked on, per the no-panic-on-values rule:
+        // positive infinity to the maximum, everything else to zero.
         #[cfg(feature = "lossless")]
-        let val = if let fraction::GenericFraction::Rational(fraction::Sign::Plus, r) = $value {
-            r.numer() / r.denom()
-        } else {
-            panic!("conversion to Int failed: expected unsigned rational float")
+        let val = match $value {
+            fraction::GenericFraction::Rational(fraction::Sign::Plus, r) => r.numer() / r.denom(),
+            fraction::GenericFraction::Infinity(fraction::Sign::Plus) => Int::MAX,
+            _ => 0,
         };
         #[cfg(not(feature = "lossless"))]
         let val = $value as Int;

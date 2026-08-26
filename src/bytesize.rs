@@ -385,16 +385,38 @@ impl From<ByteSizeRepr> for ByteSize {
     }
 }
 
-// thousands separator
-// thsep("503") -> ['503']
-// thsep("405503") -> ['405', '503']
-// thsep("1234567") -> ['1', '234', '567']
+/// Split a run of digits into thousands groups, most-significant first.
+///
+/// Slices on character boundaries via `char_indices`, so no panicking
+/// `from_utf8` reconstruction is needed even were the input non-ASCII:
+/// the leading group carries the `len % 3` remainder, then groups of three.
+///
+/// ```text
+/// thsep("503")     -> ["503"]
+/// thsep("405503")  -> ["405", "503"]
+/// thsep("1234567") -> ["1", "234", "567"]
+/// ```
 fn thsep(digits: &str) -> impl Iterator<Item = &str> {
-    let (chars, tip) = (digits.as_bytes(), digits.len() % 3);
-    if tip != 0 { Some(&chars[..tip]) } else { None }
-        .into_iter()
-        .chain(chars[tip..].chunks(3))
-        .map(|digits| std::str::from_utf8(digits).expect("unexpected non-utf8 char encountered"))
+    // Byte offset of every character boundary, plus the end, so every slice
+    // taken below lands on a boundary and `from_utf8` is never needed.
+    let bounds: Vec<usize> = digits
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .chain(std::iter::once(digits.len()))
+        .collect();
+    let count = bounds.len() - 1;
+    let tip = count % 3;
+    // Walk the boundary list in steps: a leading group of `tip` characters
+    // (when the length is not a clean multiple of three) then groups of three.
+    let mut start = 0;
+    std::iter::from_fn(move || {
+        (start < count).then(|| {
+            let size = if start == 0 && tip != 0 { tip } else { 3 };
+            let (lo, hi) = (bounds[start], bounds[start + size]);
+            start += size;
+            &digits[lo..hi]
+        })
+    })
 }
 
 impl fmt::Display for ByteSizeRepr {
@@ -553,6 +575,19 @@ impl FromStr for ByteSize {
 mod tests {
     use super::sizes::*;
     use super::*;
+
+    #[test]
+    fn thousands_grouping() {
+        fn group(s: &str) -> Vec<&str> {
+            thsep(s).collect()
+        }
+        assert_eq!(group(""), Vec::<&str>::new());
+        assert_eq!(group("5"), ["5"]);
+        assert_eq!(group("503"), ["503"]);
+        assert_eq!(group("1234"), ["1", "234"]);
+        assert_eq!(group("405503"), ["405", "503"]);
+        assert_eq!(group("1234567"), ["1", "234", "567"]);
+    }
 
     #[test]
     fn bytesize() {
