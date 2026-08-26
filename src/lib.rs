@@ -28,9 +28,9 @@
 //!   on `f64`'s infinities (implies `lossless`).
 //! - `bits`: store the count in bits rather than bytes. This flips the return
 //!   types of [`ByteSize::from_bits`], [`from_bytes`](ByteSize::from_bytes),
-//!   [`bits`](ByteSize::bits) and [`bytes`](ByteSize::bytes) between an
-//!   infallible `Self`/[`Int`] and a fallible [`Result`], since only one
-//!   direction can overflow. Pick one shape per dependency graph.
+//!   [`bit_count`](ByteSize::bit_count) and [`byte_count`](ByteSize::byte_count)
+//!   between an infallible `Self`/[`Int`] and a fallible [`Result`], since only
+//!   one direction can overflow. Pick one shape per dependency graph.
 //! - `case-insensitive`: accept units in any case (`kib`, `MB`, `gIb`) rather
 //!   than the stricter default parser.
 

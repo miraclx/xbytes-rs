@@ -293,11 +293,12 @@ impl ByteSize {
 
     /// The raw bit count. Infallible under the `bits` feature (bits are the
     /// store unit); a [`Result`] without it, where the byte-to-bit multiply can
-    /// overflow.
+    /// overflow. (Named `bit_count`, not `bits`, to leave the short verb for the
+    /// [`bits`](ByteSize::bits) renderer.)
     #[inline]
     #[cfg(feature = "bits")]
     #[must_use]
-    pub const fn bits(&self) -> Int {
+    pub const fn bit_count(&self) -> Int {
         self.0
     }
 
@@ -306,7 +307,7 @@ impl ByteSize {
     /// on failure.
     #[inline]
     #[cfg(feature = "bits")]
-    pub const fn bytes(&self) -> Result<Int, ParseError> {
+    pub const fn byte_count(&self) -> Result<Int, ParseError> {
         ok_or!(self.0.checked_div(8), ParseError::ValueOverflow)
     }
 
@@ -315,16 +316,17 @@ impl ByteSize {
     #[inline]
     #[cfg(not(feature = "bits"))]
     #[must_use]
-    pub const fn bytes(&self) -> Int {
+    pub const fn byte_count(&self) -> Int {
         self.0
     }
 
     /// The raw bit count. Fallible without the `bits` feature, where the
     /// byte-to-bit multiply can overflow the store; returns
-    /// [`ParseError::ValueOverflow`] on failure.
+    /// [`ParseError::ValueOverflow`] on failure. (Named `bit_count`, not `bits`,
+    /// to leave the short verb for the [`bits`](ByteSize::bits) renderer.)
     #[inline]
     #[cfg(not(feature = "bits"))]
-    pub const fn bits(&self) -> Result<Int, ParseError> {
+    pub const fn bit_count(&self) -> Result<Int, ParseError> {
         ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
     }
 
@@ -403,6 +405,50 @@ impl ByteSize {
             .saturating_div(Float::from_int(unit.effective_value()))
             .saturating_mul(Float::from_small(8));
         ByteSizeRepr::of(value, unit)
+    }
+
+    /// Render in binary (IEC, power-of-1024) units: `1.50 MiB`. The auto-prefixed
+    /// default, and the fluent front door to the [`Format`] refiners on
+    /// [`ByteSizeRepr`].
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let size = ByteSize::of(1536, KIBI_BYTE);
+    /// assert_eq!(size.iec().to_string(), "1.50 MiB");
+    /// assert_eq!(size.iec().long().precision(3).to_string(), "1.500 MebiBytes");
+    /// ```
+    #[must_use]
+    pub fn iec(&self) -> ByteSizeRepr {
+        self.repr(Mode::Default)
+    }
+
+    /// Render in decimal (SI, power-of-1000) units: `1.57 MB`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let size = ByteSize::of(1536, KIBI_BYTE);
+    /// assert_eq!(size.si().to_string(), "1.57 MB");
+    /// ```
+    #[must_use]
+    pub fn si(&self) -> ByteSizeRepr {
+        self.repr(Mode::Decimal)
+    }
+
+    /// Render denominated in bits rather than bytes, binary-prefixed: `12 Mib`.
+    /// For decimal bits, chain from the power-user [`repr`](ByteSize::repr) with
+    /// `Mode::Decimal | Mode::Bits`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let size = ByteSize::of(1.5, MEBI_BYTE);
+    /// assert_eq!(size.bits().to_string(), "12 Mib");
+    /// ```
+    #[must_use]
+    pub fn bits(&self) -> ByteSizeRepr {
+        self.repr(Mode::Bits)
     }
 }
 
@@ -522,6 +568,11 @@ impl ByteSizeRepr {
     /// Return a copy with more formatting folded in: a [`Format`] flag, a
     /// [`ReprConfigVariant`], or a whole [`ReprFormat`].
     ///
+    /// This is the power-user seam. The named refiners below
+    /// ([`long`](Self::long), [`precision`](Self::precision),
+    /// [`separator`](Self::separator), ...) are thin, discoverable wrappers over
+    /// it and are the primary documented path.
+    ///
     /// ```
     /// use xbytes::prelude::*;
     ///
@@ -532,6 +583,145 @@ impl ByteSizeRepr {
     pub fn with(&self, conf: impl ReprConfig) -> Self {
         let Self(value, unit, format) = self;
         Self(*value, *unit, conf.apply(format))
+    }
+
+    /// Spell the unit in full: `MebiBytes`, `KiloBytes`. Pluralizes and
+    /// capitalizes per [`plural`](Self::plural) and the caps refiners.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().long().to_string(), "2 MebiBytes");
+    /// ```
+    #[must_use]
+    pub fn long(&self) -> Self {
+        self.with(Format::Long)
+    }
+
+    /// Reduce the unit to the prefix initial only: `M`, `Ki` becomes `K`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().condensed().to_string(), "2 M");
+    /// ```
+    #[must_use]
+    pub fn condensed(&self) -> Self {
+        self.with(Format::Condensed)
+    }
+
+    /// Drop the binary `i` from the symbol: `MiB` becomes `MB`, `KiB` becomes
+    /// `KB`. The numeric value is unchanged, only the spelling.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().symbol().to_string(), "2 MB");
+    /// ```
+    #[must_use]
+    pub fn symbol(&self) -> Self {
+        self.with(Format::Initials)
+    }
+
+    /// Set the number of digits after the decimal point, and show them even for
+    /// a whole value: `precision(3)` renders `1.5` as `1.500`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(1536, KIBI_BYTE).iec().precision(3).to_string(), "1.500 MiB");
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().precision(2).to_string(), "2.00 MiB");
+    /// ```
+    #[must_use]
+    pub fn precision(&self, digits: usize) -> Self {
+        self.with(Precision(digits)).with(Format::ForceFraction)
+    }
+
+    /// Group the whole part into thousands with a custom separator, and turn
+    /// grouping on. Pass any `&'static str`, including a multi-byte glyph.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// let size = ByteSize::of(58375, MEBI_BYTE);
+    /// assert_eq!(size.iec().pin(MEBI_BYTE).separator("_").to_string(), "58_375 MiB");
+    /// ```
+    #[must_use]
+    pub fn separator(&self, separator: &'static str) -> Self {
+        self.with(ThousandsSeparator(separator))
+            .with(Format::ShowThousandsSeparator)
+    }
+
+    /// Group the whole part into thousands with the default comma separator.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// let size = ByteSize::of(58375, MEBI_BYTE);
+    /// assert_eq!(size.iec().pin(MEBI_BYTE).thousands().to_string(), "58,375 MiB");
+    /// ```
+    #[must_use]
+    pub fn thousands(&self) -> Self {
+        self.with(Format::ShowThousandsSeparator)
+    }
+
+    /// Re-render at one explicit unit instead of the auto-picked prefix, keeping
+    /// the formatting built up so far. The fluent sibling of
+    /// [`ByteSize::repr_as`].
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// let size = ByteSize::of(1, GIBI_BYTE);
+    /// assert_eq!(size.iec().pin(MEBI_BYTE).to_string(), "1024 MiB");
+    /// ```
+    #[must_use]
+    pub fn pin(&self, unit: impl Into<Unit>) -> Self {
+        let Self(value, from_unit, format) = self;
+        let unit = unit.into();
+        // Rescale the display value from the current unit into the requested one
+        // without collapsing to a whole byte count, so no precision is lost:
+        // value * from_unit_bits / to_unit_bits.
+        let rescaled = value
+            .saturating_mul(Float::from_int(from_unit.effective_value()))
+            .saturating_div(Float::from_int(unit.effective_value()));
+        Self(rescaled, unit, *format)
+    }
+
+    /// Choose whether the long unit pluralizes. `plural(true)` is the default
+    /// (pluralize any value that is not exactly one); `plural(false)` is the
+    /// [`Format::NoPlural`] house-style pin that holds the singular even for a
+    /// plural count. Grammatically-wrong forced plurals like `1 Bytes` are not
+    /// expressible by design.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// let size = ByteSize::of(2, MEBI_BYTE);
+    /// assert_eq!(size.iec().long().plural(true).to_string(), "2 MebiBytes");
+    /// assert_eq!(size.iec().long().plural(false).to_string(), "2 MebiByte");
+    /// ```
+    #[must_use]
+    pub fn plural(&self, plural: bool) -> Self {
+        if plural {
+            *self
+        } else {
+            self.with(Format::NoPlural)
+        }
+    }
+
+    /// Drop the space between the number and the unit: `2 MiB` becomes `2MiB`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().no_space().to_string(), "2MiB");
+    /// ```
+    #[must_use]
+    pub fn no_space(&self) -> Self {
+        self.with(Format::NoSpace)
+    }
+
+    /// Lowercase the whole unit: `MiB` becomes `mib`, `KB` becomes `kb`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    /// assert_eq!(ByteSize::of(2, MEBI_BYTE).iec().lower().to_string(), "2 mib");
+    /// ```
+    #[must_use]
+    pub fn lower(&self) -> Self {
+        self.with(Format::LowerCaps)
     }
 }
 
@@ -1074,6 +1264,52 @@ mod tests {
             "1.59MegaBytes",
             repr.with(Format::Long | Format::Condensed | Format::NoSpace)
                 .to_string()
+        );
+    }
+
+    #[test]
+    fn fluent_api() {
+        let size = ByteSize::of(1536, KIBI_BYTE);
+
+        // mode entries
+        assert_eq!("1.50 MiB", size.iec().to_string());
+        assert_eq!("1.57 MB", size.si().to_string());
+        assert_eq!("12 Mib", size.bits().to_string());
+
+        // spelling refiners, chainable
+        assert_eq!("1.50 MebiBytes", size.iec().long().to_string());
+        assert_eq!("1.50 M", size.iec().condensed().to_string());
+        assert_eq!("1.50 MB", size.iec().symbol().to_string());
+        assert_eq!("1.50 mib", size.iec().lower().to_string());
+        assert_eq!("1.50MiB", size.iec().no_space().to_string());
+
+        // numeric refiners
+        assert_eq!("1.500 MiB", size.iec().precision(3).to_string());
+        assert_eq!(
+            "1.500 MebiBytes",
+            size.iec().long().precision(3).to_string()
+        );
+
+        // pin + grouping
+        let big = ByteSize::of(58375, MEBI_BYTE);
+        assert_eq!(
+            "58,375 MiB",
+            big.iec().pin(MEBI_BYTE).thousands().to_string()
+        );
+        assert_eq!(
+            "58_375 MiB",
+            big.iec().pin(MEBI_BYTE).separator("_").to_string()
+        );
+
+        // plural control
+        let two = ByteSize::of(2, MEBI_BYTE);
+        assert_eq!("2 MebiBytes", two.iec().long().plural(true).to_string());
+        assert_eq!("2 MebiByte", two.iec().long().plural(false).to_string());
+
+        // pin is lossless: 1 GiB shown at MiB is exactly 1024
+        assert_eq!(
+            "1024 MiB",
+            ByteSize::of(1, GIBI_BYTE).iec().pin(MEBI_BYTE).to_string()
         );
     }
 
