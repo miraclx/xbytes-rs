@@ -3,24 +3,48 @@ use std::str::FromStr;
 
 use super::{Int, ParseError};
 
+/// A metric (SI) or binary (IEC) unit prefix used to scale a byte size.
 #[rustfmt::skip]
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum UnitPrefix {
-    Kilo, Kibi,
-    Mega, Mebi,
-    Giga, Gibi,
-    Tera, Tebi,
-    Peta, Pebi,
-    Exa , Exbi,
+    /// The decimal kilo prefix (10^3, symbol "K").
+    Kilo,
+    /// The binary kibi prefix (2^10, symbol "Ki").
+    Kibi,
+    /// The decimal mega prefix (10^6, symbol "M").
+    Mega,
+    /// The binary mebi prefix (2^20, symbol "Mi").
+    Mebi,
+    /// The decimal giga prefix (10^9, symbol "G").
+    Giga,
+    /// The binary gibi prefix (2^30, symbol "Gi").
+    Gibi,
+    /// The decimal tera prefix (10^12, symbol "T").
+    Tera,
+    /// The binary tebi prefix (2^40, symbol "Ti").
+    Tebi,
+    /// The decimal peta prefix (10^15, symbol "P").
+    Peta,
+    /// The binary pebi prefix (2^50, symbol "Pi").
+    Pebi,
+    /// The decimal exa prefix (10^18, symbol "E").
+    Exa ,
+    /// The binary exbi prefix (2^60, symbol "Ei").
+    Exbi,
+    /// The decimal zetta prefix (10^21, symbol "Z").
     #[cfg(feature = "u128")] Zetta,
+    /// The binary zebi prefix (2^70, symbol "Zi").
     #[cfg(feature = "u128")] Zebi ,
+    /// The decimal yotta prefix (10^24, symbol "Y").
     #[cfg(feature = "u128")] Yotta,
+    /// The binary yobi prefix (2^80, symbol "Yi").
     #[cfg(feature = "u128")] Yobi ,
 }
 
 use UnitPrefix::*;
 
 impl UnitPrefix {
+    /// All decimal (power-of-1000) prefixes in ascending order.
     #[rustfmt::skip]
     pub const DECIMAL: [UnitPrefix; {
         #[cfg(feature = "u128")] { 8 }
@@ -31,6 +55,7 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] Yotta,
     ];
 
+    /// All binary (power-of-1024) prefixes in ascending order.
     #[rustfmt::skip]
     pub const BINARY: [UnitPrefix; {
         #[cfg(feature = "u128")] { 8 }
@@ -41,6 +66,7 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] Yobi,
     ];
 
+    /// All prefixes, decimal and binary interleaved, in ascending order.
     #[rustfmt::skip]
     pub const ALL: [UnitPrefix; {
         #[cfg(feature = "u128")] { 16 }
@@ -54,26 +80,32 @@ impl UnitPrefix {
         #[cfg(feature = "u128")] Yobi,
     ];
 
+    /// The smallest prefix, useful as a lower bound when scaling.
     pub const MIN: UnitPrefix = Kilo;
 
+    /// The largest available prefix, useful as an upper bound when scaling.
     #[rustfmt::skip]
     pub const MAX: UnitPrefix = {
         #[cfg(feature = "u128")]      { Yobi }
         #[cfg(not(feature = "u128"))] { Exbi }
     };
 
+    /// Whether this is a decimal (power-of-1000) prefix.
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
     }
 
+    /// Whether this is a binary (power-of-1024) prefix.
     pub const fn is_binary(&self) -> bool {
         ((*self as u8) & 1) == 1
     }
 
+    /// The magnitude index of this prefix, so decimal and binary counterparts share one.
     pub const fn index(&self) -> usize {
         (*self as usize) / 2
     }
 
+    /// The decimal prefix of the same magnitude (returns itself if already decimal).
     pub const fn decimal(&self) -> Self {
         if self.is_binary() {
             return Self::DECIMAL[self.index()];
@@ -81,6 +113,7 @@ impl UnitPrefix {
         *self
     }
 
+    /// The binary prefix of the same magnitude (returns itself if already binary).
     pub const fn binary(&self) -> Self {
         if self.is_decimal() {
             return Self::BINARY[self.index()];
@@ -88,6 +121,7 @@ impl UnitPrefix {
         *self
     }
 
+    /// The numeric multiplier this prefix represents, for converting to raw bytes.
     #[rustfmt::skip]
     #[inline]
     pub const fn effective_value(&self) -> Int {
@@ -105,6 +139,7 @@ impl UnitPrefix {
         }
     }
 
+    /// The short symbol for this prefix (e.g. "K" or "Ki").
     #[rustfmt::skip]
     pub const fn symbol(&self) -> &'static str {
         match self {
@@ -121,6 +156,7 @@ impl UnitPrefix {
         }
     }
 
+    /// The full name for this prefix (e.g. "Kilo" or "Kibi").
     #[rustfmt::skip]
     pub const fn symbol_long(&self) -> &'static str {
         match self {
@@ -137,6 +173,7 @@ impl UnitPrefix {
         }
     }
 
+    /// The single-letter initial shared by a prefix and its counterpart (e.g. "K").
     #[rustfmt::skip]
     pub const fn symbol_initials(&self) -> &'static str {
         match self {

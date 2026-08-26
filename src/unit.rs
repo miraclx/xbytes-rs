@@ -5,9 +5,12 @@ use std::str::FromStr;
 use super::UnitPrefix::{self, *};
 use super::{Int, Mode, ParseError};
 
+/// The base measurement of a unit, either a bit or a byte.
 #[derive(Eq, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum SizeVariant {
+    /// A single bit.
     Bit,
+    /// A byte (eight bits).
     Byte,
 }
 
@@ -16,58 +19,97 @@ use SizeVariant::*;
 // MAX 64-bit value => 2 EiB
 // MAX 128-bit value => 35184372088832 YiB
 
+/// A size unit, an optional prefix paired with a bit or byte variant.
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct Unit(Option<UnitPrefix>, SizeVariant);
 
+/// Predefined size unit constants and grouped collections of them.
 pub mod sizes {
     use super::*;
 
+    /// Unprefixed units, the bare bit and byte.
     #[rustfmt::skip]
     pub mod noprefix {
         use super::*;
+        /// The bit unit (no prefix).
         pub const BIT: Unit = Unit(None, Bit);
+        /// The byte unit (no prefix).
         pub const BYTE: Unit = Unit(None, Byte);
     }
 
+    /// Decimal (SI, power-of-1000) prefixed units.
     #[rustfmt::skip]
     pub mod decimal {
         use super::*;
+        /// The kilobit unit (decimal, 1000 bits).
         pub const KILO_BIT : Unit = Unit::of(Kilo, Bit );
+        /// The megabit unit (decimal, 1000^2 bits).
         pub const MEGA_BIT : Unit = Unit::of(Mega, Bit );
+        /// The gigabit unit (decimal, 1000^3 bits).
         pub const GIGA_BIT : Unit = Unit::of(Giga, Bit );
+        /// The terabit unit (decimal, 1000^4 bits).
         pub const TERA_BIT : Unit = Unit::of(Tera, Bit );
+        /// The petabit unit (decimal, 1000^5 bits).
         pub const PETA_BIT : Unit = Unit::of(Peta, Bit );
+        /// The exabit unit (decimal, 1000^6 bits).
         pub const EXA_BIT  : Unit = Unit::of(Exa , Bit );
+        /// The kilobyte unit (decimal, 1000 bytes).
         pub const KILO_BYTE: Unit = Unit::of(Kilo, Byte);
+        /// The megabyte unit (decimal, 1000^2 bytes).
         pub const MEGA_BYTE: Unit = Unit::of(Mega, Byte);
+        /// The gigabyte unit (decimal, 1000^3 bytes).
         pub const GIGA_BYTE: Unit = Unit::of(Giga, Byte);
+        /// The terabyte unit (decimal, 1000^4 bytes).
         pub const TERA_BYTE: Unit = Unit::of(Tera, Byte);
+        /// The petabyte unit (decimal, 1000^5 bytes).
         pub const PETA_BYTE: Unit = Unit::of(Peta, Byte);
+        /// The exabyte unit (decimal, 1000^6 bytes).
         pub const EXA_BYTE : Unit = Unit::of(Exa , Byte);
+        /// The zettabit unit (decimal, 1000^7 bits).
         #[cfg(feature = "u128")] pub const ZETTA_BIT : Unit = Unit::of(Zetta, Bit );
+        /// The yottabit unit (decimal, 1000^8 bits).
         #[cfg(feature = "u128")] pub const YOTTA_BIT : Unit = Unit::of(Yotta, Bit );
+        /// The zettabyte unit (decimal, 1000^7 bytes).
         #[cfg(feature = "u128")] pub const ZETTA_BYTE: Unit = Unit::of(Zetta, Byte);
+        /// The yottabyte unit (decimal, 1000^8 bytes).
         #[cfg(feature = "u128")] pub const YOTTA_BYTE: Unit = Unit::of(Yotta, Byte);
     }
 
+    /// Binary (IEC, power-of-1024) prefixed units.
     #[rustfmt::skip]
     pub mod binary {
         use super::*;
+        /// The kibibit unit (binary, 1024 bits).
         pub const KIBI_BIT : Unit = Unit::of(Kibi, Bit );
+        /// The mebibit unit (binary, 1024^2 bits).
         pub const MEBI_BIT : Unit = Unit::of(Mebi, Bit );
+        /// The gibibit unit (binary, 1024^3 bits).
         pub const GIBI_BIT : Unit = Unit::of(Gibi, Bit );
+        /// The tebibit unit (binary, 1024^4 bits).
         pub const TEBI_BIT : Unit = Unit::of(Tebi, Bit );
+        /// The pebibit unit (binary, 1024^5 bits).
         pub const PEBI_BIT : Unit = Unit::of(Pebi, Bit );
+        /// The exbibit unit (binary, 1024^6 bits).
         pub const EXBI_BIT : Unit = Unit::of(Exbi, Bit );
+        /// The kibibyte unit (binary, 1024 bytes).
         pub const KIBI_BYTE: Unit = Unit::of(Kibi, Byte);
+        /// The mebibyte unit (binary, 1024^2 bytes).
         pub const MEBI_BYTE: Unit = Unit::of(Mebi, Byte);
+        /// The gibibyte unit (binary, 1024^3 bytes).
         pub const GIBI_BYTE: Unit = Unit::of(Gibi, Byte);
+        /// The tebibyte unit (binary, 1024^4 bytes).
         pub const TEBI_BYTE: Unit = Unit::of(Tebi, Byte);
+        /// The pebibyte unit (binary, 1024^5 bytes).
         pub const PEBI_BYTE: Unit = Unit::of(Pebi, Byte);
+        /// The exbibyte unit (binary, 1024^6 bytes).
         pub const EXBI_BYTE: Unit = Unit::of(Exbi, Byte);
+        /// The zebibit unit (binary, 1024^7 bits).
         #[cfg(feature = "u128")] pub const ZEBI_BIT : Unit = Unit::of(Zebi, Bit );
+        /// The yobibit unit (binary, 1024^8 bits).
         #[cfg(feature = "u128")] pub const YOBI_BIT : Unit = Unit::of(Yobi, Bit );
+        /// The zebibyte unit (binary, 1024^7 bytes).
         #[cfg(feature = "u128")] pub const ZEBI_BYTE: Unit = Unit::of(Zebi, Byte);
+        /// The yobibyte unit (binary, 1024^8 bytes).
         #[cfg(feature = "u128")] pub const YOBI_BYTE: Unit = Unit::of(Yobi, Byte);
     }
 
@@ -75,6 +117,7 @@ pub mod sizes {
     pub use decimal::*;
     pub use noprefix::*;
 
+    /// All bit units, unprefixed and prefixed, ascending.
     #[rustfmt::skip]
     pub mod bits {
         pub use super::{
@@ -89,6 +132,7 @@ pub mod sizes {
         };
     }
 
+    /// All byte units, unprefixed and prefixed, ascending.
     #[rustfmt::skip]
     pub mod bytes {
         pub use super::{
@@ -103,6 +147,7 @@ pub mod sizes {
         };
     }
 
+    /// All prefixed units, both bits and bytes, ascending.
     #[rustfmt::skip]
     pub mod prefixed {
         pub use super::{
@@ -118,6 +163,7 @@ pub mod sizes {
         };
     }
 
+    /// Every unit, unprefixed and prefixed, bit and byte, ascending.
     #[rustfmt::skip]
     pub mod all {
         pub use super::{
@@ -134,8 +180,10 @@ pub mod sizes {
         };
     }
 
+    /// The unprefixed units, bit and byte, ascending.
     pub const NOPREFIX: [Unit; 2] = [BIT, BYTE];
 
+    /// All decimal units, bit and byte, ascending.
     #[rustfmt::skip]
     pub const DECIMAL: [Unit; {
         #[cfg(feature = "u128")] { 16 }
@@ -149,6 +197,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] YOTTA_BYTE,
     ];
 
+    /// All binary units, bit and byte, ascending.
     #[rustfmt::skip]
     pub const BINARY: [Unit; {
         #[cfg(feature = "u128")] { 16 }
@@ -162,6 +211,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
+    /// All bit units, unprefixed and prefixed, ascending.
     #[rustfmt::skip]
     pub const BITS: [Unit; {
         #[cfg(feature = "u128")] { 17 }
@@ -175,6 +225,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] YOBI_BIT,
     ];
 
+    /// All byte units, unprefixed and prefixed, ascending.
     #[rustfmt::skip]
     pub const BYTES: [Unit; {
         #[cfg(feature = "u128")] { 17 }
@@ -188,6 +239,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
+    /// All prefixed units, bit and byte, ascending.
     #[rustfmt::skip]
     pub const PREFIXED: [Unit; {
         #[cfg(feature = "u128")] { 32 }
@@ -206,6 +258,7 @@ pub mod sizes {
         #[cfg(feature = "u128")] YOBI_BYTE,
     ];
 
+    /// Every unit, unprefixed and prefixed, bit and byte, ascending.
     #[rustfmt::skip]
     pub const ALL: [Unit; {
         #[cfg(feature = "u128")] { 34 }
@@ -227,14 +280,17 @@ pub mod sizes {
 }
 
 impl SizeVariant {
+    /// Whether this variant is a bit.
     pub const fn is_bit(&self) -> bool {
         *self as u8 == 0
     }
 
+    /// Whether this variant is a byte.
     pub const fn is_byte(&self) -> bool {
         *self as u8 == 1
     }
 
+    /// The formatting mode implied by this variant.
     pub const fn mode(&self) -> Mode {
         if let Bit = self {
             return Mode::Bits;
@@ -242,6 +298,7 @@ impl SizeVariant {
         Mode::Default
     }
 
+    /// The short symbol for this variant ("b" or "B").
     pub const fn symbol(&self) -> &'static str {
         match self {
             Bit => "b",
@@ -249,6 +306,7 @@ impl SizeVariant {
         }
     }
 
+    /// The long-form name for this variant, respecting plurality and caps.
     pub const fn symbol_long(&self, plural: bool, caps: bool) -> &'static str {
         match self {
             Bit => match (plural, caps) {
@@ -266,6 +324,7 @@ impl SizeVariant {
         }
     }
 
+    /// The number of bits this variant represents (1 for a bit, 8 for a byte).
     pub const fn effective_value(&self) -> u8 {
         match self {
             Bit => 1,
@@ -321,14 +380,18 @@ impl From<UnitPrefix> for Unit {
 }
 
 impl Unit {
+    /// The smallest unit, an unprefixed bit.
     pub const MIN: Unit = Unit(None, Bit);
+    /// The largest unit, the highest prefix paired with a byte.
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
 
+    /// The prefix of this unit, if any.
     #[inline]
     pub const fn prefix(&self) -> Option<UnitPrefix> {
         self.0
     }
 
+    /// The bit or byte variant of this unit.
     #[inline]
     pub const fn size_variant(&self) -> SizeVariant {
         self.1
@@ -339,6 +402,7 @@ impl Unit {
         Self(Some(prefix), size_variant)
     }
 
+    /// Whether this unit uses a decimal (SI) prefix.
     pub const fn is_decimal(&self) -> bool {
         if let Some(prefix) = self.0 {
             return prefix.is_decimal();
@@ -346,6 +410,7 @@ impl Unit {
         false
     }
 
+    /// Whether this unit uses a binary (IEC) prefix.
     pub const fn is_binary(&self) -> bool {
         if let Some(prefix) = self.0 {
             return prefix.is_binary();
@@ -353,18 +418,22 @@ impl Unit {
         false
     }
 
+    /// Whether this unit carries a prefix.
     pub const fn is_prefixed(&self) -> bool {
         self.0.is_some()
     }
 
+    /// Whether this unit measures in bits.
     pub const fn is_bit(&self) -> bool {
         self.1.is_bit()
     }
 
+    /// Whether this unit measures in bytes.
     pub const fn is_byte(&self) -> bool {
         self.1.is_byte()
     }
 
+    /// The positional index of this unit's prefix (0 for unprefixed).
     pub const fn index(&self) -> usize {
         if let Some(prefix) = self.0 {
             return prefix.index() + 1;
@@ -372,6 +441,7 @@ impl Unit {
         0
     }
 
+    /// This unit with its prefix converted to the decimal system.
     pub const fn decimal(&self) -> Self {
         Self(
             match self.0 {
@@ -382,6 +452,7 @@ impl Unit {
         )
     }
 
+    /// This unit with its prefix converted to the binary system.
     pub const fn binary(&self) -> Self {
         Self(
             match self.0 {
@@ -392,14 +463,17 @@ impl Unit {
         )
     }
 
+    /// This unit with its variant switched to bits, keeping the prefix.
     pub const fn bit(&self) -> Self {
         Self(self.0, Bit)
     }
 
+    /// This unit with its variant switched to bytes, keeping the prefix.
     pub const fn byte(&self) -> Self {
         Self(self.0, Byte)
     }
 
+    /// The number of bits one of this unit represents.
     pub const fn effective_value(&self) -> Int {
         let Self(prefix, variant) = self;
         let prefix_value = match prefix {
@@ -409,6 +483,7 @@ impl Unit {
         prefix_value * variant.effective_value() as Int
     }
 
+    /// The formatting mode implied by this unit's prefix and variant.
     pub const fn mode(&self) -> Mode {
         match (self.is_decimal(), self.is_bit()) {
             (false, false) => Mode::Default,
@@ -418,6 +493,7 @@ impl Unit {
         }
     }
 
+    /// The prefix and variant symbols as a pair (for example, "K" and "B").
     pub const fn symbols(&self) -> (&'static str, &'static str) {
         let Self(prefix, variant) = self;
         let prefix = match prefix {
@@ -427,11 +503,13 @@ impl Unit {
         (prefix, variant.symbol())
     }
 
+    /// The full symbol for this unit (for example, "KB").
     pub fn symbol(&self) -> String {
         let (prefix, size_variant) = self.symbols();
         format!("{}{}", prefix, size_variant)
     }
 
+    /// The long-form prefix and variant names as a pair.
     pub const fn symbols_long(
         &self,
         plural: bool,
@@ -446,11 +524,13 @@ impl Unit {
         (prefix_symbol, variant.symbol_long(plural, single_caps))
     }
 
+    /// The full long-form name for this unit (for example, "Kilobyte").
     pub fn symbol_long(&self, plural: bool, multi_caps: bool) -> String {
         let (prefix, size_variant) = self.symbols_long(plural, multi_caps);
         format!("{}{}", prefix, size_variant)
     }
 
+    /// A single-letter symbol for this unit, favoring the prefix initial.
     // 'b', 'B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
     pub const fn symbol_condensed(&self) -> &'static str {
         match self.0 {
@@ -459,6 +539,7 @@ impl Unit {
         }
     }
 
+    /// The prefix initial and variant symbol as a pair.
     pub const fn symbols_initials(&self) -> (&'static str, &'static str) {
         let Self(prefix, variant) = self;
         let prefix = match prefix {
@@ -468,6 +549,7 @@ impl Unit {
         (prefix, variant.symbol())
     }
 
+    /// The initials symbol for this unit (for example, "KB").
     pub fn symbol_initials(&self) -> String {
         let (prefix, size_variant) = self.symbols_initials();
         format!("{}{}", prefix, size_variant)

@@ -11,45 +11,80 @@ mod flags {
     use bitflags::bitflags;
 
     bitflags! {
+        /// Which number system and denomination [`ByteSize::repr`](super::ByteSize::repr)
+        /// renders in: the prefix base (binary or decimal), the unit (bytes or
+        /// bits), and whether to prefix at all.
         #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Mode: u8 {
+            /// Binary prefixes, byte-denominated, prefixed: `1.50 MiB`.
             const Default  = 0;
+            /// Denominate in bits rather than bytes: `12 Mib`.
             const Bits     = 1 << 0;
+            /// Use decimal (power-of-1000) prefixes: `1.57 MB`.
             const Decimal  = 1 << 1;
+            /// Render in the base unit with no prefix at all.
             const NoPrefix = 1 << 2;
         }
     }
 
     bitflags! {
+        /// How a [`ByteSizeRepr`](super::ByteSizeRepr) spells its unit and
+        /// number: symbol style, pluralization, capitalization, fractions, and
+        /// spacing. The example after each flag shows its effect.
         #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Format: u16 {
-            const Default                = 0; // 1 B, 2.13 KB, 1024.43 MiB
+            /// Symbol form with the binary `i`: `1 B, 2.13 KB, 1024.43 MiB`.
+            const Default                = 0;
 
-            const Initials               = 1 << 0; // 1 B, 2.13 KB, 1024.43 MB
-            const Condensed              = 1 << 1; // 1 B, 2.13 K, 1024.43 M
-            const Long                   = 1 << 2; // 1 Byte, 2.13 KiloBytes, 1024.43 MebiBytes
+            /// Drop the binary `i` from symbols: `2.13 KB, 1024.43 MB`.
+            const Initials               = 1 << 0;
+            /// Prefix initial only, no unit letter: `2.13 K, 1024.43 M`.
+            const Condensed              = 1 << 1;
+            /// Spell the unit in full: `2.13 KiloBytes, 1024.43 MebiBytes`.
+            const Long                   = 1 << 2;
 
-            // (requires Long)
-            const NoPlural               = 1 << 3; // 1 Byte, 2.13 KiloByte, 1024.43 MebiByte
-            const ForcePlural            = 1 << 4; // 1 Bytes, 2.13 KiloBytes, 1024.43 MebiBytes
+            /// With [`Long`](Self::Long), never pluralize: `2.13 KiloByte`.
+            const NoPlural               = 1 << 3;
+            /// With [`Long`](Self::Long), always pluralize: `1 Bytes`.
+            const ForcePlural            = 1 << 4;
 
-            // (requires Long)
-            const NoMultiCaps            = 1 << 5; // 1 Byte, 2.13 Kilobytes, 1024.43 Mebibytes
+            /// With [`Long`](Self::Long), capitalize only the first letter:
+            /// `2.13 Kilobytes`.
+            const NoMultiCaps            = 1 << 5;
 
-            const LowerCaps              = 1 << 6; // 1 b, 2.13 kb, 1024.43 mib
-            const UpperCaps              = 1 << 7; // 1 B, 2.13 KB, 1024.43 MIB
+            /// Lowercase the whole unit: `2.13 kb, 1024.43 mib`.
+            const LowerCaps              = 1 << 6;
+            /// Uppercase the whole unit: `2.13 KB, 1024.43 MIB`.
+            const UpperCaps              = 1 << 7;
 
-            const NoFraction             = 1 << 8; // 1 B, 2 KB, 1024 MiB
-            const ForceFraction          = 1 << 9; // 1.00 B, 2.13 KB, 1024.43 MiB
+            /// Truncate the fractional part: `2 KB, 1024 MiB`.
+            const NoFraction             = 1 << 8;
+            /// Always show a fractional part: `1.00 B, 2.13 KB`.
+            const ForceFraction          = 1 << 9;
 
-            const ShowThousandsSeparator = 1 << 10; // 1 B, 2.13 KB, 1,024.43 MiB
-            const NoSpace                = 1 << 11; // 1B, 2.13KB, 1024.43MiB
+            /// Group the whole part in thousands: `1,024.43 MiB`.
+            const ShowThousandsSeparator = 1 << 10;
+            /// Omit the space between number and unit: `2.13KB`.
+            const NoSpace                = 1 << 11;
         }
     }
 }
 
 pub use flags::*;
 
+/// The full formatting state a [`ByteSizeRepr`] carries: the [`Format`] flags
+/// plus the numeric knobs (spacing, precision, thousands separator) that flags
+/// alone cannot express. Build one up with [`with`](ReprFormat::with).
+///
+/// ```
+/// use xbytes::prelude::*;
+///
+/// let format = ReprFormat::default()
+///     .with(Precision(4))
+///     .with(Format::ForceFraction);
+/// let repr = ByteSize::of(4096, KIBI_BYTE).repr(Mode::Default);
+/// assert_eq!(repr.with(format).to_string(), "4.0000 MiB");
+/// ```
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub struct ReprFormat {
     flags: Format,
@@ -58,8 +93,17 @@ pub struct ReprFormat {
     thousands_separator: &'static str,
 }
 
+impl Default for ReprFormat {
+    fn default() -> Self {
+        Self::const_default()
+    }
+}
+
 impl ReprFormat {
-    const fn default() -> Self {
+    /// The starting format: default flags, one space, precision two, comma
+    /// separator. A `const` sibling to the [`Default`] impl for use in `const`
+    /// contexts.
+    const fn const_default() -> Self {
         Self {
             flags: Format::Default,
             n_spaces: 1,
@@ -68,12 +112,27 @@ impl ReprFormat {
         }
     }
 
+    /// Return a copy with one more piece of configuration folded in: a
+    /// [`Format`] flag, a [`ReprConfigVariant`], or another `ReprFormat`.
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let format = ReprFormat::default().with(Format::NoSpace).with(Spaces(0));
+    /// let repr = ByteSize::of(1, MEBI_BYTE).repr(Mode::Default);
+    /// assert_eq!(repr.with(format).to_string(), "1MiB");
+    /// ```
+    #[must_use]
     pub fn with(&self, conf: impl ReprConfig) -> Self {
         conf.apply(self)
     }
 }
 
+/// A piece of configuration that can be folded into a [`ReprFormat`]. Implemented
+/// for [`Format`] flags, [`ReprConfigVariant`]s, and whole `ReprFormat`s, so
+/// [`ReprFormat::with`] and [`ByteSizeRepr::with`] accept any of them.
 pub trait ReprConfig {
+    /// Apply this configuration on top of `r_fmt`, returning the updated format.
     fn apply(&self, r_fmt: &ReprFormat) -> ReprFormat;
 }
 
@@ -92,10 +151,17 @@ impl ReprConfig for Format {
     }
 }
 
+/// The numeric formatting knobs that a plain [`Format`] flag cannot carry a
+/// value for. Pass any variant to [`ReprFormat::with`] or
+/// [`ByteSizeRepr::with`].
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum ReprConfigVariant {
+    /// The string inserted between thousands groups (default `","`), used only
+    /// when [`Format::ShowThousandsSeparator`] is set.
     ThousandsSeparator(&'static str),
+    /// Digits after the decimal point when a fraction is shown (default `2`).
     Precision(usize),
+    /// Number of spaces between the number and the unit (default `1`).
     Spaces(usize),
 }
 
@@ -128,11 +194,33 @@ macro_rules! ok_or {
     };
 }
 
+/// A byte size: an exact count of bytes (or bits, under the `bits` feature)
+/// that knows how to render itself in binary or decimal units and how to be
+/// parsed back from a string.
+///
+/// The count is stored as an [`Int`]. Arithmetic operators combine two sizes or
+/// scale a size by a scalar; construction goes through [`of`](ByteSize::of),
+/// [`from_bytes`](ByteSize::from_bytes)/[`from_bits`](ByteSize::from_bits), or
+/// [`FromStr`](core::str::FromStr).
+///
+/// ```
+/// use xbytes::prelude::*;
+///
+/// let size = ByteSize::of(2, GIBI_BYTE);
+/// assert_eq!(size.to_string(), "2 GiB");
+/// assert_eq!((size * 2).to_string(), "4 GiB");
+/// ```
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct ByteSize(Int);
 
 impl ByteSize {
-    /// Create a ByteSize from a value and unit
+    /// Build a size from a `value` (integer or float) and a [`Unit`].
+    ///
+    /// The value is scaled into the backing store and truncated to a whole
+    /// count. Under the default byte store that truncation is the one documented
+    /// rounding rule to keep in mind: a value smaller than one byte rounds down,
+    /// so `ByteSize::of(1, BIT)` is `0` bytes (0.125 truncated). Overflow
+    /// saturates rather than panicking.
     ///
     /// ```
     /// use xbytes::prelude::*;
@@ -144,6 +232,7 @@ impl ByteSize {
     /// let b = ByteSize::of(1.3, GIGA_BYTE);
     /// assert_eq!((a + b).repr(Mode::Decimal).to_string(), "2.50 GB");
     /// ```
+    #[must_use]
     pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
         let bit_value = Float::from_int(unit.effective_value());
         // With `bits` on, the store is in bits, so a byte-denominated unit is
@@ -159,12 +248,20 @@ impl ByteSize {
         ByteSize(value.to_int())
     }
 
+    /// Build a size from a raw bit count. Infallible, since bits are the store
+    /// unit under the `bits` feature. (Without `bits`, this instead returns a
+    /// [`Result`], as the bits-to-bytes division can lose precision; see the
+    /// crate-level feature notes.)
     #[inline]
     #[cfg(feature = "bits")]
+    #[must_use]
     pub const fn from_bits(value: Int) -> Self {
         Self(value)
     }
 
+    /// Build a size from a raw byte count. Fallible under the `bits` feature,
+    /// where the byte-to-bit multiply can overflow the store; returns
+    /// [`ParseError::ValueOverflow`] if it does.
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn from_bytes(value: Int) -> Result<Self, ParseError> {
@@ -174,12 +271,19 @@ impl ByteSize {
         }
     }
 
+    /// Build a size from a raw byte count. Infallible, since bytes are the store
+    /// unit without the `bits` feature. (Under `bits`, this instead returns a
+    /// [`Result`], as the byte-to-bit multiply can overflow.)
     #[inline]
     #[cfg(not(feature = "bits"))]
+    #[must_use]
     pub const fn from_bytes(value: Int) -> Self {
         Self(value)
     }
 
+    /// Build a size from a raw bit count. Fallible without the `bits` feature,
+    /// where the bit-to-byte division rounds; returns
+    /// [`ParseError::ValueOverflow`] on a store that cannot represent the count.
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
@@ -189,24 +293,37 @@ impl ByteSize {
         }
     }
 
+    /// The raw bit count. Infallible under the `bits` feature (bits are the
+    /// store unit); a [`Result`] without it, where the byte-to-bit multiply can
+    /// overflow.
     #[inline]
     #[cfg(feature = "bits")]
+    #[must_use]
     pub const fn bits(&self) -> Int {
         self.0
     }
 
+    /// The raw byte count. Fallible under the `bits` feature, where the
+    /// bit-to-byte division would round; returns [`ParseError::ValueOverflow`]
+    /// on failure.
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn bytes(&self) -> Result<Int, ParseError> {
         ok_or!(self.0.checked_div(8), ParseError::ValueOverflow)
     }
 
+    /// The raw byte count. Infallible without the `bits` feature (bytes are the
+    /// store unit); a [`Result`] under it.
     #[inline]
     #[cfg(not(feature = "bits"))]
+    #[must_use]
     pub const fn bytes(&self) -> Int {
         self.0
     }
 
+    /// The raw bit count. Fallible without the `bits` feature, where the
+    /// byte-to-bit multiply can overflow the store; returns
+    /// [`ParseError::ValueOverflow`] on failure.
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn bits(&self) -> Result<Int, ParseError> {
@@ -349,6 +466,19 @@ impl_ops!(@ { Mul::mul Div::div });
 impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
 impl_ops!(@ mut { MulAssign::mul_assign DivAssign::div_assign });
 
+/// A [`ByteSize`] rendered at a specific [`Unit`], carrying a [`ReprFormat`]
+/// that its [`Display`](core::fmt::Display) impl reads. Produced by
+/// [`ByteSize::repr`] and [`ByteSize::repr_as`]; refine its formatting with
+/// [`with`](ByteSizeRepr::with) and convert back to a [`ByteSize`] via [`From`].
+///
+/// Ordered first by unit magnitude, then by value, so `1 MiB < 1 MB`.
+///
+/// ```
+/// use xbytes::prelude::*;
+///
+/// let repr = ByteSize::of(1, MEBI_BYTE).repr(Mode::Default);
+/// assert_eq!(repr.with(Format::Long).to_string(), "1 MebiByte");
+/// ```
 #[cfg_attr(feature = "lossless", derive(Eq))]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
@@ -388,9 +518,19 @@ impl PartialOrd for ByteSizeRepr {
 
 impl ByteSizeRepr {
     const fn of(value: Float, unit: Unit) -> Self {
-        Self(value, unit, ReprFormat::default())
+        Self(value, unit, ReprFormat::const_default())
     }
 
+    /// Return a copy with more formatting folded in: a [`Format`] flag, a
+    /// [`ReprConfigVariant`], or a whole [`ReprFormat`].
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let repr = ByteSize::of(1, KILO_BYTE).repr(Mode::Decimal);
+    /// assert_eq!(repr.with(Format::Condensed | Format::NoSpace).to_string(), "1K");
+    /// ```
+    #[must_use]
     pub fn with(&self, conf: impl ReprConfig) -> Self {
         let Self(value, unit, format) = self;
         Self(*value, *unit, conf.apply(format))
