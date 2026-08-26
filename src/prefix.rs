@@ -89,7 +89,7 @@ impl UnitPrefix {
     }
 
     #[rustfmt::skip]
-    #[inline(always)]
+    #[inline]
     pub const fn effective_value(&self) -> Int {
         match self {
             Kibi => 1 << 10,   Kilo => 1000,

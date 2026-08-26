@@ -2,6 +2,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 
+use super::numeric::Numeric;
 use super::{Float, Int, ParseError, Unit, sizes};
 
 mod flags {
@@ -144,22 +145,18 @@ impl ByteSize {
     /// assert_eq!((a + b).repr(Mode::Decimal).to_string(), "2.50 GB");
     /// ```
     pub fn of(value: impl Into<Float>, unit: Unit) -> Self {
-        let u_value = exec! {
-            bits { f!(unit.effective_value()) },
-            nobits {
-                exec! {
-                    unsafe { f!(unit.effective_value()) / f!(8) },
-                    safely { saturate!(f!(unit.effective_value()).checked_div(&{ f!(8) })) }
-                }
-            }
-        };
+        let bit_value = Float::from_int(unit.effective_value());
+        // With `bits` on, the store is in bits, so a byte-denominated unit is
+        // used as-is; without it the store is in bytes, so the unit's bit value
+        // is scaled down by 8. That scale truncates below one byte, which is why
+        // `ByteSize::of(1, BIT)` rounds to zero (see the type-level docs).
+        #[cfg(feature = "bits")]
+        let unit_value = bit_value;
+        #[cfg(not(feature = "bits"))]
+        let unit_value = bit_value.saturating_div(Float::from_small(8));
 
-        let value = exec! {
-            unsafe { value.into() * f!(u_value) },
-            safely { saturate!(value.into().checked_mul(&{ f!(u_value) })) }
-        };
-
-        ByteSize(i!(value))
+        let value = value.into().saturating_mul(unit_value);
+        ByteSize(value.to_int())
     }
 
     #[inline]
@@ -216,51 +213,80 @@ impl ByteSize {
         ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
     }
 
-    #[rustfmt::skip]
+    /// Lift the stored count into the scalar domain the requested mode wants:
+    /// bits when `Mode::Bits` is set, bytes otherwise. The store's own unit is
+    /// the `bits` feature's job, so the two branches convert in opposite
+    /// directions.
     fn prep_value(&self, mode: Mode) -> Float {
-        let value = f!(self.0);
+        let value = Float::from_int(self.0);
         let wants_bits = mode.contains(Mode::Bits);
-        if exec! {
-            bits { !wants_bits },
-            nobits { wants_bits }
-        } {
-            exec! {
-                bits { value / f!(8) },
-                nobits { exec! {
-                    unsafe { value * f!(8) },
-                    safely { saturate!(value.checked_mul(&{ f!(8) })) }
-                } }
-            }
-        } else { value }
+        #[cfg(feature = "bits")]
+        let convert = !wants_bits;
+        #[cfg(not(feature = "bits"))]
+        let convert = wants_bits;
+        if !convert {
+            return value;
+        }
+        let eight = Float::from_small(8);
+        #[cfg(feature = "bits")]
+        {
+            value.saturating_div(eight)
+        }
+        #[cfg(not(feature = "bits"))]
+        {
+            value.saturating_mul(eight)
+        }
     }
 
-    #[rustfmt::skip]
+    /// Render this size at the largest prefix whose value is at least one, in
+    /// the system the `mode` selects (binary by default, decimal under
+    /// `Mode::Decimal`, bit- or byte-denominated, prefixed unless
+    /// `Mode::NoPrefix`).
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let size = ByteSize::of(1536, KIBI_BYTE);
+    /// assert_eq!(size.repr(Mode::Default).to_string(), "1.50 MiB");
+    /// assert_eq!(size.repr(Mode::Decimal).to_string(), "1.57 MB");
+    /// ```
+    #[must_use]
     pub fn repr(&self, mode: Mode) -> ByteSizeRepr {
         let as_bits = mode.contains(Mode::Bits);
         let no_prefix = mode.contains(Mode::NoPrefix);
         let as_decimal = mode.contains(Mode::Decimal);
         let mut value = self.prep_value(mode);
-        let divisor = if as_decimal { f!(1000) } else { f!(1024) };
+        let divisor = Float::from_int(if as_decimal { 1000 } else { 1024 });
         let unit_stack = if as_bits { sizes::BITS } else { sizes::BYTES };
         let max_index = if no_prefix { 0 } else { unit_stack.len() - 1 };
         let mut prefix_index = 0;
         while prefix_index < max_index && value >= divisor {
-            value /= divisor;
+            value = value.saturating_div(divisor);
             prefix_index += 2;
         }
-        if prefix_index > 0 && as_decimal { prefix_index -= 1 }
+        if prefix_index > 0 && as_decimal {
+            prefix_index -= 1;
+        }
         ByteSizeRepr::of(value, unit_stack[prefix_index])
     }
 
+    /// Render this size at one explicit unit, however large or small the
+    /// resulting number is (unlike [`repr`](ByteSize::repr), which picks the
+    /// prefix for you).
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// let size = ByteSize::of(1, GIBI_BYTE);
+    /// assert_eq!(size.repr_as(MEBI_BYTE).to_string(), "1024 MiB");
+    /// ```
+    #[must_use]
     pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
         let unit = unit.into();
-
-        let value = self.prep_value(unit.mode()) / f!(unit.effective_value());
-        let value = exec! {
-            unsafe { value * f!(8) },
-            safely { saturate!(value.checked_mul(&{ f!(8) })) }
-        };
-
+        let value = self
+            .prep_value(unit.mode())
+            .saturating_div(Float::from_int(unit.effective_value()))
+            .saturating_mul(Float::from_small(8));
         ByteSizeRepr::of(value, unit)
     }
 }
@@ -286,18 +312,12 @@ macro_rules! impl_ops {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 type Output = ByteSize;
-                // The shared body reaches a `/` through the fraction-to-int
-                // conversion in `i!`, not through operator semantics, so the
-                // `Mul` expansion trips `suspicious_arithmetic_impl` falsely.
-                #[allow(clippy::suspicious_arithmetic_impl)]
                 fn $method(self, rhs: T) -> Self::Output {
-                    let me = f!(self.0);
-                    ByteSize(
-                        i!(
-                            rhs.try_into()
-                                .map_or(me, |rhs| std::ops::$class::$method(me, f!(rhs)))
-                        ),
-                    )
+                    let me = Float::from_int(self.0);
+                    let scaled = rhs.try_into().map_or(me, |rhs| {
+                        std::ops::$class::$method(me, Float::from_int(rhs))
+                    });
+                    ByteSize(scaled.to_int())
                 }
             }
         )+
@@ -372,16 +392,15 @@ impl ByteSizeRepr {
     }
 
     pub fn with(&self, conf: impl ReprConfig) -> Self {
-        Self {
-            2: conf.apply(&self.2),
-            ..*self
-        }
+        let Self(value, unit, format) = self;
+        Self(*value, *unit, conf.apply(format))
     }
 }
 
 impl From<ByteSizeRepr> for ByteSize {
     fn from(repr: ByteSizeRepr) -> Self {
-        ByteSize::of(repr.0, repr.1)
+        let ByteSizeRepr(value, unit, _) = repr;
+        ByteSize::of(value, unit)
     }
 }
 
@@ -421,8 +440,9 @@ fn thsep(digits: &str) -> impl Iterator<Item = &str> {
 
 impl fmt::Display for ByteSizeRepr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self(repr_value, size_unit, format) = self;
         let (is_plural, has_fract);
-        let flags = self.2.flags;
+        let flags = format.flags;
 
         let value_part = {
             let (mut force_fraction, no_fraction) = (
@@ -430,8 +450,8 @@ impl fmt::Display for ByteSizeRepr {
                 flags.contains(Format::NoFraction),
             );
             let (mut value, precision) = (
-                self.0,
-                f.precision().map_or(self.2.precision, |precision| {
+                *repr_value,
+                f.precision().map_or(format.precision, |precision| {
                     force_fraction = true;
                     precision
                 }),
@@ -439,8 +459,8 @@ impl fmt::Display for ByteSizeRepr {
             if !force_fraction && no_fraction {
                 value = value.trunc();
             }
-            is_plural = !f_is_one!(value);
-            has_fract = force_fraction || !(no_fraction || f_is_zero!(value.fract()));
+            is_plural = !value.is_one();
+            has_fract = force_fraction || !(no_fraction || value.fract().is_zero());
             let mut value_part = if has_fract {
                 format!("{:#.1$}", value, precision)
             } else {
@@ -453,7 +473,7 @@ impl fmt::Display for ByteSizeRepr {
                 let mut parts = thsep(whole);
                 let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
                 whole.extend(parts.next().into_iter().chain(parts.flat_map(|s| {
-                    std::iter::once(self.2.thousands_separator).chain(std::iter::once(s))
+                    std::iter::once(format.thousands_separator).chain(std::iter::once(s))
                 })));
                 value_part = format!("{}{}", whole, fract);
             }
@@ -462,7 +482,7 @@ impl fmt::Display for ByteSizeRepr {
 
         let spaces = {
             if !flags.contains(Format::NoSpace) {
-                " ".repeat(self.2.n_spaces)
+                " ".repeat(format.n_spaces)
             } else {
                 "".to_string()
             }
@@ -486,17 +506,17 @@ impl fmt::Display for ByteSizeRepr {
             };
 
             let mut unit = if long {
-                self.1.symbol_long(
+                size_unit.symbol_long(
                     (flags.contains(Format::ForcePlural) || (sign_plus && alternate))
                         || (!flags.contains(Format::NoPlural) && (is_plural || has_fract)),
                     !flags.contains(Format::NoMultiCaps),
                 )
             } else if condensed {
-                self.1.symbol_condensed().to_string()
+                size_unit.symbol_condensed().to_string()
             } else if initials {
-                self.1.symbol_initials()
+                size_unit.symbol_initials()
             } else {
-                self.1.symbol()
+                size_unit.symbol()
             };
             if flags.contains(Format::UpperCaps) {
                 unit = unit.to_uppercase()
@@ -508,17 +528,6 @@ impl fmt::Display for ByteSizeRepr {
 
         write!(f, "{}{}{}", value_part, spaces, unit_part)
     }
-}
-
-macro_rules! parse_value {
-    ($value:expr) => {{
-        let value: &str = $value;
-        #[cfg(feature = "lossless")]
-        let val = Float::from_str(value);
-        #[cfg(not(feature = "lossless"))]
-        let val = <f64 as FromStr>::from_str(value);
-        val
-    }};
 }
 
 impl FromStr for ByteSize {
@@ -558,11 +567,11 @@ impl FromStr for ByteSize {
                     } && parts.all(|part| part.len() == 3))
                     { Err(ParseError::InvalidThousandsFormat)? };
                 }
-                parse_value!(&value.replacen(',', "", commas))
+                Float::parse(&value.replacen(',', "", commas))
             } else {
-                parse_value!(value)
+                Float::parse(value)
             }
-            .map_err(|_| ParseError::InvalidValue)?;
+            .ok_or(ParseError::InvalidValue)?;
             let unit = unit
                 .trim_start_matches(|c: char| c.is_whitespace())
                 .parse()?;
@@ -575,6 +584,31 @@ impl FromStr for ByteSize {
 mod tests {
     use super::sizes::*;
     use super::*;
+
+    /// Lift a literal into the active `Float` backend, for building fixtures.
+    macro_rules! f {
+        ($value:expr) => {{
+            #[cfg(feature = "lossless")]
+            let val = Float::from($value);
+            #[cfg(not(feature = "lossless"))]
+            let val = $value as Float;
+            val
+        }};
+    }
+
+    /// Select a fixture expression by the `bits` feature, so a test can assert
+    /// against whichever store the crate was compiled with.
+    macro_rules! exec {
+        (@ bits $expr:block) => {
+            #[cfg(feature = "bits")] break $expr
+        };
+        (@ nobits $expr:block) => {
+            #[cfg(not(feature = "bits"))] break $expr
+        };
+        ($($term:tt { $expr:expr }),+) => {
+            loop { $( exec!(@ $term { $expr }); )+ }
+        };
+    }
 
     #[test]
     fn thousands_grouping() {

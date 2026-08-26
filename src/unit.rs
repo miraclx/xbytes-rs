@@ -324,17 +324,17 @@ impl Unit {
     pub const MIN: Unit = Unit(None, Bit);
     pub const MAX: Unit = Unit::of(UnitPrefix::MAX, Byte);
 
-    #[inline(always)]
+    #[inline]
     pub const fn prefix(&self) -> Option<UnitPrefix> {
         self.0
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn size_variant(&self) -> SizeVariant {
         self.1
     }
 
-    #[inline(always)]
+    #[inline]
     const fn of(prefix: UnitPrefix, size_variant: SizeVariant) -> Self {
         Self(Some(prefix), size_variant)
     }
@@ -401,10 +401,12 @@ impl Unit {
     }
 
     pub const fn effective_value(&self) -> Int {
-        (match self.0 {
+        let Self(prefix, variant) = self;
+        let prefix_value = match prefix {
             Some(prefix) => prefix.effective_value(),
             None => 1,
-        } * self.1.effective_value() as Int)
+        };
+        prefix_value * variant.effective_value() as Int
     }
 
     pub const fn mode(&self) -> Mode {
@@ -417,13 +419,12 @@ impl Unit {
     }
 
     pub const fn symbols(&self) -> (&'static str, &'static str) {
-        (
-            match self.0 {
-                Some(prefix) => prefix.symbol(),
-                None => "",
-            },
-            self.1.symbol(),
-        )
+        let Self(prefix, variant) = self;
+        let prefix = match prefix {
+            Some(prefix) => prefix.symbol(),
+            None => "",
+        };
+        (prefix, variant.symbol())
     }
 
     pub fn symbol(&self) -> String {
@@ -436,14 +437,13 @@ impl Unit {
         plural: bool,
         multi_caps: bool,
     ) -> (&'static str, &'static str) {
-        (
-            match self.0 {
-                Some(prefix) => prefix.symbol_long(),
-                None => "",
-            },
-            self.1
-                .symbol_long(plural, !self.is_prefixed() || multi_caps),
-        )
+        let Self(prefix, variant) = self;
+        let prefix_symbol = match prefix {
+            Some(prefix) => prefix.symbol_long(),
+            None => "",
+        };
+        let single_caps = prefix.is_none() || multi_caps;
+        (prefix_symbol, variant.symbol_long(plural, single_caps))
     }
 
     pub fn symbol_long(&self, plural: bool, multi_caps: bool) -> String {
@@ -460,13 +460,12 @@ impl Unit {
     }
 
     pub const fn symbols_initials(&self) -> (&'static str, &'static str) {
-        (
-            match self.0 {
-                Some(prefix) => prefix.symbol_initials(),
-                None => "",
-            },
-            self.1.symbol(),
-        )
+        let Self(prefix, variant) = self;
+        let prefix = match prefix {
+            Some(prefix) => prefix.symbol_initials(),
+            None => "",
+        };
+        (prefix, variant.symbol())
     }
 
     pub fn symbol_initials(&self) -> String {

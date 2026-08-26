@@ -8,92 +8,6 @@ pub type Float = f64;
 #[cfg(feature = "lossless")]
 pub type Float = fraction::GenericFraction<Int>;
 
-macro_rules! f {
-    ($value:expr) => {{
-        #[cfg(feature = "lossless")]
-        let val = Float::from($value);
-        #[cfg(not(feature = "lossless"))]
-        let val = $value as Float;
-        val
-    }};
-}
-
-macro_rules! i {
-    ($value:expr) => {{
-        // Collapse a Float back to a whole byte count. Non-finite or negative
-        // states (overflow to infinity, NaN, an underflowed subtraction) are
-        // saturated rather than panicked on, per the no-panic-on-values rule:
-        // positive infinity to the maximum, everything else to zero.
-        #[cfg(feature = "lossless")]
-        let val = match $value {
-            fraction::GenericFraction::Rational(fraction::Sign::Plus, r) => r.numer() / r.denom(),
-            fraction::GenericFraction::Infinity(fraction::Sign::Plus) => Int::MAX,
-            _ => 0,
-        };
-        #[cfg(not(feature = "lossless"))]
-        let val = $value as Int;
-        val
-    }};
-}
-
-macro_rules! f_is_zero {
-    ($value:expr) => {{
-        #[cfg(feature = "lossless")]
-        let res = fraction::Zero::is_zero(&$value);
-        #[cfg(not(feature = "lossless"))]
-        let res = $value == 0.0;
-        res
-    }};
-}
-
-macro_rules! f_is_one {
-    ($value:expr) => {{
-        #[cfg(feature = "lossless")]
-        let res = fraction::One::is_one(&$value);
-        #[cfg(not(feature = "lossless"))]
-        let res = $value == 1.0;
-        res
-    }};
-}
-
-#[inline]
-#[cfg(feature = "no-panic")]
-fn get_max_saturate<T: fraction::Bounded>(_value: Option<T>) -> T {
-    T::max_value()
-}
-
-#[cfg(feature = "no-panic")]
-macro_rules! saturate {
-    ($value:expr) => {
-        match $value {
-            Some(value) => value,
-            None => $crate::get_max_saturate(None),
-        }
-    };
-}
-
-macro_rules! exec {
-    (@ safely $expr:block) => {
-        #[cfg(all(feature = "no-panic", feature = "lossless"))] {
-            #[allow(unused_imports)] use fraction::{CheckedDiv, CheckedMul};
-            break $expr
-        }
-    };
-    (@ unsafe $expr:block) => {
-        #[cfg(any(not(feature = "no-panic"), not(feature = "lossless")))]
-        break $expr
-    };
-    (@ bits $expr:block) => {
-        #[cfg(feature = "bits")] break $expr
-    };
-    (@ nobits $expr:block) => {
-        #[cfg(not(feature = "bits"))] break $expr
-    };
-    ($($term:tt { $expr:expr }),+) => {
-        loop { $( exec!(@ $term { $expr }); )+ }
-    };
-}
-
 macro_rules! bitflags_const_or {
     ($flag:ident::{$($variant:ident)|+}) => {
         bitflags_const_or!($flag::{$($flag::$variant),+})
@@ -104,6 +18,7 @@ macro_rules! bitflags_const_or {
 }
 
 mod bytesize;
+mod numeric;
 mod prefix;
 mod unit;
 
