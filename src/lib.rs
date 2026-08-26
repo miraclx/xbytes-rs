@@ -108,14 +108,14 @@ mod prefix;
 mod unit;
 
 pub mod prelude {
-    pub use super::sizes::all::*;
     pub use super::ReprConfigVariant::*;
+    pub use super::sizes::all::*;
     pub use super::{ByteSize, Format, Mode, ReprFormat};
 }
 
 pub use bytesize::{ByteSize, ByteSizeRepr, Format, Mode, ReprConfigVariant, ReprFormat};
 pub use prefix::UnitPrefix;
-pub use unit::{sizes, SizeVariant, Unit};
+pub use unit::{SizeVariant, Unit, sizes};
 
 /// The error raised when a string cannot be parsed into a [`ByteSize`],
 /// [`Unit`], [`UnitPrefix`], or [`SizeVariant`].

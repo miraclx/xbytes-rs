@@ -1,17 +1,16 @@
 [package]
 name = "xbytes"
 version = "0.1.1"
-authors = ["Miraculous Owonubi <omiraculous@gmail.com>"]
-edition = "2021"
+authors = ["Miraculous Owonubi <mira@growthmate.xyz>"]
+edition = "2024"
+rust-version = "1.85"
 description = "Convert between raw byte sizes and human readable sizes"
+documentation = "https://docs.rs/xbytes"
+readme = "README.md"
 repository = "https://github.com/miraclx/xbytes-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["bytes", "human-readable", "size", "parsing", "formatting"]
-
-[dependencies]
-bitflags = "2.4.1"
-fraction = { version = "0.14.0", optional = true }
-thiserror = "1.0"
+categories = ["value-formatting", "parsing"]
 
 [features]
 default = ["u128", "lossless", "no-panic"]
@@ -20,3 +19,8 @@ u128 = []
 lossless = ["fraction"]
 no-panic = ["lossless"]
 case-insensitive = []
+
+[dependencies]
+bitflags = "2.13"
+fraction = { version = "0.17", optional = true }
+thiserror = "2.0"

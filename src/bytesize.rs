@@ -2,7 +2,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 
-use super::{sizes, Float, Int, ParseError, Unit};
+use super::{Float, Int, ParseError, Unit, sizes};
 
 mod flags {
     #![allow(non_upper_case_globals)]
