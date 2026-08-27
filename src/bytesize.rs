@@ -1340,4 +1340,24 @@ mod tests {
             "2,68,43,54,56 KiB".parse::<ByteSize>()
         );
     }
+
+    #[test]
+    fn format_then_parse_round_trips() {
+        // A size rendered at a pinned unit and full precision parses back to the same size, so the
+        // formatter and the parser are inverse over the fluent front door.
+        for (value, unit) in [(1536, KIBI_BYTE), (58375, MEBI_BYTE), (2048, GIBI_BYTE)] {
+            let size = ByteSize::of(value, unit);
+            let text = size.iec().pin(unit).precision(10).to_string();
+            assert_eq!(
+                Ok(size),
+                text.parse::<ByteSize>(),
+                "{text:?} should parse back to its own size"
+            );
+        }
+
+        // The default Display (auto-scaled, two decimals) also round-trips for an exactly
+        // representable value.
+        let size = ByteSize::of(1536, KIBI_BYTE);
+        assert_eq!(Ok(size), size.to_string().parse::<ByteSize>());
+    }
 }

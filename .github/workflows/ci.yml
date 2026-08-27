@@ -2,31 +2,61 @@ name: CI
 
 on:
   push:
-    branches:
-    - main
   pull_request:
-    branches:
-    - main
+
+env:
+  CARGO_TERM_COLOR: always
+  # Fail on any warning, so a doc or build warning is a red build.
+  RUSTFLAGS: -D warnings
 
 jobs:
-  build:
+  # Formatting is checked with nightly rustfmt, because rustfmt.toml uses nightly-only options
+  # (group_imports, imports_granularity). It is the only step that needs nightly.
+  fmt:
+    name: rustfmt (nightly)
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Install Rust Toolchain
-      uses: actions-rs/toolchain@v1
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@nightly
       with:
-        toolchain: nightly
-        default: true
-        profile: minimal
+        components: rustfmt
+    - run: cargo +nightly fmt --check
 
-    - name: Build Debug
-      run: |
-        rustc --version
-        cargo build --verbose
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    # The pinned toolchain from rust-toolchain.toml (1.97.1), matching the sibling crates.
+    - uses: dtolnay/rust-toolchain@1.97.1
+      with:
+        components: clippy
+    - uses: Swatinem/rust-cache@v2
+    - name: clippy (default features)
+      run: cargo clippy --all-targets -- -D warnings
+    - name: clippy (all features)
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: clippy (no default features)
+      run: cargo clippy --all-targets --no-default-features -- -D warnings
 
-    - name: Run tests
-      run: cargo test --verbose
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The feature flags reshape the arithmetic backend and the API surface, so the suite runs
+        # across the meaningful combinations, not just the default set.
+        features:
+        - ''                                   # default: u128 + lossless + no-panic
+        - '--no-default-features'              # f64 backend, u64 store
+        - '--no-default-features --features u128'
+        - '--no-default-features --features lossless'
+        - '--all-features'
+        - '--features bits'
+        - '--features case-insensitive'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.97.1
+    - uses: Swatinem/rust-cache@v2
+    - name: test (${{ matrix.features || 'default' }})
+      run: cargo test --all-targets ${{ matrix.features }} && cargo test --doc ${{ matrix.features }}
