@@ -362,6 +362,36 @@ impl ByteSize {
         ok_or!(self.0.checked_mul(8), ParseError::ValueOverflow)
     }
 
+    /// The raw byte count as an [`Int`], truncating any sub-byte remainder.
+    ///
+    /// Unlike [`byte_count`](ByteSize::byte_count), whose return type flips to a [`Result`] under the
+    /// `bits` feature, this is always an infallible `const fn` returning `Int` on every feature setting.
+    /// Reach for it when a caller (especially a `const`) wants a plain byte count without caring which
+    /// store the crate was built with.
+    #[inline]
+    #[must_use]
+    pub const fn byte_count_lossy(&self) -> Int {
+        #[cfg(feature = "bits")]
+        let count = self.0 / 8;
+        #[cfg(not(feature = "bits"))]
+        let count = self.0;
+        count
+    }
+
+    /// The raw bit count as an [`Int`], saturating rather than overflowing the store.
+    ///
+    /// The infallible, feature-stable companion to [`bit_count`](ByteSize::bit_count), which returns a
+    /// [`Result`] without the `bits` feature. Always a `const fn` returning `Int`.
+    #[inline]
+    #[must_use]
+    pub const fn bit_count_lossy(&self) -> Int {
+        #[cfg(feature = "bits")]
+        let count = self.0;
+        #[cfg(not(feature = "bits"))]
+        let count = self.0.saturating_mul(8);
+        count
+    }
+
     /// Lift the stored count into the scalar domain the requested mode wants:
     /// bits when `Mode::Bits` is set, bytes otherwise. The store's own unit is
     /// the `bits` feature's job, so the two branches convert in opposite
@@ -1416,5 +1446,18 @@ mod tests {
     fn of_int_is_usable_in_a_const() {
         const FOUR_MIB: ByteSize = ByteSize::of_int(4, MEBI_BYTE);
         assert_eq!(FOUR_MIB, ByteSize::of(4, MEBI_BYTE));
+    }
+
+    #[test]
+    fn lossy_counts_are_feature_stable_infallible_ints() {
+        // byte_count/bit_count flip to a Result under the `bits` feature; the lossy pair always returns
+        // an Int, and the same value, on either store. These assertions hold with or without `bits`.
+        let size = ByteSize::of_int(4, MEBI_BYTE);
+        assert_eq!(size.byte_count_lossy(), 4 * 1024 * 1024);
+        assert_eq!(size.bit_count_lossy(), 4 * 1024 * 1024 * 8);
+
+        // Usable in a const on any feature setting, which is the point.
+        const BYTES: u64 = ByteSize::of_int(2, KIBI_BYTE).byte_count_lossy() as u64;
+        assert_eq!(BYTES, 2048);
     }
 }
