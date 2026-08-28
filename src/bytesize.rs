@@ -1434,9 +1434,11 @@ mod tests {
             (1, BYTE),
             (7, BIT), // under one byte: truncates to zero, like `of`
         ] {
+            // `of` takes an `impl Into<Float>`; without the `lossless` feature `Float` is `f64`, which
+            // has no `From<u64>`, so cast the integer for the `of` call. `of_int` takes the `Int` as is.
             assert_eq!(
                 ByteSize::of_int(value, unit),
-                ByteSize::of(value, unit),
+                ByteSize::of(value as f64, unit),
                 "of_int and of disagree for {value} {unit:?}"
             );
         }
@@ -1456,8 +1458,9 @@ mod tests {
         assert_eq!(size.byte_count_lossy(), 4 * 1024 * 1024);
         assert_eq!(size.bit_count_lossy(), 4 * 1024 * 1024 * 8);
 
-        // Usable in a const on any feature setting, which is the point.
-        const BYTES: u64 = ByteSize::of_int(2, KIBI_BYTE).byte_count_lossy() as u64;
+        // Usable in a const on any feature setting, which is the point. Typed as `Int` (not a fixed
+        // width) so no cast is needed whether the store is u64 or u128.
+        const BYTES: crate::Int = ByteSize::of_int(2, KIBI_BYTE).byte_count_lossy();
         assert_eq!(BYTES, 2048);
     }
 }
