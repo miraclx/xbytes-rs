@@ -246,6 +246,38 @@ impl ByteSize {
         ByteSize(value.to_int())
     }
 
+    /// Build a size from a whole `value` and a [`Unit`], in `const` context.
+    ///
+    /// The integer twin of [`of`](ByteSize::of): for whole inputs it produces the
+    /// exact same value, but takes an [`Int`] instead of `impl Into<Float>` so it
+    /// stays out of the float backend and can run at compile time. It cannot
+    /// express a fractional quantity like `1.5 MiB`; use [`of`](ByteSize::of) for
+    /// that. Overflow saturates and a sub-byte value truncates to zero, matching
+    /// [`of`](ByteSize::of).
+    ///
+    /// ```
+    /// use xbytes::prelude::*;
+    ///
+    /// // Runs at compile time, and equals `of` for whole inputs:
+    /// const FOUR_MIB: ByteSize = ByteSize::of_int(4, MEBI_BYTE);
+    /// assert_eq!(FOUR_MIB, ByteSize::of(4, MEBI_BYTE));
+    /// ```
+    ///
+    /// On the default byte store [`byte_count`](ByteSize::byte_count) is `const`
+    /// too, so `ByteSize::of_int(4, MEBI_BYTE).byte_count()` is a `const` byte
+    /// count with no hand-rolled `1024`.
+    #[must_use]
+    pub const fn of_int(value: Int, unit: Unit) -> Self {
+        // The unit's value in bits; the byte store scales it down by eight, the
+        // same truncating divide `of` does, so the two agree for whole inputs.
+        let bits = value.saturating_mul(unit.effective_value());
+        #[cfg(feature = "bits")]
+        let store = bits;
+        #[cfg(not(feature = "bits"))]
+        let store = bits / 8;
+        ByteSize(store)
+    }
+
     /// Build a size from a raw bit count. Infallible, since bits are the store
     /// unit under the `bits` feature. (Without `bits`, this instead returns a
     /// [`Result`], as the bits-to-bytes division can lose precision; see the
@@ -1359,5 +1391,30 @@ mod tests {
         // representable value.
         let size = ByteSize::of(1536, KIBI_BYTE);
         assert_eq!(Ok(size), size.to_string().parse::<ByteSize>());
+    }
+
+    #[test]
+    fn of_int_matches_of_for_whole_inputs() {
+        // The const integer constructor agrees with `of` across units and the sub-byte truncation, so a
+        // caller can reach for whichever fits without a value surprise.
+        for (value, unit) in [
+            (4, MEBI_BYTE),
+            (10, GIBI_BYTE),
+            (1536, KIBI_BYTE),
+            (1, BYTE),
+            (7, BIT), // under one byte: truncates to zero, like `of`
+        ] {
+            assert_eq!(
+                ByteSize::of_int(value, unit),
+                ByteSize::of(value, unit),
+                "of_int and of disagree for {value} {unit:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn of_int_is_usable_in_a_const() {
+        const FOUR_MIB: ByteSize = ByteSize::of_int(4, MEBI_BYTE);
+        assert_eq!(FOUR_MIB, ByteSize::of(4, MEBI_BYTE));
     }
 }
