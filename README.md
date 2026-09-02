@@ -1,6 +1,6 @@
 # xbytes
 
-The most complete and most correct byte-size formatter in Rust.
+Convert between raw byte counts and human-readable sizes, in both directions.
 
 [![Crates.io](https://img.shields.io/crates/v/xbytes?label=latest)](https://crates.io/crates/xbytes)
 [![Documentation](https://docs.rs/xbytes/badge.svg)](https://docs.rs/xbytes)
@@ -8,21 +8,19 @@ The most complete and most correct byte-size formatter in Rust.
 [![Dependency Status](https://deps.rs/crate/xbytes/0.1.1/status.svg)](https://deps.rs/crate/xbytes/0.1.1)
 
 xbytes turns a raw byte count into a human-readable size, and parses one back,
-with a level of control no other crate in the ecosystem offers:
+with fine control over how the size is written:
 
 - **Exact-fraction arithmetic.** Conversions run through exact rationals, not
-  `f64`, so repeated math never drifts and high precision never surfaces float
-  noise: `1.5 MiB` at 20 decimals is `1.50000000000000000000 MiB`, not
-  `1.49999999...`.
+  `f64`, so repeated math never drifts and the digits are exact: `1.5 MiB` at 20
+  decimals is `1.50000000000000000000 MiB`, not `1.49999999...`.
 - **A fully-typed `Unit`.** Prefix (SI or IEC) and variant (bit or byte) are
-  real enum-backed values, not stringly-typed guesses. `KiB` and `KB` are
-  distinct, comparable, round-trippable units.
-- **The widest formatting vocabulary anywhere.** Thousands separators, arbitrary
-  precision, long unit words, pluralization and capitalization control, bits or
-  bytes, SI or IEC, custom spacing, all composable, none reachable from any
-  competitor.
+  real enum-backed values, not strings. `KiB` and `KB` are distinct, comparable,
+  round-trippable units.
+- **A broad formatting vocabulary.** Thousands separators, arbitrary precision,
+  long unit words, pluralization and capitalization control, bits or bytes, SI or
+  IEC, custom spacing, all composable.
 
-## 30-second teach
+## Quick start
 
 ```toml
 [dependencies]
@@ -54,20 +52,23 @@ use xbytes::ByteSize;
 
 let a: ByteSize = "1,024 MiB".parse().unwrap();
 let b: ByteSize = "1 GiB".parse().unwrap();
-assert_eq!(a, b); // exact equality, no rounding
+assert_eq!(a, b);                                     // exact equality, no rounding
+assert_eq!(a.byte_count_lossy(), 1024 * 1024 * 1024); // pull the raw count back out
+
+// plain bytes have no prefix
+assert_eq!(ByteSize::of(512, BYTE).to_string(), "512 B");
 ```
 
-## Why xbytes
+## Formatting control
 
-Here is the same size rendered every way its peers can, and several ways only
-xbytes can:
+The same size, rendered several ways:
 
 ```rust
 use xbytes::prelude::*;
 
 let size = ByteSize::of(58375, MEBI_BYTE);
 
-// pin a unit and group the thousands (no other crate does this at all)
+// pin a unit and group the thousands
 assert_eq!(size.iec().pin(MEBI_BYTE).thousands().to_string(), "58,375 MiB");
 
 // any separator you like, including a multi-byte glyph, sliced on char boundaries
@@ -80,40 +81,10 @@ assert_eq!(
 );
 ```
 
-### Head to head
-
-| capability | **xbytes** | `bytesize` | `humansize` | `byte-unit` |
-|---|:--:|:--:|:--:|:--:|
-| binary (IEC) and decimal (SI) | yes | yes | yes | yes |
-| bits denomination | yes | yes | no | yes |
-| pin a fixed unit | yes | no | yes | yes |
-| arbitrary precision | yes | no (1 dp) | yes | yes |
-| force / trim trailing fraction | yes | no | yes | partial |
-| long unit words (`MebiBytes`) | yes | no | yes | no |
-| pluralization control | **yes** | no | no | no |
-| capitalization control | **yes** | no | no | no |
-| thousands separators | **yes** | no | no | no |
-| exact-fraction (drift-free) values | **yes** | no | no | no |
-
-xbytes is a strict superset of every competitor's formatting vocabulary, plus
-three capabilities no one else has: thousands separators, a plural/caps engine,
-and exact-fraction rendering.
-
-The four cases where that matters, side by side:
-
-1. **Thousands-grouped, fixed-unit output.** `58,375 MiB` with a configurable
-   separator. `bytesize`, `humansize`, and `byte-unit` cannot emit a separator
-   at all.
-2. **High precision with no float noise.** `size.iec().precision(20)` yields
-   `1.50000000000000000000 MiB` with true trailing zeros, because the value is
-   an exact fraction. The float-backed crates surface rounding artefacts here;
-   `bytesize` has no precision knob at all.
-3. **Full lexical control in one place.** `1.50 MiB`, `1.50 MB`,
-   `1.50 MebiBytes`, `1.50 Mebibytes`, `1.50 M`, or `1.50MiB` are each one
-   method call apart. No string post-processing.
-4. **Correct exact boundaries.** `1000 B` in binary mode stays `1000 B` (it does
-   not wrongly promote to `~0.98 KiB`); `1000 B` in decimal mode is `1 KB`. The
-   IEC/SI split is respected exactly.
+High precision stays exact: 20 decimals give true trailing zeros
+(`1.50000000000000000000 MiB`), because the value is an exact fraction rather
+than an `f64`. Binary and decimal boundaries stay distinct: `1000 B` stays
+`1000 B` in binary mode and becomes `1 KB` in decimal.
 
 ## The fluent API
 

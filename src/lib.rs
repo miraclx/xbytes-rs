@@ -1,17 +1,17 @@
-//! The most complete and most correct byte-size formatter in Rust.
+//! Convert between a raw byte count and a human-readable size, in both directions.
 //!
-//! xbytes turns a raw byte count into a human-readable size, and parses one
-//! back, with control no other crate in the ecosystem offers:
+//! xbytes turns a byte count into a size string (`1536 KiB` renders as `1.50 MiB`) and parses one back
+//! (`"1.5 KiB"` reads as `1536`), with fine control over how the size is written:
 //!
 //! - **Exact-fraction arithmetic.** Conversions run through exact rationals
 //!   rather than `f64` (with the default `lossless` feature), so repeated math
-//!   never drifts and high precision never surfaces float noise.
+//!   never drifts and the rendered digits are exact.
 //! - **A fully-typed [`Unit`].** Prefix (SI or IEC) and variant (bit or byte)
-//!   are enum-backed values, not stringly-typed guesses: `KiB` and `KB` are
-//!   distinct, comparable, round-trippable units.
-//! - **The widest formatting vocabulary anywhere:** thousands separators,
-//!   arbitrary precision, long unit words, pluralization and capitalization
-//!   control, bits or bytes, SI or IEC, all composable.
+//!   are enum-backed values, not strings: `KiB` and `KB` are distinct,
+//!   comparable, round-trippable units.
+//! - **A broad formatting vocabulary:** thousands separators, arbitrary
+//!   precision, long unit words, pluralization and capitalization control, bits
+//!   or bytes, SI or IEC, all composable.
 //!
 //! # The fluent front door
 //!
@@ -36,13 +36,14 @@
 //! let a: ByteSize = "1,024 MiB".parse().unwrap();
 //! let b: ByteSize = "1 GiB".parse().unwrap();
 //! assert_eq!(a, b);
+//! assert_eq!(a.byte_count_lossy(), 1024 * 1024 * 1024); // pull the raw count back out
 //! ```
 //!
 //! The [`Format`] bitflags and [`ReprConfigVariant`] knobs remain available via
 //! [`with`](ByteSizeRepr::with) for anything the refiners do not name; the
 //! refiners are the primary, documented path.
 //!
-//! # What only xbytes can render
+//! # Fine-grained formatting
 //!
 //! ```
 //! use xbytes::prelude::*;
