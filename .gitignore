@@ -1,2 +1,5 @@
 target/
 Cargo.lock
+
+# Local-only review/deliberation notes (not part of the published crate)
+/notes/
