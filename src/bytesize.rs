@@ -521,45 +521,47 @@ impl fmt::Display for ByteSize {
 }
 
 macro_rules! impl_ops {
-    ($($class:ident::$method:ident)+) => {
+    // Add/Sub on the raw byte count, saturating so a sum never wraps or panics and a difference
+    // never underflows (a size cannot go below zero, so `Sub` saturates to zero).
+    (int $($class:ident::$method:ident => $sat:ident)+) => {
         $(
             impl std::ops::$class<Self> for ByteSize {
                 type Output = ByteSize;
                 fn $method(self, rhs: Self) -> Self::Output {
-                    ByteSize(std::ops::$class::$method(self.0, rhs.0))
+                    ByteSize(Int::$sat(self.0, rhs.0))
                 }
             }
         )+
     };
-    (@ { $($class:ident::$method:ident)+ }) => {
+    (int mut $($class:ident::$method:ident => $sat:ident)+) => {
+        $(
+            impl std::ops::$class<Self> for ByteSize {
+                fn $method(&mut self, rhs: Self) {
+                    self.0 = Int::$sat(self.0, rhs.0);
+                }
+            }
+        )+
+    };
+    // Mul/Div by a scalar factor, through the saturating Float path so overflow pins to the maximum
+    // and division by zero saturates instead of returning a garbage value.
+    (float $($class:ident::$method:ident => $sat:ident)+) => {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 type Output = ByteSize;
                 fn $method(self, rhs: T) -> Self::Output {
                     let me = Float::from_int(self.0);
-                    let scaled = rhs.try_into().map_or(me, |rhs| {
-                        std::ops::$class::$method(me, Float::from_int(rhs))
-                    });
+                    let scaled = rhs.try_into().map_or(me, |rhs| me.$sat(Float::from_int(rhs)));
                     ByteSize(scaled.to_int())
                 }
             }
         )+
     };
-    (mut $($class:ident::$method:ident)+) => {
-        $(
-            impl std::ops::$class<Self> for ByteSize {
-                fn $method(&mut self, rhs: Self) {
-                    std::ops::$class::$method(&mut self.0, rhs.0)
-                }
-            }
-        )+
-    };
-    (@ mut { $($class:ident::$method:ident)+ }) => {
+    (float mut $($class:ident::$method:ident => $sat:ident)+) => {
         $(
             impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
                 fn $method(&mut self, rhs: T) {
                     if let Ok(rhs) = rhs.try_into() {
-                        std::ops::$class::$method(&mut self.0, rhs)
+                        self.0 = Float::from_int(self.0).$sat(Float::from_int(rhs)).to_int();
                     }
                 }
             }
@@ -567,10 +569,10 @@ macro_rules! impl_ops {
     };
 }
 
-impl_ops!(Add::add Sub::sub);
-impl_ops!(@ { Mul::mul Div::div });
-impl_ops!(mut AddAssign::add_assign SubAssign::sub_assign);
-impl_ops!(@ mut { MulAssign::mul_assign DivAssign::div_assign });
+impl_ops!(int Add::add => saturating_add  Sub::sub => saturating_sub);
+impl_ops!(int mut AddAssign::add_assign => saturating_add  SubAssign::sub_assign => saturating_sub);
+impl_ops!(float Mul::mul => saturating_mul  Div::div => saturating_div);
+impl_ops!(float mut MulAssign::mul_assign => saturating_mul  DivAssign::div_assign => saturating_div);
 
 /// A [`ByteSize`] rendered at a specific [`Unit`], carrying a [`ReprFormat`]
 /// that its [`Display`](core::fmt::Display) impl reads. Produced by
@@ -852,7 +854,9 @@ impl fmt::Display for ByteSizeRepr {
             is_plural = !value.is_one();
             has_fract = force_fraction || !(no_fraction || value.fract().is_zero());
             let mut value_part = if has_fract {
-                format!("{:#.1$}", value, precision)
+                // Round to `precision` places first: the exact-fraction backend's `{:#.N}` truncates,
+                // so without this it would render a less-correct digit than the f64 fallback.
+                format!("{:#.1$}", value.round_dp(precision), precision)
             } else {
                 format!("{}", value)
             };
@@ -1462,5 +1466,38 @@ mod tests {
         // width) so no cast is needed whether the store is u64 or u128.
         const BYTES: crate::Int = ByteSize::of_int(2, KIBI_BYTE).byte_count_lossy();
         assert_eq!(BYTES, 2048);
+    }
+
+    #[test]
+    fn a_fixed_precision_rounds_rather_than_truncating() {
+        // 1567 kB is 1.567 MB; at two places this must round to 1.57, not truncate to 1.56, and the
+        // string must be identical on the f64 and exact-fraction backends (CI runs both).
+        assert_eq!(
+            ByteSize::of(1567, KILO_BYTE).si().precision(2).to_string(),
+            "1.57 MB"
+        );
+        assert_eq!(
+            ByteSize::of(1567, KILO_BYTE).si().precision(0).to_string(),
+            "2 MB"
+        );
+    }
+
+    #[test]
+    fn arithmetic_saturates_instead_of_panicking() {
+        // A difference underflows to zero rather than panicking or wrapping.
+        assert_eq!(
+            ByteSize::of(1, MEGA_BYTE) - ByteSize::of(2, MEGA_BYTE),
+            ByteSize(0)
+        );
+        // A sum and a product pin to the ceiling on overflow instead of wrapping to a small value.
+        let ceiling = ByteSize(crate::Int::MAX);
+        assert_eq!(ceiling + ByteSize::of(1, BYTE), ceiling);
+        assert_eq!(ceiling * 4u64, ceiling);
+    }
+
+    #[test]
+    fn division_by_zero_saturates_to_the_ceiling() {
+        // A defined result (the maximum), not a plausible-looking garbage size and not a panic.
+        assert_eq!(ByteSize::of(1, GIBI_BYTE) / 0u64, ByteSize(crate::Int::MAX));
     }
 }

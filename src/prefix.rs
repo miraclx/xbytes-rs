@@ -43,6 +43,24 @@ pub enum UnitPrefix {
 
 use UnitPrefix::*;
 
+// `is_decimal`/`is_binary` (even discriminant) and `index` (`/ 2`) hold only while the variants stay
+// declared decimal/binary interleaved from zero. Assert that at build time so a future reorder or
+// insertion fails to compile instead of silently corrupting every conversion and the `sizes` tables.
+const _: () = {
+    let mut i = 0;
+    while i < UnitPrefix::DECIMAL.len() {
+        assert!(
+            UnitPrefix::DECIMAL[i] as u8 == (i as u8) * 2,
+            "decimal prefixes must sit at even discriminants, in ascending order"
+        );
+        assert!(
+            UnitPrefix::BINARY[i] as u8 == (i as u8) * 2 + 1,
+            "each binary prefix must follow its decimal twin at the next discriminant"
+        );
+        i += 1;
+    }
+};
+
 impl UnitPrefix {
     /// All decimal (power-of-1000) prefixes in ascending order.
     #[rustfmt::skip]

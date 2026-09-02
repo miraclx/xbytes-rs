@@ -18,7 +18,7 @@ use crate::Int;
 /// The arithmetic surface [`ByteSize`](crate::ByteSize) needs from its scalar
 /// backend, implemented uniformly by both the `f64` and the exact-fraction
 /// representations so the byte math is written once and checked everywhere.
-pub(crate) trait Numeric: Copy + PartialOrd + Sized {
+pub(crate) trait Numeric: Copy + PartialOrd + Sized + core::ops::Add<Output = Self> {
     /// Lift a backing integer into the scalar domain.
     fn from_int(value: Int) -> Self;
 
@@ -47,6 +47,25 @@ pub(crate) trait Numeric: Copy + PartialOrd + Sized {
     /// Parse a decimal string into the scalar domain, `None` if it is not a
     /// number the backend understands.
     fn parse(s: &str) -> Option<Self>;
+
+    /// Round to `precision` decimal places, half up, so formatting to a fixed
+    /// precision rounds rather than truncates. The exact-fraction backend's
+    /// `{:#.N}` formatter truncates, so without this the lossless mode would
+    /// render a less-correct digit than the `f64` fallback. Computed as
+    /// `floor(value * 10^N + 1/2) / 10^N`. When `10^N` overflows the backing
+    /// integer the precision is far beyond anything a real size carries, so the
+    /// exact value is returned untouched.
+    fn round_dp(self, precision: usize) -> Self {
+        let Some(pow) = u32::try_from(precision)
+            .ok()
+            .and_then(|exp| (10 as Int).checked_pow(exp))
+        else {
+            return self;
+        };
+        let scale = Self::from_int(pow);
+        let half = Self::from_int(1).saturating_div(Self::from_int(2));
+        Self::from_int((self.saturating_mul(scale) + half).to_int()).saturating_div(scale)
+    }
 }
 
 #[cfg(not(feature = "lossless"))]
