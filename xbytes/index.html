@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Convert between a raw byte count and a human-readable size, in both directions."><title>xbytes - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="xbytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate xbytes</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../xbytes/index.html">xbytes</a><span class="version">0.1.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#the-fluent-front-door" title="The fluent front door">The fluent front door</a></li><li><a href="#fine-grained-formatting" title="Fine-grained formatting">Fine-grained formatting</a></li><li><a href="#feature-flags" title="Feature flags">Feature flags</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>xbytes</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/xbytes/lib.rs.html#1-173">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Convert between a raw byte count and a human-readable size, in both directions.</p>
+<p>xbytes turns a byte count into a size string (<code>1536 KiB</code> renders as <code>1.50 MiB</code>) and parses one back
+(<code>"1.5 KiB"</code> reads as <code>1536</code>), with fine control over how the size is written:</p>
+<ul>
+<li><strong>Exact-fraction arithmetic.</strong> Conversions run through exact rationals
+rather than <code>f64</code> (with the default <code>lossless</code> feature), so repeated math
+never drifts and the rendered digits are exact.</li>
+<li><strong>A fully-typed <a href="struct.Unit.html" title="struct xbytes::Unit"><code>Unit</code></a>.</strong> Prefix (SI or IEC) and variant (bit or byte)
+are enum-backed values, not strings: <code>KiB</code> and <code>KB</code> are distinct,
+comparable, round-trippable units.</li>
+<li><strong>A broad formatting vocabulary:</strong> thousands separators, arbitrary
+precision, long unit words, pluralization and capitalization control, bits
+or bytes, SI or IEC, all composable.</li>
+</ul>
+<h2 id="the-fluent-front-door"><a class="doc-anchor" href="#the-fluent-front-door">§</a>The fluent front door</h2>
+<p>Build a <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a> from a number and a <a href="struct.Unit.html" title="struct xbytes::Unit"><code>Unit</code></a>, then reach for the fluent
+formatter. <a href="struct.ByteSize.html#method.iec" title="method xbytes::ByteSize::iec"><code>iec</code></a> / <a href="struct.ByteSize.html#method.si" title="method xbytes::ByteSize::si"><code>si</code></a> /
+<a href="struct.ByteSize.html#method.bits" title="method xbytes::ByteSize::bits"><code>bits</code></a> choose the number system, and the refiners on the
+returned <a href="struct.ByteSizeRepr.html" title="struct xbytes::ByteSizeRepr"><code>ByteSizeRepr</code></a> (<a href="struct.ByteSizeRepr.html#method.long" title="method xbytes::ByteSizeRepr::long"><code>long</code></a>,
+<a href="struct.ByteSizeRepr.html#method.precision" title="method xbytes::ByteSizeRepr::precision"><code>precision</code></a>,
+<a href="struct.ByteSizeRepr.html#method.separator" title="method xbytes::ByteSizeRepr::separator"><code>separator</code></a>, …) chain in any order:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>xbytes::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>size = ByteSize::of(<span class="number">1536</span>, KIBI_BYTE);
+
+<span class="macro">assert_eq!</span>(size.to_string(), <span class="string">"1.50 MiB"</span>);         <span class="comment">// Display default: IEC
+</span><span class="macro">assert_eq!</span>(size.si().to_string(), <span class="string">"1.57 MB"</span>);     <span class="comment">// decimal, auto-prefixed
+</span><span class="macro">assert_eq!</span>(size.bits().to_string(), <span class="string">"12 Mib"</span>);    <span class="comment">// denominated in bits
+</span><span class="macro">assert_eq!</span>(size.iec().long().precision(<span class="number">3</span>).to_string(), <span class="string">"1.500 MebiBytes"</span>);
+
+<span class="comment">// and back again, exactly
+</span><span class="kw">let </span>a: ByteSize = <span class="string">"1,024 MiB"</span>.parse().unwrap();
+<span class="kw">let </span>b: ByteSize = <span class="string">"1 GiB"</span>.parse().unwrap();
+<span class="macro">assert_eq!</span>(a, b);
+<span class="macro">assert_eq!</span>(a.byte_count_lossy(), <span class="number">1024 </span>* <span class="number">1024 </span>* <span class="number">1024</span>); <span class="comment">// pull the raw count back out</span></code></pre></div>
+<p>The <a href="struct.Format.html" title="struct xbytes::Format"><code>Format</code></a> bitflags and <a href="enum.ReprConfigVariant.html" title="enum xbytes::ReprConfigVariant"><code>ReprConfigVariant</code></a> knobs remain available via
+<a href="struct.ByteSizeRepr.html#method.with" title="method xbytes::ByteSizeRepr::with"><code>with</code></a> for anything the refiners do not name; the
+refiners are the primary, documented path.</p>
+<h2 id="fine-grained-formatting"><a class="doc-anchor" href="#fine-grained-formatting">§</a>Fine-grained formatting</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>xbytes::prelude::<span class="kw-2">*</span>;
+
+<span class="kw">let </span>size = ByteSize::of(<span class="number">58375</span>, MEBI_BYTE);
+
+<span class="comment">// pin a unit and group the thousands, with any separator
+</span><span class="macro">assert_eq!</span>(size.iec().pin(MEBI_BYTE).thousands().to_string(), <span class="string">"58,375 MiB"</span>);
+<span class="macro">assert_eq!</span>(size.iec().pin(MEBI_BYTE).separator(<span class="string">"_"</span>).to_string(), <span class="string">"58_375 MiB"</span>);
+
+<span class="comment">// arbitrary precision with no float noise, because the value is exact
+</span><span class="macro">assert_eq!</span>(
+    ByteSize::of(<span class="number">1536</span>, KIBI_BYTE).iec().precision(<span class="number">20</span>).to_string(),
+    <span class="string">"1.50000000000000000000 MiB"</span>,
+);</code></pre></div><h2 id="feature-flags"><a class="doc-anchor" href="#feature-flags">§</a>Feature flags</h2>
+<ul>
+<li><code>u128</code> (default): back the count with <code>u128</code> instead of <code>u64</code>, unlocking
+the zetta/yotta prefixes.</li>
+<li><code>lossless</code> (default): compute in exact fractions rather than <code>f64</code>, so
+repeated conversions do not drift.</li>
+<li><code>no-panic</code> (default): saturate arithmetic on overflow instead of relying
+on <code>f64</code>’s infinities (implies <code>lossless</code>).</li>
+<li><code>bits</code>: store the count in bits rather than bytes. This flips the return
+types of <a href="struct.ByteSize.html#method.from_bits" title="associated function xbytes::ByteSize::from_bits"><code>ByteSize::from_bits</code></a>, <a href="struct.ByteSize.html#method.from_bytes" title="associated function xbytes::ByteSize::from_bytes"><code>from_bytes</code></a>,
+<a href="struct.ByteSize.html#method.bit_count" title="method xbytes::ByteSize::bit_count"><code>bit_count</code></a> and <a href="struct.ByteSize.html#method.byte_count" title="method xbytes::ByteSize::byte_count"><code>byte_count</code></a>
+between an infallible <code>Self</code>/<a href="type.Int.html" title="type xbytes::Int"><code>Int</code></a> and a fallible <a href="https://doc.rust-lang.org/1.97.1/core/result/enum.Result.html" title="enum core::result::Result"><code>Result</code></a>, since only
+one direction can overflow. Pick one shape per dependency graph.</li>
+<li><code>case-insensitive</code>: accept units in any case (<code>kib</code>, <code>MB</code>, <code>gIb</code>) rather
+than the stricter default parser.</li>
+</ul>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="prelude/index.html" title="mod xbytes::prelude">prelude</a></dt><dd>The everyday surface: <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a>, the <a href="struct.Format.html" title="struct xbytes::Format"><code>Format</code></a>/<a href="struct.Mode.html" title="struct xbytes::Mode"><code>Mode</code></a> flags, the
+<a href="enum.ReprConfigVariant.html" title="enum xbytes::ReprConfigVariant"><code>ReprConfigVariant</code></a> builders, and every named size constant. Glob-import
+it to write <code>ByteSize::of(10, MEBI_BYTE)</code> with no further imports.</dd><dt><a class="mod" href="sizes/index.html" title="mod xbytes::sizes">sizes</a></dt><dd>Predefined size unit constants and grouped collections of them.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ByteSize.html" title="struct xbytes::ByteSize">Byte<wbr>Size</a></dt><dd>A byte size: an exact count of bytes (or bits, under the <code>bits</code> feature)
+that knows how to render itself in binary or decimal units and how to be
+parsed back from a string.</dd><dt><a class="struct" href="struct.ByteSizeRepr.html" title="struct xbytes::ByteSizeRepr">Byte<wbr>Size<wbr>Repr</a></dt><dd>A <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a> rendered at a specific <a href="struct.Unit.html" title="struct xbytes::Unit"><code>Unit</code></a>, carrying a <a href="struct.ReprFormat.html" title="struct xbytes::ReprFormat"><code>ReprFormat</code></a>
+that its <a href="https://doc.rust-lang.org/1.97.1/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> impl reads. Produced by
+<a href="struct.ByteSize.html#method.repr" title="method xbytes::ByteSize::repr"><code>ByteSize::repr</code></a> and <a href="struct.ByteSize.html#method.repr_as" title="method xbytes::ByteSize::repr_as"><code>ByteSize::repr_as</code></a>; refine its formatting with
+<a href="struct.ByteSizeRepr.html#method.with" title="method xbytes::ByteSizeRepr::with"><code>with</code></a> and convert back to a <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a> via <a href="https://doc.rust-lang.org/1.97.1/core/convert/trait.From.html" title="trait core::convert::From"><code>From</code></a>.</dd><dt><a class="struct" href="struct.Format.html" title="struct xbytes::Format">Format</a></dt><dd>How a <a href="struct.ByteSizeRepr.html" title="struct xbytes::ByteSizeRepr"><code>ByteSizeRepr</code></a> spells its unit and
+number: symbol style, pluralization, capitalization, fractions, and
+spacing. The example after each flag shows its effect.</dd><dt><a class="struct" href="struct.Mode.html" title="struct xbytes::Mode">Mode</a></dt><dd>Which number system and denomination <a href="struct.ByteSize.html#method.repr" title="method xbytes::ByteSize::repr"><code>ByteSize::repr</code></a>
+renders in: the prefix base (binary or decimal), the unit (bytes or
+bits), and whether to prefix at all.</dd><dt><a class="struct" href="struct.ReprFormat.html" title="struct xbytes::ReprFormat">Repr<wbr>Format</a></dt><dd>The full formatting state a <a href="struct.ByteSizeRepr.html" title="struct xbytes::ByteSizeRepr"><code>ByteSizeRepr</code></a> carries: the <a href="struct.Format.html" title="struct xbytes::Format"><code>Format</code></a> flags
+plus the numeric knobs (spacing, precision, thousands separator) that flags
+alone cannot express. Build one up with <a href="struct.ReprFormat.html#method.with" title="method xbytes::ReprFormat::with"><code>with</code></a>.</dd><dt><a class="struct" href="struct.Unit.html" title="struct xbytes::Unit">Unit</a></dt><dd>A size unit, an optional prefix paired with a bit or byte variant.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.ParseError.html" title="enum xbytes::ParseError">Parse<wbr>Error</a></dt><dd>The error raised when a string cannot be parsed into a <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a>,
+<a href="struct.Unit.html" title="struct xbytes::Unit"><code>Unit</code></a>, <a href="enum.UnitPrefix.html" title="enum xbytes::UnitPrefix"><code>UnitPrefix</code></a>, or <a href="enum.SizeVariant.html" title="enum xbytes::SizeVariant"><code>SizeVariant</code></a>.</dd><dt><a class="enum" href="enum.ReprConfigVariant.html" title="enum xbytes::ReprConfigVariant">Repr<wbr>Config<wbr>Variant</a></dt><dd>The numeric formatting knobs that a plain <a href="struct.Format.html" title="struct xbytes::Format"><code>Format</code></a> flag cannot carry a
+value for. Pass any variant to <a href="struct.ReprFormat.html#method.with" title="method xbytes::ReprFormat::with"><code>ReprFormat::with</code></a> or
+<a href="struct.ByteSizeRepr.html#method.with" title="method xbytes::ByteSizeRepr::with"><code>ByteSizeRepr::with</code></a>.</dd><dt><a class="enum" href="enum.SizeVariant.html" title="enum xbytes::SizeVariant">Size<wbr>Variant</a></dt><dd>The base measurement of a unit, either a bit or a byte.</dd><dt><a class="enum" href="enum.UnitPrefix.html" title="enum xbytes::UnitPrefix">Unit<wbr>Prefix</a></dt><dd>A metric (SI) or binary (IEC) unit prefix used to scale a byte size.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.Float.html" title="type xbytes::Float">Float</a></dt><dd>The scalar used for intermediate arithmetic: an exact fraction with the
+<code>lossless</code> feature (the default), plain <code>f64</code> otherwise.</dd><dt><a class="type" href="type.Int.html" title="type xbytes::Int">Int</a></dt><dd>The integer backing a <a href="struct.ByteSize.html" title="struct xbytes::ByteSize"><code>ByteSize</code></a>: <code>u128</code> with the <code>u128</code> feature (the
+default), <code>u64</code> otherwise.</dd></dl></section></div></main></body></html>
