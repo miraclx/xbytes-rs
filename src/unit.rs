@@ -1,6 +1,6 @@
-use std::cmp::{Ord, Ordering};
-use std::fmt;
-use std::str::FromStr;
+use core::cmp::Ordering;
+use core::fmt;
+use core::str::FromStr;
 
 use super::UnitPrefix::{self, *};
 use super::{Int, Mode, ParseError};
@@ -281,16 +281,19 @@ pub mod sizes {
 
 impl SizeVariant {
     /// Whether this variant is a bit.
+    #[must_use]
     pub const fn is_bit(&self) -> bool {
         *self as u8 == 0
     }
 
     /// Whether this variant is a byte.
+    #[must_use]
     pub const fn is_byte(&self) -> bool {
         *self as u8 == 1
     }
 
     /// The formatting mode implied by this variant.
+    #[must_use]
     pub const fn mode(&self) -> Mode {
         if let Bit = self {
             return Mode::Bits;
@@ -299,6 +302,7 @@ impl SizeVariant {
     }
 
     /// The short symbol for this variant ("b" or "B").
+    #[must_use]
     pub const fn symbol(&self) -> &'static str {
         match self {
             Bit => "b",
@@ -307,6 +311,7 @@ impl SizeVariant {
     }
 
     /// The long-form name for this variant, respecting plurality and caps.
+    #[must_use]
     pub const fn symbol_long(&self, plural: bool, caps: bool) -> &'static str {
         match self {
             Bit => match (plural, caps) {
@@ -325,6 +330,7 @@ impl SizeVariant {
     }
 
     /// The number of bits this variant represents (1 for a bit, 8 for a byte).
+    #[must_use]
     pub const fn effective_value(&self) -> u8 {
         match self {
             Bit => 1,
@@ -384,12 +390,14 @@ impl Unit {
 
     /// The prefix of this unit, if any.
     #[inline]
+    #[must_use]
     pub const fn prefix(&self) -> Option<UnitPrefix> {
         self.0
     }
 
     /// The bit or byte variant of this unit.
     #[inline]
+    #[must_use]
     pub const fn size_variant(&self) -> SizeVariant {
         self.1
     }
@@ -400,6 +408,7 @@ impl Unit {
     }
 
     /// Whether this unit uses a decimal (SI) prefix.
+    #[must_use]
     pub const fn is_decimal(&self) -> bool {
         if let Some(prefix) = self.0 {
             return prefix.is_decimal();
@@ -408,6 +417,7 @@ impl Unit {
     }
 
     /// Whether this unit uses a binary (IEC) prefix.
+    #[must_use]
     pub const fn is_binary(&self) -> bool {
         if let Some(prefix) = self.0 {
             return prefix.is_binary();
@@ -416,21 +426,25 @@ impl Unit {
     }
 
     /// Whether this unit carries a prefix.
+    #[must_use]
     pub const fn is_prefixed(&self) -> bool {
         self.0.is_some()
     }
 
     /// Whether this unit measures in bits.
+    #[must_use]
     pub const fn is_bit(&self) -> bool {
         self.1.is_bit()
     }
 
     /// Whether this unit measures in bytes.
+    #[must_use]
     pub const fn is_byte(&self) -> bool {
         self.1.is_byte()
     }
 
     /// The positional index of this unit's prefix (0 for unprefixed).
+    #[must_use]
     pub const fn index(&self) -> usize {
         if let Some(prefix) = self.0 {
             return prefix.index() + 1;
@@ -439,6 +453,7 @@ impl Unit {
     }
 
     /// This unit with its prefix converted to the decimal system.
+    #[must_use]
     pub const fn decimal(&self) -> Self {
         Self(
             match self.0 {
@@ -450,6 +465,7 @@ impl Unit {
     }
 
     /// This unit with its prefix converted to the binary system.
+    #[must_use]
     pub const fn binary(&self) -> Self {
         Self(
             match self.0 {
@@ -461,16 +477,19 @@ impl Unit {
     }
 
     /// This unit with its variant switched to bits, keeping the prefix.
+    #[must_use]
     pub const fn bit(&self) -> Self {
         Self(self.0, Bit)
     }
 
     /// This unit with its variant switched to bytes, keeping the prefix.
+    #[must_use]
     pub const fn byte(&self) -> Self {
         Self(self.0, Byte)
     }
 
     /// The number of bits one of this unit represents.
+    #[must_use]
     pub const fn effective_value(&self) -> Int {
         let Self(prefix, variant) = self;
         let prefix_value = match prefix {
@@ -481,6 +500,7 @@ impl Unit {
     }
 
     /// The formatting mode implied by this unit's prefix and variant.
+    #[must_use]
     pub const fn mode(&self) -> Mode {
         match (self.is_decimal(), self.is_bit()) {
             (false, false) => Mode::Default,
@@ -491,6 +511,7 @@ impl Unit {
     }
 
     /// The prefix and variant symbols as a pair (for example, "K" and "B").
+    #[must_use]
     pub const fn symbols(&self) -> (&'static str, &'static str) {
         let Self(prefix, variant) = self;
         let prefix = match prefix {
@@ -507,6 +528,7 @@ impl Unit {
     }
 
     /// The long-form prefix and variant names as a pair.
+    #[must_use]
     pub const fn symbols_long(
         &self,
         plural: bool,
@@ -529,6 +551,7 @@ impl Unit {
 
     /// A single-letter symbol for this unit, favoring the prefix initial.
     // 'b', 'B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
+    #[must_use]
     pub const fn symbol_condensed(&self) -> &'static str {
         match self.0 {
             Some(prefix) => prefix.symbol_initials(),
@@ -537,6 +560,7 @@ impl Unit {
     }
 
     /// The prefix initial and variant symbol as a pair.
+    #[must_use]
     pub const fn symbols_initials(&self) -> (&'static str, &'static str) {
         let Self(prefix, variant) = self;
         let prefix = match prefix {

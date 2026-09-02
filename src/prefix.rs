@@ -1,5 +1,5 @@
-use std::fmt;
-use std::str::FromStr;
+use core::fmt;
+use core::str::FromStr;
 
 use super::{Int, ParseError};
 
@@ -109,21 +109,25 @@ impl UnitPrefix {
     };
 
     /// Whether this is a decimal (power-of-1000) prefix.
+    #[must_use]
     pub const fn is_decimal(&self) -> bool {
         ((*self as u8) & 1) == 0
     }
 
     /// Whether this is a binary (power-of-1024) prefix.
+    #[must_use]
     pub const fn is_binary(&self) -> bool {
         ((*self as u8) & 1) == 1
     }
 
     /// The magnitude index of this prefix, so decimal and binary counterparts share one.
+    #[must_use]
     pub const fn index(&self) -> usize {
         (*self as usize) / 2
     }
 
     /// The decimal prefix of the same magnitude (returns itself if already decimal).
+    #[must_use]
     pub const fn decimal(&self) -> Self {
         if self.is_binary() {
             return Self::DECIMAL[self.index()];
@@ -132,6 +136,7 @@ impl UnitPrefix {
     }
 
     /// The binary prefix of the same magnitude (returns itself if already binary).
+    #[must_use]
     pub const fn binary(&self) -> Self {
         if self.is_decimal() {
             return Self::BINARY[self.index()];
@@ -142,6 +147,7 @@ impl UnitPrefix {
     /// The numeric multiplier this prefix represents, for converting to raw bytes.
     #[rustfmt::skip]
     #[inline]
+    #[must_use]
     pub const fn effective_value(&self) -> Int {
         match self {
             Kibi => 1 << 10,   Kilo => 1000,
@@ -159,6 +165,7 @@ impl UnitPrefix {
 
     /// The short symbol for this prefix (e.g. "K" or "Ki").
     #[rustfmt::skip]
+    #[must_use]
     pub const fn symbol(&self) -> &'static str {
         match self {
             Kilo => "K",   Kibi => "Ki",
@@ -176,6 +183,7 @@ impl UnitPrefix {
 
     /// The full name for this prefix (e.g. "Kilo" or "Kibi").
     #[rustfmt::skip]
+    #[must_use]
     pub const fn symbol_long(&self) -> &'static str {
         match self {
             Kilo => "Kilo",   Kibi => "Kibi",
@@ -193,6 +201,7 @@ impl UnitPrefix {
 
     /// The single-letter initial shared by a prefix and its counterpart (e.g. "K").
     #[rustfmt::skip]
+    #[must_use]
     pub const fn symbol_initials(&self) -> &'static str {
         match self {
             Kilo | Kibi => "K",

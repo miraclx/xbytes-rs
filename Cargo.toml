@@ -24,3 +24,13 @@ case-insensitive = []
 bitflags = "2.13"
 fraction = { version = "0.17", optional = true }
 thiserror = "2.0"
+
+# The family style contract (see STYLE.md). wildcard_imports is intentionally omitted for now: this
+# crate globs enum variants (`use UnitPrefix::*`) on purpose, so adopting that deny is a separate pass.
+[lints.rust]
+unused_must_use = "deny"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+std_instead_of_core = "warn"

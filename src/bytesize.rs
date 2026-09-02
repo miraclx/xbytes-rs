@@ -1,6 +1,5 @@
-use std::convert::TryInto;
-use std::fmt;
-use std::str::FromStr;
+use core::fmt;
+use core::str::FromStr;
 
 use super::numeric::Numeric;
 use super::{Float, Int, ParseError, Unit, sizes};
@@ -525,7 +524,7 @@ macro_rules! impl_ops {
     // never underflows (a size cannot go below zero, so `Sub` saturates to zero).
     (int $($class:ident::$method:ident => $sat:ident)+) => {
         $(
-            impl std::ops::$class<Self> for ByteSize {
+            impl core::ops::$class<Self> for ByteSize {
                 type Output = ByteSize;
                 fn $method(self, rhs: Self) -> Self::Output {
                     ByteSize(Int::$sat(self.0, rhs.0))
@@ -535,7 +534,7 @@ macro_rules! impl_ops {
     };
     (int mut $($class:ident::$method:ident => $sat:ident)+) => {
         $(
-            impl std::ops::$class<Self> for ByteSize {
+            impl core::ops::$class<Self> for ByteSize {
                 fn $method(&mut self, rhs: Self) {
                     self.0 = Int::$sat(self.0, rhs.0);
                 }
@@ -546,7 +545,7 @@ macro_rules! impl_ops {
     // and division by zero saturates instead of returning a garbage value.
     (float $($class:ident::$method:ident => $sat:ident)+) => {
         $(
-            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+            impl<T: TryInto<Int>> core::ops::$class<T> for ByteSize {
                 type Output = ByteSize;
                 fn $method(self, rhs: T) -> Self::Output {
                     let me = Float::from_int(self.0);
@@ -558,7 +557,7 @@ macro_rules! impl_ops {
     };
     (float mut $($class:ident::$method:ident => $sat:ident)+) => {
         $(
-            impl<T: TryInto<Int>> std::ops::$class<T> for ByteSize {
+            impl<T: TryInto<Int>> core::ops::$class<T> for ByteSize {
                 fn $method(&mut self, rhs: T) {
                     if let Ok(rhs) = rhs.try_into() {
                         self.0 = Float::from_int(self.0).$sat(Float::from_int(rhs)).to_int();
@@ -599,7 +598,7 @@ pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 #[cfg(feature = "lossless")]
 impl Ord for ByteSizeRepr {
     #[inline]
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         let Self(value, unit, _) = self;
         let Self(other_value, other_unit, _) = other;
         (unit, value).cmp(&(other_unit, other_value))
@@ -609,7 +608,7 @@ impl Ord for ByteSizeRepr {
 #[cfg(feature = "lossless")]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -617,7 +616,7 @@ impl PartialOrd for ByteSizeRepr {
 #[cfg(not(feature = "lossless"))]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         let Self(value, unit, _) = self;
         let Self(other_value, other_unit, _) = other;
         (unit, value).partial_cmp(&(other_unit, other_value))
@@ -813,14 +812,14 @@ fn thsep(digits: &str) -> impl Iterator<Item = &str> {
     let bounds: Vec<usize> = digits
         .char_indices()
         .map(|(offset, _)| offset)
-        .chain(std::iter::once(digits.len()))
+        .chain(core::iter::once(digits.len()))
         .collect();
     let count = bounds.len() - 1;
     let tip = count % 3;
     // Walk the boundary list in steps: a leading group of `tip` characters
     // (when the length is not a clean multiple of three) then groups of three.
     let mut start = 0;
-    std::iter::from_fn(move || {
+    core::iter::from_fn(move || {
         (start < count).then(|| {
             let size = if start == 0 && tip != 0 { tip } else { 3 };
             let (lo, hi) = (bounds[start], bounds[start + size]);
@@ -867,7 +866,7 @@ impl fmt::Display for ByteSizeRepr {
                 let mut parts = thsep(whole);
                 let mut whole = String::with_capacity(whole.len() + ((whole.len() - 1) / 3));
                 whole.extend(parts.next().into_iter().chain(parts.flat_map(|s| {
-                    std::iter::once(format.thousands_separator).chain(std::iter::once(s))
+                    core::iter::once(format.thousands_separator).chain(core::iter::once(s))
                 })));
                 value_part = format!("{}{}", whole, fract);
             }
