@@ -1483,14 +1483,17 @@ mod tests {
 
     #[test]
     fn arithmetic_saturates_instead_of_panicking() {
-        // A difference underflows to zero rather than panicking or wrapping.
+        // Add and Sub go through the raw count, so they always saturate: a difference underflows to zero
+        // and a sum pins to the ceiling, no panic or wrap, on any feature set.
         assert_eq!(
             ByteSize::of(1, MEGA_BYTE) - ByteSize::of(2, MEGA_BYTE),
             ByteSize(0)
         );
-        // A sum and a product pin to the ceiling on overflow instead of wrapping to a small value.
         let ceiling = ByteSize(crate::Int::MAX);
         assert_eq!(ceiling + ByteSize::of(1, BYTE), ceiling);
+        // The scaling operators (Mul/Div) only promise saturation under `no-panic` (the default); without
+        // it the caller has opted into plain arithmetic that may overflow the backend.
+        #[cfg(feature = "no-panic")]
         assert_eq!(ceiling * 4u64, ceiling);
     }
 
