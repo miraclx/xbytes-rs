@@ -1,7 +1,7 @@
 [package]
 name = "xbytes"
 version = "0.1.1"
-authors = ["Miraculous Owonubi <mira@growthmate.xyz>"]
+authors = ["Miraculous Owonubi <omiraculous@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
 description = "Convert between raw byte sizes and human readable sizes"
