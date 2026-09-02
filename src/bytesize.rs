@@ -32,10 +32,10 @@ mod flags {
         /// spacing. The example after each flag shows its effect.
         #[derive(Eq, Copy, Hash, Clone, Debug, Default, PartialEq)]
         pub struct Format: u16 {
-            /// Symbol form with the binary `i`: `1 B, 2.13 KB, 1024.43 MiB`.
+            /// Symbol form with the binary `i`: `1 B, 2.13 kB, 1024.43 MiB`.
             const Default                = 0;
 
-            /// Drop the binary `i` from symbols: `2.13 KB, 1024.43 MB`.
+            /// Drop the binary `i` from symbols: `2.13 kB, 1024.43 MB`.
             const Initials               = 1 << 0;
             /// Prefix initial only, no unit letter: `2.13 K, 1024.43 M`.
             const Condensed              = 1 << 1;
@@ -54,14 +54,14 @@ mod flags {
             /// Uppercase the whole unit: `2.13 KB, 1024.43 MIB`.
             const UpperCaps              = 1 << 6;
 
-            /// Truncate the fractional part: `2 KB, 1024 MiB`.
+            /// Truncate the fractional part: `2 kB, 1024 MiB`.
             const NoFraction             = 1 << 7;
-            /// Always show a fractional part: `1.00 B, 2.13 KB`.
+            /// Always show a fractional part: `1.00 B, 2.13 kB`.
             const ForceFraction          = 1 << 8;
 
             /// Group the whole part in thousands: `1,024.43 MiB`.
             const ShowThousandsSeparator = 1 << 9;
-            /// Omit the space between number and unit: `2.13KB`.
+            /// Omit the space between number and unit: `2.13kB`.
             const NoSpace                = 1 << 10;
         }
     }
@@ -776,7 +776,7 @@ impl ByteSizeRepr {
         self.with(Format::NoSpace)
     }
 
-    /// Lowercase the whole unit: `MiB` becomes `mib`, `KB` becomes `kb`.
+    /// Lowercase the whole unit: `MiB` becomes `mib`, `kB` becomes `kb`.
     ///
     /// ```
     /// use xbytes::prelude::*;

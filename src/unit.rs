@@ -510,7 +510,7 @@ impl Unit {
         }
     }
 
-    /// The prefix and variant symbols as a pair (for example, "K" and "B").
+    /// The prefix and variant symbols as a pair (for example, "k" and "B").
     #[must_use]
     pub const fn symbols(&self) -> (&'static str, &'static str) {
         let Self(prefix, variant) = self;
@@ -521,7 +521,7 @@ impl Unit {
         (prefix, variant.symbol())
     }
 
-    /// The full symbol for this unit (for example, "KB").
+    /// The full symbol for this unit (for example, "kB").
     pub fn symbol(&self) -> String {
         let (prefix, size_variant) = self.symbols();
         format!("{}{}", prefix, size_variant)
@@ -570,7 +570,7 @@ impl Unit {
         (prefix, variant.symbol())
     }
 
-    /// The initials symbol for this unit (for example, "KB").
+    /// The initials symbol for this unit (for example, "kB").
     pub fn symbol_initials(&self) -> String {
         let (prefix, size_variant) = self.symbols_initials();
         format!("{}{}", prefix, size_variant)
@@ -1131,8 +1131,8 @@ mod tests {
         //   |           |    |     |      |            |            |            |
             (BIT      , "b", "b" , "b"  , "Bit"      , "Bit"      , "Bits"     , "Bits"     ),
             (BYTE     , "B", "B" , "B"  , "Byte"     , "Byte"     , "Bytes"    , "Bytes"    ),
-            (KILO_BIT , "K", "Kb", "Kb" , "KiloBit"  , "Kilobit"  , "KiloBits" , "Kilobits" ),
-            (KILO_BYTE, "K", "KB", "KB" , "KiloByte" , "Kilobyte" , "KiloBytes", "Kilobytes"),
+            (KILO_BIT , "K", "Kb", "kb" , "KiloBit"  , "Kilobit"  , "KiloBits" , "Kilobits" ),
+            (KILO_BYTE, "K", "KB", "kB" , "KiloByte" , "Kilobyte" , "KiloBytes", "Kilobytes"),
             (MEGA_BIT , "M", "Mb", "Mb" , "MegaBit"  , "Megabit"  , "MegaBits" , "Megabits" ),
             (MEGA_BYTE, "M", "MB", "MB" , "MegaByte" , "Megabyte" , "MegaBytes", "Megabytes"),
             (GIGA_BIT , "G", "Gb", "Gb" , "GigaBit"  , "Gigabit"  , "GigaBits" , "Gigabits" ),

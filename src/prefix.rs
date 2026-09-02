@@ -7,7 +7,7 @@ use super::{Int, ParseError};
 #[rustfmt::skip]
 #[derive(Eq, Ord, Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum UnitPrefix {
-    /// The decimal kilo prefix (10^3, symbol "K").
+    /// The decimal kilo prefix (10^3, symbol "k").
     Kilo,
     /// The binary kibi prefix (2^10, symbol "Ki").
     Kibi,
@@ -163,12 +163,12 @@ impl UnitPrefix {
         }
     }
 
-    /// The short symbol for this prefix (e.g. "K" or "Ki").
+    /// The short symbol for this prefix (e.g. "k" or "Ki").
     #[rustfmt::skip]
     #[must_use]
     pub const fn symbol(&self) -> &'static str {
         match self {
-            Kilo => "K",   Kibi => "Ki",
+            Kilo => "k",   Kibi => "Ki",
             Mega => "M",   Mebi => "Mi",
             Giga => "G",   Gibi => "Gi",
             Tera => "T",   Tebi => "Ti",
@@ -453,7 +453,7 @@ mod tests {
     fn format_and_display_symbol() {
         #[rustfmt::skip]
         let map = [
-            (Kilo,   "K"), (Kibi,   "Ki"),
+            (Kilo,   "k"), (Kibi,   "Ki"),
             (Mega,   "M"), (Mebi,   "Mi"),
             (Giga,   "G"), (Gibi,   "Gi"),
             (Tera,   "T"), (Tebi,   "Ti"),
