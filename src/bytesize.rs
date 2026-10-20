@@ -1,3 +1,4 @@
+use core::cmp::Ordering;
 use core::fmt;
 use core::str::FromStr;
 
@@ -122,6 +123,29 @@ impl ReprFormat {
     #[must_use]
     pub fn with(&self, conf: impl ReprConfig) -> Self {
         conf.apply(self)
+    }
+
+    // Equality includes even inactive knobs, so representation ordering must
+    // compare all of them too, not just the flags that affect today's output.
+    fn cmp(&self, other: &Self) -> Ordering {
+        let Self {
+            flags,
+            n_spaces,
+            precision,
+            thousands_separator,
+        } = self;
+        let Self {
+            flags: other_flags,
+            n_spaces: other_n_spaces,
+            precision: other_precision,
+            thousands_separator: other_thousands_separator,
+        } = other;
+        (flags.bits(), n_spaces, precision, thousands_separator).cmp(&(
+            other_flags.bits(),
+            other_n_spaces,
+            other_precision,
+            other_thousands_separator,
+        ))
     }
 }
 
@@ -584,7 +608,9 @@ impl_ops!(float mut MulAssign::mul_assign => saturating_mul  DivAssign::div_assi
 /// [`ByteSize::repr`] and [`ByteSize::repr_as`]; refine its formatting with
 /// [`with`](ByteSizeRepr::with) and convert back to a [`ByteSize`] via [`From`].
 ///
-/// Ordered first by unit magnitude, then by value, so `1 MiB < 1 MB`.
+/// Ordered first by unit magnitude, then by value, with the full formatting
+/// configuration breaking ties. Representations with different configuration
+/// remain distinct even when that configuration does not affect their output.
 ///
 /// ```
 /// use xbytes::prelude::*;
@@ -596,25 +622,26 @@ impl_ops!(float mut MulAssign::mul_assign => saturating_mul  DivAssign::div_assi
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
-// Ordered first by unit magnitude, then by scalar value, so `1 MiB` sorts
-// below `1 MB` and `1 kB` below a larger `1 kB`. The lossless backend
-// (`GenericFraction`) is totally ordered, so `Ord` is available and
-// `partial_cmp` defers to it (the canonical, non-panicking direction); the
-// `f64` backend is only `PartialOrd`, so no `Ord` impl exists there.
+// The lossless backend (`GenericFraction`) is totally ordered, so `Ord` is
+// available and `partial_cmp` defers to it (the canonical, non-panicking
+// direction); the `f64` backend is only `PartialOrd`, so no `Ord` impl exists
+// there. Both include the same configuration that equality compares.
 #[cfg(feature = "lossless")]
 impl Ord for ByteSizeRepr {
     #[inline]
-    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        let Self(value, unit, _) = self;
-        let Self(other_value, other_unit, _) = other;
-        (unit, value).cmp(&(other_unit, other_value))
+    fn cmp(&self, other: &Self) -> Ordering {
+        let Self(value, unit, format) = self;
+        let Self(other_value, other_unit, other_format) = other;
+        (unit, value)
+            .cmp(&(other_unit, other_value))
+            .then_with(|| format.cmp(other_format))
     }
 }
 
 #[cfg(feature = "lossless")]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -622,10 +649,12 @@ impl PartialOrd for ByteSizeRepr {
 #[cfg(not(feature = "lossless"))]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        let Self(value, unit, _) = self;
-        let Self(other_value, other_unit, _) = other;
-        (unit, value).partial_cmp(&(other_unit, other_value))
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let Self(value, unit, format) = self;
+        let Self(other_value, other_unit, other_format) = other;
+        (unit, value)
+            .partial_cmp(&(other_unit, other_value))
+            .map(|order| order.then_with(|| format.cmp(other_format)))
     }
 }
 
