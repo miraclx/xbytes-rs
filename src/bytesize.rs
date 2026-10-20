@@ -306,9 +306,9 @@ impl ByteSize {
     }
 
     /// Build a size from a raw bit count. Infallible, since bits are the store
-    /// unit under the `bits` feature. (Without `bits`, this instead returns a
-    /// [`Result`], as the bits-to-bytes division can lose precision; see the
-    /// crate-level feature notes.)
+    /// unit under the `bits` feature. Without `bits`, this instead returns a
+    /// [`Result`] but currently truncates sub-byte remainders rather than
+    /// reporting precision loss; see the crate-level feature notes.
     #[inline]
     #[cfg(feature = "bits")]
     #[must_use]
@@ -338,9 +338,12 @@ impl ByteSize {
         Self(value)
     }
 
-    /// Build a size from a raw bit count. Fallible without the `bits` feature,
-    /// where the bit-to-byte division rounds; returns
-    /// [`ParseError::ValueOverflow`] on a store that cannot represent the count.
+    /// Build a size from a raw bit count, truncating any sub-byte remainder.
+    ///
+    /// Without `bits`, the signature returns a [`Result`], but currently does
+    /// not report precision loss: nonmultiples of eight are rounded down. The
+    /// existing [`ParseError`] variants cannot distinguish remainder loss from
+    /// overflow. Use only whole-byte inputs when exactness is required.
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
@@ -361,9 +364,12 @@ impl ByteSize {
         self.0
     }
 
-    /// The raw byte count. Fallible under the `bits` feature, where the
-    /// bit-to-byte division would round; returns [`ParseError::ValueOverflow`]
-    /// on failure.
+    /// The raw byte count, truncating any sub-byte remainder.
+    ///
+    /// Under `bits`, the signature returns a [`Result`], but currently does not
+    /// report precision loss: nonmultiples of eight are rounded down. The
+    /// existing [`ParseError`] variants cannot distinguish remainder loss from
+    /// overflow. Use only whole-byte sizes when exactness is required.
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn byte_count(&self) -> Result<Int, ParseError> {

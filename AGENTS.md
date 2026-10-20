@@ -47,8 +47,15 @@ Four `ByteSize` methods change **return type** on the `bits` feature (`bytesize.
 A downstream `match` compiles against every set because `ParseError`'s variant set is stable by contract
 (`lib.rs`, the case-format variants exist even where they are never produced).
 
+**A `Result` is not yet an exactness guarantee.** Byte-store `from_bits` and bit-store `byte_count`
+currently floor sub-byte remainders. Their error type has no precision-loss variant; XB-04 remains open
+for the versioned checked-conversion API phase rather than mislabelling remainder loss as overflow.
+`of_int` scales against the destination ceiling, preserving the full byte-store range without an
+intermediate bit overflow; general `of`, parsing, and the explicitly lossy counts retain truncation.
+
 `Ord` on `ByteSizeRepr` exists **only** under `lossless`; without it there is only `PartialOrd`. Ordering
-is unit magnitude first, then value, so `1 MiB < 1 MB` by construction.
+is unit magnitude first, then value, then the full representation configuration (flag bits, spacing,
+precision, separator). Even inactive configuration participates, matching representation equality.
 
 Arithmetic saturates instead of panicking, `Sub` underflowing to zero; division by zero saturates to the
 ceiling (`bytesize.rs`, `division_by_zero_saturates_to_the_ceiling`). `Mul`/`Div` take
@@ -75,9 +82,10 @@ it. `pin` rescales losslessly. Forced `1 Bytes` is not expressible by design.
 
 ## Layout
 
-No `mod.rs`. Four flat `<module>.rs`. All 68 tests live in inline `#[cfg(test)] mod tests` blocks
+No `mod.rs`. Four flat `<module>.rs`. The original 68 tests live in inline `#[cfg(test)] mod tests` blocks
 (`bytesize.rs`, `unit.rs`, `prefix.rs`); `numeric.rs` has none. That contradicts the sibling-file rule and
-is the largest hygiene debt in the crate. It is on the backlog, not a drive-by.
+is the largest hygiene debt in the crate. It is on the backlog, not a drive-by. Foundation regressions
+live separately in `tests/bytesize_tests.rs`; do not fold them into the inline blocks.
 
 `#![warn(missing_docs)]` is set at the root. Doctests are bare triple-backtick blocks; every public
 refiner carries one. CI runs `cargo test --doc` across the matrix, so a doctest that only passes on one

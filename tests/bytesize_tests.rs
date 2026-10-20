@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use xbytes::ReprConfigVariant::{Precision, Spaces, ThousandsSeparator};
 use xbytes::sizes::{BIT, BYTE, KILO_BYTE, MEBI_BYTE};
-use xbytes::{ByteSize, Format, Int, Mode, sizes};
+use xbytes::{ByteSize, Format, Int, Mode, ParseError, sizes};
 
 #[test]
 fn an_explicit_bit_unit_denominates_a_byte_once() {
@@ -94,6 +94,36 @@ fn truncating_construction_and_lossy_counts_keep_sub_byte_flooring() {
         ByteSize::of_int(Int::MAX, BIT).byte_count_lossy(),
         Int::MAX / 8
     );
+}
+
+#[test]
+fn raw_conversions_preserve_whole_bytes_and_report_real_overflow() {
+    for bytes in [0, 1, 2, Int::MAX / 8] {
+        #[cfg(feature = "bits")]
+        {
+            let size = ByteSize::from_bytes(bytes).unwrap();
+            assert_eq!(size.byte_count(), Ok(bytes));
+            assert_eq!(size.bit_count(), bytes * 8);
+            assert_eq!(ByteSize::from_bits(bytes * 8), size);
+        }
+        #[cfg(not(feature = "bits"))]
+        {
+            let size = ByteSize::from_bytes(bytes);
+            assert_eq!(size.byte_count(), bytes);
+            assert_eq!(size.bit_count(), Ok(bytes * 8));
+            assert_eq!(ByteSize::from_bits(bytes * 8), Ok(size));
+        }
+    }
+    for bytes in [Int::MAX / 8 + 1, Int::MAX] {
+        #[cfg(feature = "bits")]
+        assert_eq!(ByteSize::from_bytes(bytes), Err(ParseError::ValueOverflow));
+        #[cfg(not(feature = "bits"))]
+        {
+            let size = ByteSize::from_bytes(bytes);
+            assert_eq!(size.bit_count(), Err(ParseError::ValueOverflow));
+            assert_eq!(size.bit_count_lossy(), Int::MAX);
+        }
+    }
 }
 
 #[test]
