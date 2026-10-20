@@ -1,3 +1,4 @@
+use core::cmp::Ordering;
 use core::fmt;
 use core::str::FromStr;
 
@@ -123,6 +124,29 @@ impl ReprFormat {
     pub fn with(&self, conf: impl ReprConfig) -> Self {
         conf.apply(self)
     }
+
+    // Equality includes even inactive knobs, so representation ordering must
+    // compare all of them too, not just the flags that affect today's output.
+    fn cmp(&self, other: &Self) -> Ordering {
+        let Self {
+            flags,
+            n_spaces,
+            precision,
+            thousands_separator,
+        } = self;
+        let Self {
+            flags: other_flags,
+            n_spaces: other_n_spaces,
+            precision: other_precision,
+            thousands_separator: other_thousands_separator,
+        } = other;
+        (flags.bits(), n_spaces, precision, thousands_separator).cmp(&(
+            other_flags.bits(),
+            other_n_spaces,
+            other_precision,
+            other_thousands_separator,
+        ))
+    }
 }
 
 /// A piece of configuration that can be folded into a [`ReprFormat`]. Implemented
@@ -247,12 +271,12 @@ impl ByteSize {
 
     /// Build a size from a whole `value` and a [`Unit`], in `const` context.
     ///
-    /// The integer twin of [`of`](ByteSize::of): for whole inputs it produces the
-    /// exact same value, but takes an [`Int`] instead of `impl Into<Float>` so it
-    /// stays out of the float backend and can run at compile time. It cannot
-    /// express a fractional quantity like `1.5 MiB`; use [`of`](ByteSize::of) for
-    /// that. Overflow saturates and a sub-byte value truncates to zero, matching
-    /// [`of`](ByteSize::of).
+    /// The integer twin of [`of`](ByteSize::of): takes an [`Int`] instead of
+    /// `impl Into<Float>` so scaling stays exact up to the backing store's
+    /// ceiling and can run at compile time, without float-backend rounding.
+    /// It cannot express a fractional quantity like `1.5 MiB`; use
+    /// [`of`](ByteSize::of) for that. Overflow saturates at the destination
+    /// store's ceiling and a sub-byte remainder truncates.
     ///
     /// ```
     /// use xbytes::prelude::*;
@@ -267,20 +291,24 @@ impl ByteSize {
     /// count with no hand-rolled `1024`.
     #[must_use]
     pub const fn of_int(value: Int, unit: Unit) -> Self {
-        // The unit's value in bits; the byte store scales it down by eight, the
-        // same truncating divide `of` does, so the two agree for whole inputs.
-        let bits = value.saturating_mul(unit.effective_value());
         #[cfg(feature = "bits")]
-        let store = bits;
+        let store = value.saturating_mul(unit.effective_value());
         #[cfg(not(feature = "bits"))]
-        let store = bits / 8;
+        let store = if unit.is_bit() && !unit.is_prefixed() {
+            value / 8
+        } else {
+            // Every other unit is a whole number of bytes. Convert the factor
+            // first: saturating an intermediate bit count would discard bytes
+            // that the destination store can still represent.
+            value.saturating_mul(unit.effective_value() / 8)
+        };
         ByteSize(store)
     }
 
     /// Build a size from a raw bit count. Infallible, since bits are the store
-    /// unit under the `bits` feature. (Without `bits`, this instead returns a
-    /// [`Result`], as the bits-to-bytes division can lose precision; see the
-    /// crate-level feature notes.)
+    /// unit under the `bits` feature. Without `bits`, this instead returns a
+    /// [`Result`] but currently truncates sub-byte remainders rather than
+    /// reporting precision loss; see the crate-level feature notes.
     #[inline]
     #[cfg(feature = "bits")]
     #[must_use]
@@ -310,9 +338,12 @@ impl ByteSize {
         Self(value)
     }
 
-    /// Build a size from a raw bit count. Fallible without the `bits` feature,
-    /// where the bit-to-byte division rounds; returns
-    /// [`ParseError::ValueOverflow`] on a store that cannot represent the count.
+    /// Build a size from a raw bit count, truncating any sub-byte remainder.
+    ///
+    /// Without `bits`, the signature returns a [`Result`], but currently does
+    /// not report precision loss: nonmultiples of eight are rounded down. The
+    /// existing [`ParseError`] variants cannot distinguish remainder loss from
+    /// overflow. Use only whole-byte inputs when exactness is required.
     #[inline]
     #[cfg(not(feature = "bits"))]
     pub const fn from_bits(value: Int) -> Result<Self, ParseError> {
@@ -333,9 +364,12 @@ impl ByteSize {
         self.0
     }
 
-    /// The raw byte count. Fallible under the `bits` feature, where the
-    /// bit-to-byte division would round; returns [`ParseError::ValueOverflow`]
-    /// on failure.
+    /// The raw byte count, truncating any sub-byte remainder.
+    ///
+    /// Under `bits`, the signature returns a [`Result`], but currently does not
+    /// report precision loss: nonmultiples of eight are rounded down. The
+    /// existing [`ParseError`] variants cannot distinguish remainder loss from
+    /// overflow. Use only whole-byte sizes when exactness is required.
     #[inline]
     #[cfg(feature = "bits")]
     pub const fn byte_count(&self) -> Result<Int, ParseError> {
@@ -461,10 +495,12 @@ impl ByteSize {
     #[must_use]
     pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
         let unit = unit.into();
+        // prep_value already supplies the requested denomination; divide only
+        // by its prefix factor, not by the unit's value in bits.
+        let unit_value = unit.effective_value() / Int::from(unit.size_variant().effective_value());
         let value = self
             .prep_value(unit.mode())
-            .saturating_div(Float::from_int(unit.effective_value()))
-            .saturating_mul(Float::from_small(8));
+            .saturating_div(Float::from_int(unit_value));
         ByteSizeRepr::of(value, unit)
     }
 
@@ -578,7 +614,9 @@ impl_ops!(float mut MulAssign::mul_assign => saturating_mul  DivAssign::div_assi
 /// [`ByteSize::repr`] and [`ByteSize::repr_as`]; refine its formatting with
 /// [`with`](ByteSizeRepr::with) and convert back to a [`ByteSize`] via [`From`].
 ///
-/// Ordered first by unit magnitude, then by value, so `1 MiB < 1 MB`.
+/// Ordered first by unit magnitude, then by value, with the full formatting
+/// configuration breaking ties. Representations with different configuration
+/// remain distinct even when that configuration does not affect their output.
 ///
 /// ```
 /// use xbytes::prelude::*;
@@ -590,25 +628,26 @@ impl_ops!(float mut MulAssign::mul_assign => saturating_mul  DivAssign::div_assi
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ByteSizeRepr(Float, Unit, ReprFormat);
 
-// Ordered first by unit magnitude, then by scalar value, so `1 MiB` sorts
-// below `1 MB` and `1 kB` below a larger `1 kB`. The lossless backend
-// (`GenericFraction`) is totally ordered, so `Ord` is available and
-// `partial_cmp` defers to it (the canonical, non-panicking direction); the
-// `f64` backend is only `PartialOrd`, so no `Ord` impl exists there.
+// The lossless backend (`GenericFraction`) is totally ordered, so `Ord` is
+// available and `partial_cmp` defers to it (the canonical, non-panicking
+// direction); the `f64` backend is only `PartialOrd`, so no `Ord` impl exists
+// there. Both include the same configuration that equality compares.
 #[cfg(feature = "lossless")]
 impl Ord for ByteSizeRepr {
     #[inline]
-    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        let Self(value, unit, _) = self;
-        let Self(other_value, other_unit, _) = other;
-        (unit, value).cmp(&(other_unit, other_value))
+    fn cmp(&self, other: &Self) -> Ordering {
+        let Self(value, unit, format) = self;
+        let Self(other_value, other_unit, other_format) = other;
+        (unit, value)
+            .cmp(&(other_unit, other_value))
+            .then_with(|| format.cmp(other_format))
     }
 }
 
 #[cfg(feature = "lossless")]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -616,10 +655,12 @@ impl PartialOrd for ByteSizeRepr {
 #[cfg(not(feature = "lossless"))]
 impl PartialOrd for ByteSizeRepr {
     #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        let Self(value, unit, _) = self;
-        let Self(other_value, other_unit, _) = other;
-        (unit, value).partial_cmp(&(other_unit, other_value))
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let Self(value, unit, format) = self;
+        let Self(other_value, other_unit, other_format) = other;
+        (unit, value)
+            .partial_cmp(&(other_unit, other_value))
+            .map(|order| order.then_with(|| format.cmp(other_format)))
     }
 }
 

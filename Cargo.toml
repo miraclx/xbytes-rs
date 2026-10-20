@@ -11,6 +11,8 @@ repository = "https://github.com/miraclx/xbytes-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["bytes", "human-readable", "size", "parsing", "formatting"]
 categories = ["value-formatting", "parsing"]
+# The review record is tracked in ../craft and reached through a symlink. It is not part of the library.
+exclude = ["notes", "AGENTS.md"]
 
 [features]
 default = ["u128", "lossless", "no-panic"]

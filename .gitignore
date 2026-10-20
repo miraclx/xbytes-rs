@@ -1,5 +1,7 @@
 target/
 Cargo.lock
 
-# Local-only review/deliberation notes (not part of the published crate)
-/notes/
+# Review/deliberation notes. Tracked in ../craft, reached through a symlink, so this only has to keep
+# git from tracking the link itself. No trailing slash: that matches a directory and not a symlink.
+# Cargo.toml's `exclude` keeps the contents out of the published crate.
+/notes
