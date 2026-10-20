@@ -247,12 +247,12 @@ impl ByteSize {
 
     /// Build a size from a whole `value` and a [`Unit`], in `const` context.
     ///
-    /// The integer twin of [`of`](ByteSize::of): for whole inputs it produces the
-    /// exact same value, but takes an [`Int`] instead of `impl Into<Float>` so it
-    /// stays out of the float backend and can run at compile time. It cannot
-    /// express a fractional quantity like `1.5 MiB`; use [`of`](ByteSize::of) for
-    /// that. Overflow saturates and a sub-byte value truncates to zero, matching
-    /// [`of`](ByteSize::of).
+    /// The integer twin of [`of`](ByteSize::of): takes an [`Int`] instead of
+    /// `impl Into<Float>` so scaling stays exact up to the backing store's
+    /// ceiling and can run at compile time, without float-backend rounding.
+    /// It cannot express a fractional quantity like `1.5 MiB`; use
+    /// [`of`](ByteSize::of) for that. Overflow saturates at the destination
+    /// store's ceiling and a sub-byte remainder truncates.
     ///
     /// ```
     /// use xbytes::prelude::*;
@@ -267,13 +267,17 @@ impl ByteSize {
     /// count with no hand-rolled `1024`.
     #[must_use]
     pub const fn of_int(value: Int, unit: Unit) -> Self {
-        // The unit's value in bits; the byte store scales it down by eight, the
-        // same truncating divide `of` does, so the two agree for whole inputs.
-        let bits = value.saturating_mul(unit.effective_value());
         #[cfg(feature = "bits")]
-        let store = bits;
+        let store = value.saturating_mul(unit.effective_value());
         #[cfg(not(feature = "bits"))]
-        let store = bits / 8;
+        let store = if unit.is_bit() && !unit.is_prefixed() {
+            value / 8
+        } else {
+            // Every other unit is a whole number of bytes. Convert the factor
+            // first: saturating an intermediate bit count would discard bytes
+            // that the destination store can still represent.
+            value.saturating_mul(unit.effective_value() / 8)
+        };
         ByteSize(store)
     }
 
