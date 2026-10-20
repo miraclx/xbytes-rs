@@ -461,10 +461,12 @@ impl ByteSize {
     #[must_use]
     pub fn repr_as(&self, unit: impl Into<Unit>) -> ByteSizeRepr {
         let unit = unit.into();
+        // prep_value already supplies the requested denomination; divide only
+        // by its prefix factor, not by the unit's value in bits.
+        let unit_value = unit.effective_value() / Int::from(unit.size_variant().effective_value());
         let value = self
             .prep_value(unit.mode())
-            .saturating_div(Float::from_int(unit.effective_value()))
-            .saturating_mul(Float::from_small(8));
+            .saturating_div(Float::from_int(unit_value));
         ByteSizeRepr::of(value, unit)
     }
 
